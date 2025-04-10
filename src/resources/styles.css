@@ -1,0 +1,47 @@
+.tab-pane {
+    -fx-background-color: rgba(255, 255, 255, 0.8);
+    -fx-padding: 15;
+    -fx-background-radius: 10;
+}
+
+.button {
+    -fx-background-color: #2c3e50;
+    -fx-text-fill: white;
+    -fx-background-radius: 5;
+}
+
+.text-field, .password-field {
+    -fx-background-radius: 5;
+    -fx-padding: 5;
+    -fx-font-size: 14px;
+}
+
+.footer-text {
+    -fx-font-size: 12px;
+    -fx-text-fill: #888;
+}
+
+.message-label {
+    -fx-font-size: 14px;
+    -fx-padding: 10px;
+    -fx-font-weight: bold;
+    -fx-text-fill: green;
+}
+
+.message-label[style*="red"] {
+    -fx-text-fill: red;
+}
+
+#loginButton {
+    -fx-background-color: #1c2242;
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-pref-width: 200px;
+    -fx-pref-height: 40px;
+    -fx-cursor: hand;
+    -fx-effect: null; /* No effect by default */
+}
+
+#loginButton:hover {
+    -fx-effect: dropshadow(gaussian, black, 10, 0.8, 0, 4); /* DropShadow effect on hover */
+}

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane prefHeight="500" prefWidth="800" style="-fx-background-color: linear-gradient(to bottom, #0F1C3F, #1A2A5A);" xmlns="http://javafx.com/javafx/21.0.6" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.LoginController">
+
+    <HBox spacing="0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+
+        <!-- Left Panel (Azul Profundo con texto dorado) -->
+        <VBox fx:id="leftPane" alignment="CENTER" prefWidth="400" spacing="20" style="-fx-background-image: url('file:C:/Users/jose/eclipse-workspace/PROYECTO-3TRIMESTRE/src/Resources/background.jpg'); -fx-background-color: #0F1C3F;">
+            <Label style="-fx-font-size: 60px; -fx-font-weight: bold; -fx-effect: dropshadow(gaussian, black, 3, 0.5, 0, 0);" text="CINES JRC" textFill="#FFD700" />
+            <VBox alignment="CENTER" prefHeight="119.0" prefWidth="400.0">
+                <Label style="-fx-font-size: 14px; -fx-text-fill: #FFC107;" text="DISFRUTA DE" />
+                <Label style="-fx-font-size: 14px; -fx-text-fill: #FFC107;" text="TU MEJOR" />
+                <Label style="-fx-font-size: 14px; -fx-text-fill: #FFC107;" text="EXPERIENCIA" />
+                <Label style="-fx-font-size: 14px; -fx-text-fill: #FFC107;" text="CINEMATOGRÁFICA" />
+            </VBox>
+        </VBox>
+
+        <!-- Right Panel (Fondo azul claro con acentos dorados) -->
+        <VBox fx:id="rightPane" alignment="CENTER" prefWidth="400" spacing="15" style="-fx-background-color: #1A2A5A;">
+            <ImageView fitHeight="175.0" fitWidth="229.0" pickOnBounds="true" preserveRatio="true">
+                <image>
+                    <Image url="@../Resources/logo.png" />
+                </image>
+            </ImageView>
+
+            <Label style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #FFD700; -fx-effect: dropshadow(gaussian, black, 3, 0.5, 0, 0);" text="Iniciar Sesión" />
+
+            <VBox alignment="CENTER_LEFT" spacing="10" style="-fx-padding: 0 30 0 30;">
+                <Label style="-fx-font-weight: bold; -fx-text-fill: #FFC107; -fx-effect: dropshadow(gaussian, black, 3, 0.5, 0, 0);" text="Email (*)" />
+                <TextField fx:id="loginEmailField" promptText="Introduce tu correo electrónico..." style="-fx-pref-width: 250px; -fx-background-color: #F5F5F5;" />
+            
+                <Label style="-fx-font-weight: bold; -fx-text-fill: #FFC107; -fx-effect: dropshadow(gaussian, black, 3, 0.5, 0, 0);" text="Contraseña (*)" />
+                <PasswordField fx:id="loginPasswordField" promptText="Introduce tu contraseña..." style="-fx-pref-width: 250px; -fx-background-color: #F5F5F5;" />
+            </VBox>
+
+            <Button id="loginButton" fx:id="loginButton" onAction="#handleLogin" style="-fx-background-color: #FFD700; -fx-text-fill: #0F1C3F; -fx-font-size: 16px; -fx-font-weight: bold; -fx-pref-width: 200px; -fx-pref-height: 40px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 5, 0, 0, 1);" text="Iniciar Sesión">
+                <cursor>
+                    <Cursor fx:constant="HAND" />
+                </cursor>
+            </Button>
+
+            <Hyperlink onAction="#showRegistro" style="-fx-text-fill: #FFC107; -fx-effect: dropshadow(gaussian, black, 3, 0.5, 0, 0);" text="¿No tienes cuenta? Regístrate aquí." />
+            
+            <Label fx:id="messageLabelLogin" style="-fx-text-fill: #FF6B6B;" text="" />
+        </VBox>
+
+    </HBox>
+</AnchorPane>
