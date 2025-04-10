@@ -12,7 +12,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="500" prefWidth="800" style="-fx-background-color: linear-gradient(to bottom, #0F1C3F, #1A2A5A);" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.LoginController">
+<AnchorPane prefHeight="500" prefWidth="800" style="-fx-background-color: linear-gradient(to bottom, #0F1C3F, #1A2A5A);" xmlns="http://javafx.com/javafx/21.0.6" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.LoginController">
 
     <HBox spacing="0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
 
@@ -20,7 +20,7 @@
         <VBox fx:id="leftPane" alignment="CENTER" prefWidth="400" spacing="15" style="-fx-background-color: #1A2A5A;">
             <ImageView fitHeight="175.0" fitWidth="229.0" pickOnBounds="true" preserveRatio="true">
                 <image>
-                    <Image url="@../Resources/logo.png" />
+                    <Image url="@../resources/logo.png" />
                 </image>
             </ImageView>
 

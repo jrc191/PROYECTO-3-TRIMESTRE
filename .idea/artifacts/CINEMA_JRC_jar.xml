@@ -1,0 +1,17 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="CINEMA-JRC:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/CINEMA_JRC_jar</output-path>
+    <root id="archive" name="CINEMA-JRC.jar">
+      <element id="module-output" name="CINEMA-JRC" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../../../JDBC/ojdbc17.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../../../JAVAFX/javafx-sdk-21.0.6/lib/javafx-swt.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../../../JAVAFX/javafx-sdk-21.0.6/lib/javafx.web.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../../../JAVAFX/javafx-sdk-21.0.6/lib/javafx.base.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../../../JAVAFX/javafx-sdk-21.0.6/lib/javafx.fxml.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../../../JAVAFX/javafx-sdk-21.0.6/lib/javafx.media.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../../../JAVAFX/javafx-sdk-21.0.6/lib/javafx.swing.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../../../JAVAFX/javafx-sdk-21.0.6/lib/javafx.controls.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../../../JAVAFX/javafx-sdk-21.0.6/lib/javafx.graphics.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

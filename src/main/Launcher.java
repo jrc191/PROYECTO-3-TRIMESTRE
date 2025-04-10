@@ -12,6 +12,7 @@ public class Launcher extends Application {
     @Override
     public void start(Stage primaryStage) {
         try {
+            //inicio del programa en registro. cambiar a login.fxml si queremos que abra dessde login.fxml
             FXMLLoader loader = new FXMLLoader(getClass().getResource("../views/registro.fxml"));
             Parent root = loader.load();
 
@@ -22,7 +23,9 @@ public class Launcher extends Application {
             // Establecer el icono de la ventana
             Image icon = new Image(getClass().getResourceAsStream("../Resources/logo.png"));  
             primaryStage.getIcons().add(icon);  
-            
+
+            primaryStage.setResizable(false);
+
             primaryStage.setScene(scene);
             
             primaryStage.show();

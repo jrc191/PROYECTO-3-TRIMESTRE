@@ -2,13 +2,11 @@ package controllers;
 
 import javafx.fxml.FXML;
 import javafx.animation.FadeTransition;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.scene.Node;
+import javafx.scene.image.Image;
 import javafx.util.Duration;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -17,8 +15,8 @@ import java.sql.*;
 
 public class LoginController {
 
-	private static String usuarioLogueadoDni;
-	private static String usuarioLogueadoNombre;
+    //PARÁMETRO DEL MAIL DEL USUARIO LOGUEADO
+    private static String usuarioLogueadoEmail;
 	
 	//PARÁMETROS CONEXIÓN BBDD
     final static String USER="system";
@@ -57,7 +55,7 @@ public class LoginController {
     }
     
     
-    //MÉTODO FXML PARA MOSTRAR EL LOGIN AL HACER CLIC EN ¿Ya registrado? Inicia sesión.
+    //MÉTODO FXML PARA MOSTRAR EL LOGIN AL HACER CLIC EN "¿Ya registrado? Inicia sesión."
     @FXML
     private void showLogin() {
         try {
@@ -68,7 +66,7 @@ public class LoginController {
             LoginController controller = loader.getController();
             
             fadeInScene(root);
-            Stage stage = (Stage) dniField.getScene().getWindow();
+            Stage stage = (Stage) messageLabelRegistro.getScene().getWindow();
             controller.configureStage(stage);
             
             stage.setScene(new Scene(root));
@@ -80,7 +78,7 @@ public class LoginController {
         }
     }
 
-    //MÉTODO FXML PARA MOSTRAR EL LOGIN AL HACER CLIC EN ¿No tienes cuenta? Regístrate aquí.
+    //MÉTODO FXML PARA MOSTRAR EL LOGIN AL HACER CLIC EN "¿No tienes cuenta? Regístrate aquí."
     @FXML
     private void showRegistro() {
         try {
@@ -90,7 +88,7 @@ public class LoginController {
             LoginController controller = loader.getController();
             
             fadeInScene(root);
-            Stage stage = (Stage) loginEmailField.getScene().getWindow();
+            Stage stage = (Stage) messageLabelLogin.getScene().getWindow();
             controller.configureStage(stage);
             
             stage.setScene(new Scene(root));
@@ -100,7 +98,10 @@ public class LoginController {
             messageLabelLogin.setText("Error al cargar el formulario de registro");
         }
     }
-    
+
+    //MÉTODO ENCARGADO DE CONTROLAR EL REGISTRO. COMPRUEBA QUE TODOS LOS CAMPOS SE HAYAN INTRODUCIDO, QUE EL DNI SEA VALIDO Y NO DUPLICADO
+    //COMPROBADO TODO, USA UN MÉTODO AUXILIAR PARA REGISTRAR AL USUARIO LLAMADO REGISTROUSUARIO
+
     @FXML
     private void handleRegistro() {
         String dni = dniField.getText();
@@ -118,8 +119,6 @@ public class LoginController {
         	messageLabelRegistro.setText("El dni es inválido");
             return;
         }
-        
-        
 
         //Creamos conexion para preparar el registro
         Connection conn = conexion();
@@ -149,38 +148,65 @@ public class LoginController {
         }
     }
 
+    //MÉTODO PARA MANEJAR EL LOGIN. COMPRUEBA QUE LOS CAMPOS NO ESTÉN VACÍOS, QUE HAYA CONEXIÓN Y VALIDA QUE EL USUARIO SEA CORRECTO
+    //CON EL MÉTODO AUXILIAR VALIDAUSUARIO
     @FXML
     private void handleLogin() {
-        String email = emailField.getText();
-        String password = passwordField.getText();
+        String email = loginEmailField.getText();
+        String password = loginPasswordField.getText();
 
-        //Hacemos que todos los campos sean obligatorios
+        // Hacemos que todos los campos sean obligatorios
         if (email.isEmpty() || password.isEmpty()) {
             messageLabelLogin.setText("Todos los campos son obligatorios");
             return;
         }
 
-        //Comprobamos que haya conexion o no
+        // Comprobamos que haya conexión o no
         if (!checkConexion()) {
             messageLabelLogin.setText("Error de conexión a la base de datos");
             messageLabelLogin.setStyle("-fx-text-fill: red;");
-
         } else {
-
-            //Validamos el usuario
+            // Validamos el usuario
             boolean success = validarUsuario(email, password);
 
             if (success) {
-                messageLabelRegistro.setText("Login exitoso!");
-                messageLabelRegistro.setStyle("-fx-text-fill: green;");
+                messageLabelLogin.setText("Login exitoso!");
+                messageLabelLogin.setStyle("-fx-text-fill: green;");
+
+                LoginController.setUsuarioLogueado(email);
+
+                try {
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("../views/cartelera.fxml"));
+                    Parent root = loader.load();
+
+                    // Obtener el Stage actual
+                    Stage stage = (Stage) loginEmailField.getScene().getWindow();
+
+                    // Crear una nueva escena
+                    Scene scene = new Scene(root);
+                    scene.getStylesheets().add(getClass().getResource("../Resources/styles.css").toExternalForm());
+                    stage.setTitle("CINES JRC");
+
+                    // Establecer el icono de la ventana
+                    Image icon = new Image(getClass().getResourceAsStream("../Resources/logo.png"));
+                    stage.getIcons().add(icon);
+
+                    // Cambiar la escena
+                    stage.setScene(scene);
+                    stage.show();
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    messageLabelLogin.setText("Error al cargar la nueva vista.");
+                    messageLabelLogin.setStyle("-fx-text-fill: red;");
+                }
             } else {
-                messageLabelRegistro.setText("Error en el login. Inténtelo nuevamente.");
-                messageLabelRegistro.setStyle("-fx-text-fill: red;");
+                messageLabelLogin.setText("Error en el login. Inténtelo nuevamente.");
+                messageLabelLogin.setStyle("-fx-text-fill: red;");
             }
-
-
         }
     }
+
 
     //método para devolver conexión
     public static Connection conexion() {
@@ -290,7 +316,8 @@ public class LoginController {
     
     //método para comprobar si el dni es válido
     private static boolean dniValido(String dni) {
-    	
+
+        //ORDEN DE LAS LETRAS DEL DNI. SEGÚN EL RESULTADO DE LA DIVISIÓN DEL Nº DEL DNI, SE ASIGNA UNA LETRA U OTRA
     	final String LETRAS_DNI = "TRWAGMYFPDXBNJZSQVHLCKE";
     	
     	//si es nulo o no cumple los requisitos:
@@ -329,24 +356,18 @@ public class LoginController {
         }
         return existe;
     }
-    
-    //para cerrar sesión. se usan en el controlador de la cartelera
-    public static void cerrarSesion() {
-        usuarioLogueadoDni = null;
-        usuarioLogueadoNombre = null;
-    }
-    
-    // Métodos para acceder a la información del usuario logueado
-    public static String getUsuarioLogueadoDni() {
-        return usuarioLogueadoDni;
+
+    public static String getUsuarioLogueadoEmail() {
+
+        return usuarioLogueadoEmail;
     }
 
-    public static String getUsuarioLogueadoNombre() {
-        return usuarioLogueadoNombre;
+    public static void setUsuarioLogueado(String email) {
+        usuarioLogueadoEmail = email;
     }
 
     //objeto usuario con los campos necesitados para mantener la sesión
-    class Usuario {
+    static class Usuario {
         private String dni;
         private String nombre;
         private String email;
@@ -361,5 +382,6 @@ public class LoginController {
         public String getDni() { return dni; }
         public String getNombre() { return nombre; }
         public String getEmail() { return email; }
+
     }
 }
