@@ -12,7 +12,7 @@ public class Launcher extends Application {
     @Override
     public void start(Stage primaryStage) {
         try {
-            //inicio del programa en registro. cambiar a login.fxml si queremos que abra dessde login.fxml
+            //inicio del programa en registro. cambiar a login.fxml si queremos que abra desde login.fxml
             FXMLLoader loader = new FXMLLoader(getClass().getResource("../views/registro.fxml"));
             Parent root = loader.load();
 

@@ -3,6 +3,7 @@ package controllers;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -14,6 +15,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+import javax.swing.text.Position;
 import java.io.IOException;
 import java.sql.*;
 import java.time.LocalDate;
@@ -24,6 +26,7 @@ import static controllers.LoginController.*;
 
 public class CarteleraController {
 
+    //Parámetro email usuario logueado del LoginController
     private static String emailUsuarioLogueado = getUsuarioLogueadoEmail();
 
     @FXML
@@ -45,7 +48,11 @@ public class CarteleraController {
     public void initialize() {
 
         //POR FIN, para quitar la puñetera línea blanca de la derecha (2 horas con esto, no es broma)
-        scrollEspectaculos.setStyle("-fx-background: #1c2242; -fx-background-color: #1c2242;");
+        scrollEspectaculos.setStyle("-fx-background: #1c2242; -fx-background-color: #1c2242; ");
+        scrollEspectaculos.setFitToWidth(true);
+
+        // Habilitar scroll inicialmente
+        habilitarScroll(true);
 
         //creamos el label para usarlo después en caso de ser necesario
         if (mensajeLabel == null) {
@@ -87,7 +94,15 @@ public class CarteleraController {
 
     }
 
+    //Para habilitar el carrusel cuando es necesario (cuando hay resultados). Cuando no los hay, deshabilitarlo
+    private void habilitarScroll(boolean habilitar) {
 
+        izquierdaBtn.setVisible(habilitar);
+        derechaBtn.setVisible(habilitar);
+
+        // true : habilita el arrastrar con ratón, false : deshabilita el arrastrar con ratón. False cuando no hay resultados, true cuando los hay.
+        scrollEspectaculos.setPannable(habilitar);
+    }
 
     private void cargarEspectaculos() {
         cargarEspectaculos(null); // Cargamos todo por defecto
@@ -97,6 +112,8 @@ public class CarteleraController {
     private void cargarEspectaculos(String nombreFiltro) {
         contenedorEspectaculos.getChildren().clear(); // Borramos el contenido para filtrar en caso de que haya filtros previos
 
+        scrollEspectaculos.setHvalue(0); // Reseteo del scroll a la izquierda
+
         List<Espectaculo> espectaculos;
         //si no se introduce filtro, llamamos al método sin filtro
         if (nombreFiltro == null || nombreFiltro.isEmpty()) {
@@ -105,16 +122,36 @@ public class CarteleraController {
             espectaculos = obtenerDatosDesdeOracle(nombreFiltro);
         }
 
+        habilitarScroll(false); //deshabilitamos el carrusel cuando está vacío
+
         //si después de cargar los espectáculos no hay resultados, mostramos el mensaje de error que no se han encontrado
         if (espectaculos.isEmpty()) {
+
             if (nombreFiltro != null && !nombreFiltro.isEmpty()) {
+                //mostramos mensaje de que no se han encontrado resultados
                 mensajeLabel.setVisible(true);
                 mensajeLabel.setText("No se encontraron espectáculos con el nombre: '" + nombreFiltro + "'");
+                mensajeLabel.setStyle("-fx-text-fill: red; -fx-font-size: 16px;");
+                mensajeLabel.setAlignment(Pos.CENTER);
+
+                //para centrar el mensaje
+                VBox contenedorMensaje = new VBox(mensajeLabel);
+                contenedorMensaje.setAlignment(Pos.CENTER);
+                contenedorMensaje.setPrefHeight(scrollEspectaculos.getHeight());
+                contenedorMensaje.setPrefWidth(scrollEspectaculos.getWidth());
+
+                // Añadir el contenedor del mensaje contenedor de espectaculos
+                contenedorEspectaculos.getChildren().add(contenedorMensaje);
             }
         } else {
+
             //si encuentra resultados, los muestra
             for (Espectaculo esp : espectaculos) {
                 contenedorEspectaculos.getChildren().add(crearTarjetaEspectaculo(esp));
+            }
+
+            if (contenedorEspectaculos.getChildren().size()>2){
+                habilitarScroll(true); //habilitamos el carrusel cuando hay más de 2 resultados
             }
         }
     }
@@ -214,7 +251,7 @@ public class CarteleraController {
         nombre.setStyle("-fx-font-weight: bold; -fx-text-fill: white; -fx-font-size: 16;");
 
         Label fecha = new Label("Fecha: " + esp.getFecha());
-        Label precioBase = new Label("Precio base: $" + esp.getPrecioBase()+" €");
+        Label precioBase = new Label("Precio base: " + esp.getPrecioBase()+" €");
         Label precioVip = new Label("Precio VIP: " + esp.getPrecioVip()+" €");
         fecha.setStyle("-fx-text-fill: #a0a0a0;");
         precioBase.setStyle("-fx-text-fill: #e0e0e0;");
@@ -260,6 +297,8 @@ public class CarteleraController {
 
     //A IMPLEMENTAR
     public void filtrarPorFecha(ActionEvent actionEvent) {
+
+
     }
 
     //método para filtrar por nombre. usa el método auxiliar sobrecargado de cargarEspectaculos con parámetro de filtro para filtrar
@@ -272,6 +311,7 @@ public class CarteleraController {
     public void mostrarTodas(ActionEvent actionEvent) {
         filtroNombreField.clear();
         mensajeLabel.setVisible(false);
+        habilitarScroll(true); // habilitamos el scroll cuando se muestren todos los espectaculos.
         cargarEspectaculos();
     }
 
