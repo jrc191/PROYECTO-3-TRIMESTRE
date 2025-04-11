@@ -46,7 +46,8 @@ public class CarteleraController {
     private Label izquierdaBtn, derechaBtn;
     @FXML
     private ScrollPane scrollEspectaculos;
-
+    @FXML
+    private Label messageLabelReserva;
 
 
     @FXML
@@ -336,10 +337,24 @@ public class CarteleraController {
         reservarBtn.setCursor(Cursor.HAND);
         VBox.setMargin(reservarBtn, new Insets(10, 0, 0, 0)); // Margen superior para el botón
 
-        // Acción del botón de reserva
         reservarBtn.setOnAction(event -> {
-            // IMPLEMENTAR LLEVAR A RESERVAS.FXML
-            System.out.println("Reservando entradas para: " + esp.getNombre());
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("../views/reserva.fxml"));
+                Parent root = loader.load();
+
+                ReservasController controller = loader.getController();
+                controller.setEspectaculoSeleccionado(esp.getNombre()); // Pasar el nombre del espectáculo
+
+                controller.fadeInScene(root);
+                Stage stage = (Stage) contenedorEspectaculos.getScene().getWindow();
+                controller.configureStage(stage);
+
+                stage.setScene(new Scene(root));
+                stage.show();
+            } catch (IOException e) {
+                e.printStackTrace();
+                messageLabelReserva.setText("Error al cargar la vista de reservas");
+            }
         });
 
         tarjeta.getChildren().addAll(nombre, fecha, precioBase, precioVip, reservarBtn);
