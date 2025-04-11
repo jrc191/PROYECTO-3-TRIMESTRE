@@ -42,7 +42,7 @@
                 <Insets left="10.0" right="10.0" />
             </VBox.margin>
             <Label prefHeight="18.0" prefWidth="116.0" style="-fx-text-fill: white;" text="Filtrar por fecha:" />
-            <DatePicker fx:id="filtroFecha" accessibleText="FILTRO FECHAS" prefHeight="26.0" prefWidth="134.0" />
+            <DatePicker fx:id="filtroFechaField" accessibleText="FILTRO FECHAS" prefHeight="26.0" prefWidth="134.0" />
             <Button onAction="#filtrarPorFecha" prefHeight="26.0" prefWidth="73.0" style="-fx-background-color: #4e3a74; -fx-text-fill: white; -fx-font-weight: bold;" text="Filtrar">
                 <cursor>
                     <Cursor fx:constant="HAND" />
