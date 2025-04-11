@@ -19,8 +19,10 @@ import javax.swing.text.Position;
 import java.io.IOException;
 import java.sql.*;
 import java.time.LocalDate;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import static controllers.LoginController.*;
 
@@ -320,7 +322,7 @@ public class CarteleraController {
         Label nombre = new Label(esp.getNombre());
         nombre.setStyle("-fx-font-weight: bold; -fx-text-fill: white; -fx-font-size: 16;");
 
-        Label fecha = new Label("Fecha: " + esp.getFecha());
+        Label fecha = new Label("Fecha: " + esp.getFecha().getDayOfMonth()+"-"+esp.getFecha().getMonthValue()+"-"+esp.getFecha().getYear());
         Label precioBase = new Label("Precio base: " + esp.getPrecioBase()+" €");
         Label precioVip = new Label("Precio VIP: " + esp.getPrecioVip()+" €");
         fecha.setStyle("-fx-text-fill: #a0a0a0;");
