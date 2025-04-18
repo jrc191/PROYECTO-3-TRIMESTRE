@@ -340,10 +340,18 @@ public class CarteleraController {
         reservarBtn.setOnAction(event -> {
             try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("../views/reserva.fxml"));
-                Parent root = loader.load();
 
+                // Configurar el factory para crear el controlador con parámetros
+                loader.setControllerFactory(clazz -> {
+                    return new ReservasController(
+                            getUsuarioLogueadoEmail(),
+                            esp.getNombre(),
+                            esp.getId()
+                    );
+                });
+
+                Parent root = loader.load();
                 ReservasController controller = loader.getController();
-                controller.setEspectaculoSeleccionado(esp.getNombre()); // Pasar el nombre del espectáculo
 
                 controller.fadeInScene(root);
                 Stage stage = (Stage) contenedorEspectaculos.getScene().getWindow();
@@ -456,6 +464,7 @@ class Espectaculo{
         this.pbase=pbase;
         this.pvip=pvip;
     }
+    public String getId(){return id;}
 
     public String getNombre() {
         return nombre;
