@@ -1,5 +1,8 @@
 package controllers;
 
+import dao.DatabaseConnection;
+import dao.EspectaculoDaoI;
+import dao.impl.EspectaculoDaoImpl;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -14,15 +17,14 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import models.Espectaculo;
 
-import javax.swing.text.Position;
 import java.io.IOException;
 import java.sql.*;
 import java.time.LocalDate;
-import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
+
 
 import static controllers.LoginController.*;
 
@@ -31,13 +33,20 @@ public class CarteleraController {
     //Parámetro email usuario logueado del LoginController
     private static String emailUsuarioLogueado = getUsuarioLogueadoEmail();
 
+    //Implementamos Interfaz Dao
+    private EspectaculoDaoI espectaculoDao;
+
+    public void setEspectaculoDAO(EspectaculoDaoI espectaculoDAO) {
+        this.espectaculoDao = espectaculoDAO;
+    }
+
     @FXML
     private Label usuarioLabel;
     @FXML
     private HBox contenedorEspectaculos;
     @FXML
     private TextField filtroNombreField;
-    // Por esta:
+
     @FXML
     private DatePicker filtroFechaField;
     @FXML
@@ -52,6 +61,18 @@ public class CarteleraController {
 
     @FXML
     public void initialize() {
+
+        try {
+            Connection conn = DatabaseConnection.getConnection(); // método estático para obtener la conexión
+            setEspectaculoDAO(new EspectaculoDaoImpl(conn));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        if (espectaculoDao == null) {
+            mensajeLabel.setText("Error al conectar con la base de datos");
+            return;
+        }
 
         //POR FIN, para quitar la puñetera línea blanca de la derecha (2 horas con esto, no es broma)
         scrollEspectaculos.setStyle("-fx-background: #1c2242; -fx-background-color: #1c2242; ");
@@ -123,15 +144,15 @@ public class CarteleraController {
         List<Espectaculo> espectaculos;
         //si no se introduce filtro, llamamos al método sin filtro
         if ( (nombreFiltro == null || nombreFiltro.isEmpty() ) && date == null) {
-            espectaculos = obtenerDatosDesdeOracle();
+            espectaculos = espectaculoDao.obtenerTodos();
         } else {
             //filtrar por fecha
             if (nombreFiltro == null || nombreFiltro.isEmpty()){
-                espectaculos = obtenerDatosDesdeOracle(date);
+                espectaculos = espectaculoDao.obtenerPorFecha(date);
             }
             //filtrar por nombre
             else{
-                espectaculos = obtenerDatosDesdeOracle(nombreFiltro);
+                espectaculos = espectaculoDao.obtenerPorNombre(nombreFiltro);
             }
 
 
@@ -187,124 +208,6 @@ public class CarteleraController {
         }
     }
 
-    //método para cargar TODOS los datos de espectáculos
-    private List<Espectaculo> obtenerDatosDesdeOracle() {
-        List<Espectaculo> espectaculosList = new ArrayList<>();
-
-        //comprobamos conexion
-        if (checkConexion()) {
-
-            //query para devolver toda la información
-            String query = "SELECT id_espectaculo, nombre, fecha, precio_base, precio_vip FROM ESPECTACULOS";
-
-            try (PreparedStatement pstmt = conexion().prepareStatement(query);
-                 ResultSet rs = pstmt.executeQuery()) {
-
-                //creamos un espectaculo por cada resultado de la query
-                while (rs.next()) {
-                    Espectaculo espectaculo = new Espectaculo(
-                            rs.getString("id_espectaculo"),
-                            rs.getString("nombre"),
-                            rs.getDate("fecha").toLocalDate(), // Conversión a LocalDate
-                            rs.getDouble("precio_base"),
-                            rs.getDouble("precio_vip")
-                    );
-                    //y lo añadimos
-                    espectaculosList.add(espectaculo);
-                }
-
-            } catch (SQLException e) {
-                // Manejo de errores
-                System.err.println("Error al cargar espectáculos: " + e.getMessage());
-                e.printStackTrace();
-                throw new RuntimeException("Error en la base de datos", e);
-            }
-        } else {
-            throw new IllegalStateException("No hay conexión a la base de datos");
-        }
-
-        return espectaculosList;
-    }
-
-    //método para cargar los datos según el nombre. SOBRECARGA DE MÉTODOS GOD :)
-    private List<Espectaculo> obtenerDatosDesdeOracle(String nombre) {
-        List<Espectaculo> espectaculosList = new ArrayList<>();
-
-        //comprobamos conexion
-        if (checkConexion()) {
-
-            //query para devolver toda la información según el nombre del espectaculo
-            String query = "SELECT id_espectaculo, nombre, fecha, precio_base, precio_vip " +
-                    "FROM ESPECTACULOS WHERE LOWER(nombre) LIKE LOWER(?)";
-
-            try (PreparedStatement pstmt = conexion().prepareStatement(query)) {
-                // Set the parameter for the query
-                pstmt.setString(1, "%" + nombre + "%");
-
-                try (ResultSet rs = pstmt.executeQuery()) {
-                    //creamos un espectaculo por cada resultado de la query
-                    while (rs.next()) {
-                        Espectaculo espectaculo = new Espectaculo(
-                                rs.getString("id_espectaculo"),
-                                rs.getString("nombre"),
-                                rs.getDate("fecha").toLocalDate(), // Conversión a LocalDate
-                                rs.getDouble("precio_base"),
-                                rs.getDouble("precio_vip")
-                        );
-                        //y lo añadimos
-                        espectaculosList.add(espectaculo);
-                    }
-                }
-
-            } catch (SQLException e) {
-                // Manejo de errores
-                System.err.println("Error al cargar espectáculos: " + e.getMessage());
-                e.printStackTrace();
-                throw new RuntimeException("Error en la base de datos", e);
-            }
-        } else {
-            throw new IllegalStateException("No hay conexión a la base de datos");
-        }
-
-        return espectaculosList;
-    }
-
-    //método para cargar los datos según el nombre. SOBRECARGA DE MÉTODOS GOD :)
-    private List<Espectaculo> obtenerDatosDesdeOracle(LocalDate fecha) {
-        List<Espectaculo> espectaculosList = new ArrayList<>();
-
-        if (checkConexion()) {
-            // Usar TRUNC para ignorar la parte de hora/minuto/segundo en la comparación
-            String query = "SELECT id_espectaculo, nombre, fecha, precio_base, precio_vip " +
-                    "FROM ESPECTACULOS WHERE TRUNC(fecha) = ?";
-
-            try (PreparedStatement pstmt = conexion().prepareStatement(query)) {
-                // Convertir LocalDate a java.sql.Date
-                pstmt.setDate(1, java.sql.Date.valueOf(fecha));
-
-                try (ResultSet rs = pstmt.executeQuery()) {
-                    while (rs.next()) {
-                        Espectaculo espectaculo = new Espectaculo(
-                                rs.getString("id_espectaculo"),
-                                rs.getString("nombre"),
-                                rs.getDate("fecha").toLocalDate(),
-                                rs.getDouble("precio_base"),
-                                rs.getDouble("precio_vip")
-                        );
-                        espectaculosList.add(espectaculo);
-                    }
-                }
-            } catch (SQLException e) {
-                System.err.println("Error al cargar espectáculos: " + e.getMessage());
-                e.printStackTrace();
-                throw new RuntimeException("Error en la base de datos", e);
-            }
-        } else {
-            throw new IllegalStateException("No hay conexión a la base de datos");
-        }
-
-        return espectaculosList;
-    }
 
     //método para ir añadiendo espectáculos en forma de tarjeta a partir de un objeto espectáculo creado
     // con los resultados de la BBDD. Yo no sé ni cuanto tiempo me ha llevado esto ya, pero funciona :)
@@ -340,13 +243,19 @@ public class CarteleraController {
         reservarBtn.setOnAction(event -> {
             try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("../views/reserva.fxml"));
+                FXMLLoader cestaLoader = new FXMLLoader(getClass().getResource("../views/cesta.fxml"));
+                Parent cestaRoot = cestaLoader.load();
+                CestaController cestaController = cestaLoader.getController();
+                cestaController.setEmailUsuarioLogueado(emailUsuarioLogueado);
+                cestaController.setEspectaculoSeleccionado(esp.getNombre());
+                cestaController.setIdEspectaculoSeleccionado(esp.getId());
 
-                // Configurar el factory para crear el controlador con parámetros
                 loader.setControllerFactory(clazz -> {
                     return new ReservasController(
                             getUsuarioLogueadoEmail(),
                             esp.getNombre(),
-                            esp.getId()
+                            esp.getId(),
+                            cestaController
                     );
                 });
 
@@ -361,7 +270,11 @@ public class CarteleraController {
                 stage.show();
             } catch (IOException e) {
                 e.printStackTrace();
-                messageLabelReserva.setText("Error al cargar la vista de reservas");
+
+                if (messageLabelReserva != null) {
+                    messageLabelReserva.setText("Error al cargar la vista de reservas");
+                }
+
             }
         });
 
@@ -447,38 +360,5 @@ public class CarteleraController {
 
     public void setFiltroNombre(TextField filtroNombre) {
         this.filtroNombreField = filtroNombre;
-    }
-}
-
-class Espectaculo{
-    private String id;
-    private String nombre;
-    private LocalDate fecha;
-    private double pbase;
-    private double pvip;
-
-    public Espectaculo(String id, String nombre, LocalDate fecha, double pbase, double pvip){
-        this.id=id;
-        this.nombre=nombre;
-        this.fecha=fecha;
-        this.pbase=pbase;
-        this.pvip=pvip;
-    }
-    public String getId(){return id;}
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public LocalDate getFecha() {
-        return fecha;
-    }
-
-    public double getPrecioBase() {
-        return pbase;
-    }
-
-    public double getPrecioVip() {
-        return pvip;
     }
 }

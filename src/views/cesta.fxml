@@ -92,7 +92,7 @@
             </Button>
         </HBox>
 
-        <!-- Aquí se añadirán dinámicamente las entradas
+        <!-- BOTON VOLVER
         <Button onAction="#volverReservas" style="-fx-background-color: #1c2242; -fx-text-fill: white; -fx-font-weight: bold;" text="&lt;- Volver">
             <cursor>
                 <Cursor fx:constant="HAND" />

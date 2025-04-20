@@ -1,5 +1,8 @@
 package controllers;
 
+import dao.ButacaDaoI;
+import dao.DatabaseConnection;
+import dao.impl.ButacaDaoImpl;
 import javafx.animation.FadeTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -8,18 +11,21 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
+import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import models.Butaca;
 
 import java.io.IOException;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import static controllers.LoginController.*;
 
@@ -31,72 +37,83 @@ public class ReservasController {
     private Label usuarioLabel;
     @FXML
     private GridPane gridPane;
+    @FXML
+    private ChoiceBox<String> eleccionBox;
 
-    private List<Butacas> butacasOcupadas;
-    private List<Butacas> butacasVIP;
-
-    // Image paths
     private static final String ASIENTOS_OCUPADOS = "/resources/images/BUTACA-ROJA.png";
     private static final String ASIENTOS_VIP = "/resources/images/BUTACA-AMARILLA.png";
     private static final String ASIENTOS_ESTANDAR = "/resources/images/BUTACA-VERDE.png";
 
-    // Cambiado a campos de instancia en lugar de estáticos
+    private List<Butaca> todosLosAsientos;
+    private List<Butaca> butacasOcupadas;
+    private List<Butaca> butacasVIP;
+    private ButacaDaoI butacaDao;
+
     private String emailUsuarioLogueado;
     private String espectaculoSeleccionado;
     private String idEspectaculoSeleccionado;
+    private CestaController cestaController;
 
-    public ReservasController(String emailUsuario, String nombreEspectaculo, String idEspectaculo) {
+    public ReservasController() {
+        // Constructor vacío
+    }
+
+    public ReservasController(String emailUsuario, String nombreEspectaculo, String idEspectaculo, CestaController cestaController) {
         this.emailUsuarioLogueado = emailUsuario;
         this.espectaculoSeleccionado = nombreEspectaculo;
         this.idEspectaculoSeleccionado = idEspectaculo;
+        this.cestaController = cestaController;
     }
 
-    // Quitar la inicialización de estos campos del método initialize()
     @FXML
     public void initialize() {
-        // Mostrar el email del usuario logueado
+        try {
+            Connection conn = DatabaseConnection.getConnection();
+            this.butacaDao = new ButacaDaoImpl(conn);
+
+            // Inicialización de las listas
+            butacasOcupadas = new ArrayList<>();
+            butacasVIP = new ArrayList<>();
+
+            // Obtener las butacas ocupadas y VIP
+            butacasOcupadas = butacaDao.obtenerButacasOcupadas(idEspectaculoSeleccionado);
+            butacasVIP = butacaDao.obtenerButacasVIP();
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al conectar con la base de datos", e);
+        }
+
+        // Inicializamos opciones del ChoiceBox
+        eleccionBox.getItems().addAll( "VIP", "Estandar");
+        eleccionBox.setValue("-");
+
         if (emailUsuarioLogueado != null) {
             usuarioLabel.setText("Email: " + emailUsuarioLogueado);
         }
 
-        // Mostrar el título del espectáculo seleccionado
         if (espectaculoSeleccionado != null) {
             espectaculoLabel.setText(espectaculoSeleccionado);
         }
 
-        // Validar ID del espectáculo
         if (idEspectaculoSeleccionado == null || idEspectaculoSeleccionado.isEmpty()) {
             throw new IllegalStateException("No se ha seleccionado un espectáculo válido");
         }
 
-        initializeGrid();
+        mostrarTodasButacas();
     }
 
-    private void initializeGrid() {
-        // Borramos si hay algún botón previo
+    private void mostrarTodasButacas() {
         gridPane.getChildren().clear();
+        butacasOcupadas = butacaDao.obtenerButacasOcupadas(idEspectaculoSeleccionado);
+        todosLosAsientos = butacaDao.obtenerTodasButacas(idEspectaculoSeleccionado);
 
-        butacasOcupadas = obtenerDatosButacasOcupadas();
-        butacasVIP = obtenerDatosButacasVIP();
-
-        for (int fila = 0; fila < 10; fila++) {
-            for (int columna = 0; columna < 10; columna++) {
-                Button asiento = crearAsiento(fila, columna);
-                gridPane.add(asiento, columna, fila);
-            }
+        for (Butaca butaca : todosLosAsientos) {
+            Button boton = crearAsiento(butaca);
+            gridPane.add(boton, butaca.getColumna(), butaca.getFila());
         }
-
-
-        /* Creamos el grid
-        for (int fila = 0; fila < 10; fila++) {
-            for (int columna = 0; columna < 10; columna++) {
-                Button asiento = crearAsiento(fila, columna, butacas, idEspectaculoSeleccionado);
-                gridPane.add(asiento, columna, fila);
-            }
-        } */
     }
 
-    private Button crearAsiento(int fila, int columna) {
+    private Button crearAsiento(Butaca butaca) {
         Button button = new Button();
         button.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
 
@@ -105,48 +122,35 @@ public class ReservasController {
         imageView.setFitWidth(40);
         imageView.setPreserveRatio(true);
 
-        boolean ocupada = false;
-        boolean vip=false;
+        boolean ocupada = butacasOcupadas.stream()
+                .anyMatch(b -> b.getFila() == butaca.getFila() && b.getColumna() == butaca.getColumna());
 
-        for (Butacas butaca : butacasOcupadas) {
-            if (butaca.getFila() == fila && butaca.getCol() == columna) {
-                ocupada = true;
-                setImagenAsientos(imageView, "occupied");
-                break;
-            }
-        }
-
-        for (Butacas butaca: butacasVIP){
-            if (butaca.getFila() == fila && butaca.getCol() ==columna){
-                vip=true;
-                setImagenAsientos(imageView, "vip");
-                break;
-            }
-        }
-
-        if (!ocupada && !vip){
+        if (ocupada) {
+            setImagenAsientos(imageView, "occupied");
+        } else if (butaca.getTipo() == 'V') {
+            setImagenAsientos(imageView, "vip");
+        } else {
             setImagenAsientos(imageView, "standard");
         }
 
         button.setGraphic(imageView);
-        button.setId("F" + fila + "_C" + columna);
+        button.setId("F" + butaca.getFila() + "_C" + butaca.getColumna());
 
-        // Configurar acción del botón
-        button.setOnAction(event -> handleSeleccionAsientos(button, fila, columna));
+        button.setOnAction(event ->
+                handleSeleccionAsientos(button, butaca.getFila(), butaca.getColumna())
+        );
 
         return button;
     }
 
-
-
     private void setImagenAsientos(ImageView imageView, String tipoAsiento) {
-        try {
-            String imagePath = switch (tipoAsiento.toLowerCase()) {
-                case "vip" -> ASIENTOS_VIP;
-                case "occupied" -> ASIENTOS_OCUPADOS;
-                default -> ASIENTOS_ESTANDAR;
-            };
+        String imagePath = switch (tipoAsiento.toLowerCase()) {
+            case "vip" -> ASIENTOS_VIP;
+            case "occupied" -> ASIENTOS_OCUPADOS;
+            default -> ASIENTOS_ESTANDAR;
+        };
 
+        try {
             Image image = new Image(getClass().getResourceAsStream(imagePath));
             imageView.setImage(image);
         } catch (Exception e) {
@@ -154,158 +158,98 @@ public class ReservasController {
         }
     }
 
-    private  List<Butacas> obtenerDatosButacas(){
-        List<Butacas> butacasList = new ArrayList<>();
-
-        if (!checkConexion()){
-            conexion();
-        }
-
-        if (!checkConexion()){
-            throw new IllegalStateException("ERROR DE CONEXION");
-        }
-
-        String query = "SELECT id_butaca, fila, columna, tipo " +
-                "FROM BUTACAS ORDER BY id_butaca ASC";
-
-        try {
-            PreparedStatement stmt= conexion().prepareStatement(query);
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()){
-                Butacas butaca = new Butacas(
-                        rs.getString("id_butaca"),
-                        rs.getInt("fila"),
-                        rs.getInt("columna"),
-                        rs.getString("tipo").charAt(0)
-                );
-
-                butacasList.add(butaca);
-            }
-
-
-        } catch (SQLException e){
-            e.printStackTrace();
-        }
-
-
-
-
-        return butacasList;
-    }
-
-    //Obtener información de las butacas
-    private List<Butacas> obtenerDatosButacasOcupadas() {
-        List<Butacas> butacasList = new ArrayList<>();
-
-        if (!checkConexion()){
-            conexion();
-        }
-
-        if (!checkConexion()){
-            throw new IllegalStateException("ERROR AL CONECTAR CON LA BBDD");
-        }
-
-        // Consulta para obtener butacas ocupadas para este espectáculo
-        String queryOcupadas = "SELECT b.id_butaca, b.fila, b.columna, b.tipo " +
-                "FROM BUTACAS b, RESERVAS r " +
-                "WHERE b.id_butaca = r.id_butaca " +
-                "AND r.ID_ESPECTACULO = ?";
-
-        try {
-            // Obtener butacas ocupadas
-            PreparedStatement pstmtOcupadas = conexion().prepareStatement(queryOcupadas);
-            pstmtOcupadas.setString(1, idEspectaculoSeleccionado);
-            ResultSet rsOcupadas = pstmtOcupadas.executeQuery();
-
-            while (rsOcupadas.next()) {
-                Butacas butaca = new Butacas(
-                        rsOcupadas.getString("id_butaca"),
-                        rsOcupadas.getInt("fila"),
-                        rsOcupadas.getInt("columna"),
-                        rsOcupadas.getString("tipo").charAt(0)
-                );
-                butacasList.add(butaca);
-            }
-
-        } catch (SQLException e) {
-            System.err.println("Error al cargar butacas: " + e.getMessage());
-            e.printStackTrace();
-            throw new RuntimeException("Error en la base de datos", e);
-        }
-
-
-        return butacasList;
-    }
-
-    private List<Butacas> obtenerDatosButacasVIP(){
-        List<Butacas> butacasList = new ArrayList<>();
-
-        if (!checkConexion()){
-            conexion();
-        }
-
-        if (!checkConexion()){
-            throw new IllegalStateException("ERROR AL CONECTAR LA BBDD");
-        }
-
-        // Consulta para obtener butacas ocupadas para este espectáculo
-        String queryVIP = "SELECT b.id_butaca, b.fila, b.columna, b.tipo " +
-                "FROM BUTACAS b " +
-                "WHERE b.tipo='V' ";
-
-        try {
-            // Obtener butacas vip
-            PreparedStatement pstmtVIP = conexion().prepareStatement(queryVIP);
-            ResultSet rsVIP = pstmtVIP.executeQuery();
-
-            while (rsVIP.next()) {
-                Butacas butaca = new Butacas(
-                        rsVIP.getString("id_butaca"),
-                        rsVIP.getInt("fila"),
-                        rsVIP.getInt("columna"),
-                        rsVIP.getString("tipo").charAt(0)
-                );
-                butacasList.add(butaca);
-            }
-
-            butacasList.removeAll(obtenerDatosButacasOcupadas());
-
-        } catch (SQLException e) {
-            System.err.println("Error al cargar butacas: " + e.getMessage());
-            e.printStackTrace();
-            throw new RuntimeException("Error en la base de datos", e);
-        }
-
-
-        return butacasList;
-    }
-
     private void handleSeleccionAsientos(Button button, int fila, int columna) {
-        ImageView imageView = (ImageView) button.getGraphic();
 
-        // Verificar si el asiento está ocupado
-        List<Butacas> butacasOcupadas = obtenerDatosButacasOcupadas();
-        boolean ocupada = false;
-
-        for (Butacas butaca : butacasOcupadas) {
-            if (butaca.getFila() == fila && butaca.getCol() == columna) {
-                ocupada = true;
-                break;
-            }
+        // Verifica si las listas están inicializadas
+        if (butacasOcupadas == null) {
+            System.out.println("Error: Las listas de butacas están vacías o no inicializadas.");
+            return;
         }
+
+        boolean ocupada = butacasOcupadas.stream()
+                .anyMatch(b -> b.getFila() == fila && b.getColumna() == columna);
 
         if (ocupada) {
             System.out.println("Asiento ocupado - no se puede seleccionar");
-            System.out.println(idEspectaculoSeleccionado);
-            //  mostrar un mensaje al usuario aquí, a implementar
         } else {
-            System.out.println("Asiento seleccionado: Fila " + fila + ", Columna " + columna);
-            // Lógica para seleccionar el asiento
+            boolean isVip = butacasVIP.stream()
+                    .anyMatch(b -> b.getFila() == fila && b.getColumna() == columna);
+
+            double precio = isVip ? 15.0 : 10.0;
+
+            if (cestaController != null) {
+                cestaController.agregarEntrada(espectaculoSeleccionado, fila, columna, precio, isVip);
+                System.out.println("Asiento añadido a la cesta.");
+            } else {
+                System.out.println("Error: La cesta no está inicializada.");
+            }
         }
     }
 
-    // Eliminar los métodos estáticos get/set y cambiarlos por métodos de instancia
+    @FXML
+    private void filtrarPorAsiento() {
+        String tipoSeleccionado = eleccionBox.getValue();
+        gridPane.getChildren().clear();
+
+        int filas = 10;
+        int columnas = 10;
+
+        for (int fila = 0; fila < filas; fila++) {
+            for (int columna = 0; columna < columnas; columna++) {
+
+                int f = fila;
+                int c = columna;
+
+                Butaca asiento = getButacaPosicion(fila, columna);
+                if (asiento == null) continue;
+
+                boolean ocupada = butacasOcupadas.stream()
+                        .anyMatch(b -> b.getFila() == f && b.getColumna() == c);
+
+                Button boton = crearAsiento(asiento);
+
+                // Aquí aplicamos la lógica correctamente
+                if ((tipoSeleccionado.equals("VIP") && asiento.getTipo() == 'V') ||
+                        (tipoSeleccionado.equals("Estandar") && asiento.getTipo() == 'E'
+                        && !ocupada)) {
+
+
+                } else {
+                    // Si no corresponde al tipo seleccionado, lo oscurecemos
+                    oscurecerAsiento(boton);
+                    boton.setDisable(true);  // Deshabilitar si no es del tipo seleccionado
+                }
+
+                gridPane.add(boton, columna, fila);
+            }
+        }
+    }
+
+
+    // Método para oscurecer la imagen del asiento
+    private void oscurecerAsiento(Button button) {
+        ImageView imageView = (ImageView) button.getGraphic();
+
+        // Aplicar el filtro para oscurecer la imagen
+        ColorAdjust colorAdjust = new ColorAdjust();
+        colorAdjust.setBrightness(-0.5);  // Hace que la imagen sea más oscura
+
+        imageView.setEffect(colorAdjust);
+    }
+
+
+    private Butaca getButacaPosicion(int fila, int columna) {
+        return todosLosAsientos.stream()
+                .filter(a -> a.getFila() == fila && a.getColumna() == columna)
+                .findFirst().orElse(null);
+    }
+
+    @FXML
+    private void mostrarTodas(ActionEvent event) {
+        mostrarTodasButacas();
+    }
+
+
     public void setEspectaculoSeleccionado(String nombreEspectaculo) {
         this.espectaculoSeleccionado = nombreEspectaculo;
         if (espectaculoLabel != null) {
@@ -325,21 +269,15 @@ public class ReservasController {
         return idEspectaculoSeleccionado;
     }
 
-    //método para cerrar sesión y volver al login
-    //bastante sencillo, setea el valor del mail a nulo y manda de vuelta al login
     public void cerrarSesion(ActionEvent actionEvent) {
-        emailUsuarioLogueado=null;
-
+        emailUsuarioLogueado = null;
         cambioEscena("../views/login.fxml");
     }
 
-    public void filtrarPorAsiento(ActionEvent actionEvent) {
+    public void volverCartelera(ActionEvent actionEvent) {
+        cambioEscena("../views/cartelera.fxml");
     }
 
-    public void mostrarTodas(ActionEvent actionEvent) {
-    }
-
-    //EFECTO FADE al cambiar de escena
     public void fadeInScene(Node rootNode) {
         FadeTransition fadeIn = new FadeTransition(Duration.millis(500), rootNode);
         fadeIn.setFromValue(0.0);
@@ -347,7 +285,6 @@ public class ReservasController {
         fadeIn.play();
     }
 
-    //CONFIG TAMAÑO LOGIN Y REGISTRO FIJOS
     public void configureStage(Stage stage) {
         stage.setMinWidth(750);
         stage.setMinHeight(550);
@@ -355,69 +292,32 @@ public class ReservasController {
         stage.setMaxHeight(700);
     }
 
-    public void volverCartelera(ActionEvent actionEvent) {
-
-        cambioEscena("../views/cartelera.fxml");
-
-    }
-
-    //método para cambiar de escena
     private void cambioEscena(String name) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(name));
             Parent root = loader.load();
 
-            // Obtener el Stage actual, con utilizar cualquier atributo fxml o nodo sirve.
             Stage stage = (Stage) usuarioLabel.getScene().getWindow();
-
-            // Crear una nueva escena
             Scene scene = new Scene(root);
             scene.getStylesheets().add(getClass().getResource("../Resources/styles.css").toExternalForm());
             stage.setTitle("CINES JRC");
 
-            // Establecer el icono de la ventana
             Image icon = new Image(getClass().getResourceAsStream("../Resources/logo.png"));
             stage.getIcons().add(icon);
 
-            // Cambiar la escena
             stage.setScene(scene);
             stage.show();
 
         } catch (IOException e) {
             e.printStackTrace();
-
         }
     }
+
+    @FXML
+    private void cesta(ActionEvent event) {
+        System.out.println("Botón 'Cesta' presionado (placeholder).");
+        cambioEscena("/views/cesta.fxml");
+    }
+
+
 }
-
-class Butacas {
-    private String id;
-    private int fila;
-    private int col;
-    private char tipo;
-
-    public Butacas(String id, int fila, int col, char tipo) {
-        this.id = id;
-        this.fila = fila;
-        this.col = col;
-        this.tipo = tipo;
-    }
-
-    public int getFila() {
-        return fila;
-    }
-
-    public int getCol() {
-        return col;
-    }
-
-    public char getTipo() {
-        return tipo;
-    }
-
-    public String getId() {
-        return id;
-    }
-}
-
-

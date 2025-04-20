@@ -53,7 +53,7 @@ public class CestaController {
         EntradaCesta entrada = new EntradaCesta(nombreEspectaculo, fila, col, precio, esVip);
         entradas.add(entrada);
         total += precio;
-        actualizarCesta(); // refrescamos la cesta
+        actualizarCesta(); // Refresh the cart UI
     }
 
     //Para devolver la cesta en otros controladores
