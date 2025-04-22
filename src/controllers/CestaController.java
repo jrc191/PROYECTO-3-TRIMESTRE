@@ -3,6 +3,7 @@ package controllers;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.DatePicker;
@@ -13,6 +14,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.control.Button;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
+import models.EntradaCesta;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -27,6 +29,8 @@ public class CestaController {
     public Label espectaculoLabel;
     @FXML
     private Label usuarioLabel;
+    @FXML
+    private VBox plantillaEntrada;
 
     // Parámetros usados para cerrar sesión, reservar ... entre otros
     private String emailUsuarioLogueado;
@@ -45,16 +49,20 @@ public class CestaController {
             usuarioLabel.setText("Email: " + emailUsuarioLogueado);
         }
 
-
         actualizarCesta();
     }
 
     public void agregarEntrada(String nombreEspectaculo, int fila, int col, double precio, boolean esVip) {
+        if (entradas == null) entradas = new ArrayList<>();
+
         EntradaCesta entrada = new EntradaCesta(nombreEspectaculo, fila, col, precio, esVip);
         entradas.add(entrada);
         total += precio;
-        actualizarCesta(); // Refresh the cart UI
+        actualizarCesta();
+
+        utils.CestaStorage.guardarCesta(emailUsuarioLogueado, entradas);
     }
+
 
     //Para devolver la cesta en otros controladores
     private CestaController getOrCreateCestaController() {
@@ -76,37 +84,52 @@ public class CestaController {
         contenedorEntradas.getChildren().clear();
 
         for (EntradaCesta entrada : entradas) {
-            HBox entradaBox = new HBox(10);
-            entradaBox.setStyle("-fx-background-color: #2a325c; -fx-padding: 15; -fx-background-radius: 10;");
+            try {
+                VBox nuevaEntrada = FXMLLoader.load(getClass().getResource("../views/entrada_cesta.fxml")); // Si decides mover la plantilla a su propio FXML
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                System.err.println("AÑADIENDO MANUALMENTE");
+                // Alternativamente, clonar la plantilla manualmente:
+                VBox nuevaEntrada = new VBox();
+                nuevaEntrada.setStyle(plantillaEntrada.getStyle());
+                nuevaEntrada.setPadding(new Insets(15));
+                nuevaEntrada.setSpacing(10);
+                nuevaEntrada.setBackground(plantillaEntrada.getBackground());
+                nuevaEntrada.setEffect(plantillaEntrada.getEffect());
 
-            VBox infoBox = new VBox(5);
-            Label nombreLabel = new Label(entrada.getNombreEspectaculo());
-            nombreLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: white; -fx-font-size: 14px;");
+                Label nombreLabel = new Label(entrada.getNombreEspectaculo());
+                nombreLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: white; -fx-font-size: 14px;");
 
-            Label detalleLabel = new Label("Butaca: " + entrada.getFila() +", "+entrada.getCol()+
-                    (entrada.isVip() ? " (VIP)" : " (Estándar)"));
-            detalleLabel.setStyle("-fx-text-fill: #e0e0e0; -fx-font-size: 12px;");
+                Label detalleLabel = new Label("Butaca: " + entrada.getFila() +", "+entrada.getCol()+
+                        (entrada.isVip() ? " (VIP)" : " (Estándar)"));
+                detalleLabel.setStyle("-fx-text-fill: #e0e0e0; -fx-font-size: 12px;");
 
-            Label precioLabel = new Label(String.format("Precio: %.2f €", entrada.getPrecio())); //mostrar precio con 2 decimales
-            precioLabel.setStyle("-fx-text-fill: #e0e0e0; -fx-font-size: 12px;");
+                Label precioLabel = new Label(String.format("Precio: %.2f €", entrada.getPrecio()));
+                precioLabel.setStyle("-fx-text-fill: #e0e0e0; -fx-font-size: 12px;");
 
-            infoBox.getChildren().addAll(nombreLabel, detalleLabel, precioLabel);
+                Button eliminarBtn = new Button("Eliminar");
+                eliminarBtn.setStyle("-fx-background-color: #ff4444; -fx-text-fill: white; -fx-font-weight: bold;");
+                eliminarBtn.setCursor(javafx.scene.Cursor.HAND);
+                eliminarBtn.setOnAction(e -> {
+                    entradas.remove(entrada);
+                    total -= entrada.getPrecio();
+                    actualizarCesta();
+                    utils.CestaStorage.guardarCesta(emailUsuarioLogueado, entradas);
+                });
 
-            Button eliminarBtn = new Button("Eliminar"); //para borrar la entrada
-            eliminarBtn.setStyle("-fx-background-color: #ff4444; -fx-text-fill: white; -fx-font-weight: bold;");
-            eliminarBtn.setCursor(javafx.scene.Cursor.HAND);
-            eliminarBtn.setOnAction(e -> {
-                entradas.remove(entrada);
-                total -= entrada.getPrecio();
-                actualizarCesta();
-            });
 
-            entradaBox.getChildren().addAll(infoBox, eliminarBtn);
-            contenedorEntradas.getChildren().add(entradaBox);
+
+                VBox infoBox = new VBox(5, nombreLabel, detalleLabel, precioLabel);
+                HBox entradaBox = new HBox(10, infoBox, eliminarBtn);
+                nuevaEntrada.getChildren().add(entradaBox);
+
+                contenedorEntradas.getChildren().add(nuevaEntrada);
+            }
         }
 
         totalLabel.setText(String.format("Total: %.2f €", total));
     }
+
 
     //método para cerrar sesión y volver al login
     //bastante sencillo, setea el valor del mail a nulo y manda de vuelta al login
@@ -158,13 +181,16 @@ public class CestaController {
     public void filtrarPorNombre(ActionEvent actionEvent) {
     }
 
-    // En CestaController.java, agregar estos métodos:
     public void setEmailUsuarioLogueado(String email) {
         this.emailUsuarioLogueado = email;
         if (usuarioLabel != null) {
             usuarioLabel.setText("Email: " + email);
         }
+
+        this.entradas = utils.CestaStorage.cargarCesta(email); // cargar entradas desde fichero
+        actualizarCesta();
     }
+
 
     public void setEspectaculoSeleccionado(String nombreEspectaculo) {
         this.espectaculoSeleccionado = nombreEspectaculo;
@@ -174,26 +200,4 @@ public class CestaController {
         this.idEspectaculoSeleccionado = idEspectaculo;
     }
 
-    //clase de entradas de la cesta
-    static class EntradaCesta {
-        private String nombreEspectaculo;
-        private int fila;
-        private int col;
-        private double precio;
-        private boolean vip; //true si es vip
-
-        public EntradaCesta(String nombreEspectaculo, int fila, int col, double precio, boolean vip) {
-            this.nombreEspectaculo = nombreEspectaculo;
-            this.fila = fila;
-            this.col=col;
-            this.precio = precio;
-            this.vip = vip;
-        }
-
-        public String getNombreEspectaculo() { return nombreEspectaculo; }
-        public int getFila() { return fila; }
-        public int getCol() { return col; }
-        public double getPrecio() { return precio; }
-        public boolean isVip() { return vip; }
-    }
 }

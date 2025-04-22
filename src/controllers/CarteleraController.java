@@ -127,9 +127,32 @@ public class CarteleraController {
         izquierdaBtn.setVisible(habilitar);
         derechaBtn.setVisible(habilitar);
 
-        // true : habilita el arrastrar con ratón, false : deshabilita el arrastrar con ratón. False cuando no hay resultados, true cuando los hay.
+        // true : habilita el arrastrar con ratón, false : deshabilita el arrastrar con ratón.
+        // False cuando no hay resultados, true cuando los hay.
         scrollEspectaculos.setPannable(habilitar);
     }
+
+    // Método de filtro por fecha auxiliar. Usa el método auxiliar sobrecargado de cargarEspectaculos con parámetro de filtro para filtrar
+    public void filtrarPorFecha(ActionEvent actionEvent) {
+        LocalDate fecha = filtroFechaField.getValue();
+        cargarEspectaculos(null, fecha);
+
+    }
+
+    // Método para filtrar por nombre. Usa el método auxiliar sobrecargado de cargarEspectaculos con parámetro de filtro para filtrar
+    public void filtrarPorNombre(ActionEvent actionEvent) {
+        String nombreFiltro = filtroNombreField.getText().trim();
+        cargarEspectaculos(nombreFiltro, null);
+    }
+
+    //método para mostrar todos los espectáculos. usa el método auxiliar de cargarEspectaculos sin parámetro.
+    public void mostrarTodas(ActionEvent actionEvent) {
+        filtroNombreField.clear();
+        mensajeLabel.setVisible(false);
+        habilitarScroll(true); // habilitamos el scroll cuando se muestren todos los espectaculos.
+        cargarEspectaculos();
+    }
+
 
     private void cargarEspectaculos() {
         cargarEspectaculos(null, null); // Cargamos por defecto
@@ -209,9 +232,9 @@ public class CarteleraController {
     }
 
 
-    //método para ir añadiendo espectáculos en forma de tarjeta a partir de un objeto espectáculo creado
+    // Método para ir añadiendo espectáculos en forma de tarjeta a partir de un objeto espectáculo creado
     // con los resultados de la BBDD. Yo no sé ni cuanto tiempo me ha llevado esto ya, pero funciona :)
-    //Para mi yo del futuro: no te metas en más fregaos por mejorar la estética, que mejoras una cosa
+    // Para mi yo del futuro: no te metas en más fregaos por mejorar la estética, que mejoras una cosa
     // y te acabas cargando 10.
 
     private Node crearTarjetaEspectaculo(Espectaculo esp) {
@@ -240,22 +263,27 @@ public class CarteleraController {
         reservarBtn.setCursor(Cursor.HAND);
         VBox.setMargin(reservarBtn, new Insets(10, 0, 0, 0)); // Margen superior para el botón
 
+        // En el método crearTarjetaEspectaculo del CarteleraController
         reservarBtn.setOnAction(event -> {
             try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("../views/reserva.fxml"));
                 FXMLLoader cestaLoader = new FXMLLoader(getClass().getResource("../views/cesta.fxml"));
+
                 Parent cestaRoot = cestaLoader.load();
+
                 CestaController cestaController = cestaLoader.getController();
                 cestaController.setEmailUsuarioLogueado(emailUsuarioLogueado);
                 cestaController.setEspectaculoSeleccionado(esp.getNombre());
                 cestaController.setIdEspectaculoSeleccionado(esp.getId());
+
 
                 loader.setControllerFactory(clazz -> {
                     return new ReservasController(
                             getUsuarioLogueadoEmail(),
                             esp.getNombre(),
                             esp.getId(),
-                            cestaController
+                            cestaController,
+                            esp
                     );
                 });
 
@@ -270,17 +298,15 @@ public class CarteleraController {
                 stage.show();
             } catch (IOException e) {
                 e.printStackTrace();
-
                 if (messageLabelReserva != null) {
                     messageLabelReserva.setText("Error al cargar la vista de reservas");
                 }
-
             }
         });
 
-        tarjeta.getChildren().addAll(nombre, fecha, precioBase, precioVip, reservarBtn);
+        tarjeta.getChildren().addAll(nombre, fecha, precioBase, precioVip, reservarBtn); //Añadimos tarjeta con nombre, fecha, precio y reservar
 
-        // Evento para cuando el ratón entra en la tarjeta
+        // Evento para cuando el ratón entra en la tarjeta. Guapísimo porque hace focus
         tarjeta.setOnMouseEntered(event -> {
             tarjeta.setPrefWidth(originalWidth * 1.05); // Aumentar tamaño un 5% para dar sensación de focus
             tarjeta.setPrefHeight(originalHeight * 1.05);
@@ -333,27 +359,7 @@ public class CarteleraController {
 
 
 
-    //A IMPLEMENTAR
-    public void filtrarPorFecha(ActionEvent actionEvent) {
-        LocalDate fecha = filtroFechaField.getValue();
-        cargarEspectaculos(null, fecha);
-
-    }
-
-    //método para filtrar por nombre. usa el método auxiliar sobrecargado de cargarEspectaculos con parámetro de filtro para filtrar
-    public void filtrarPorNombre(ActionEvent actionEvent) {
-        String nombreFiltro = filtroNombreField.getText().trim();
-        cargarEspectaculos(nombreFiltro, null);
-    }
-
-    //método para mostrar todos los espectáculos. usa el método auxiliar de cargarEspectaculos sin parámetro.
-    public void mostrarTodas(ActionEvent actionEvent) {
-        filtroNombreField.clear();
-        mensajeLabel.setVisible(false);
-        habilitarScroll(true); // habilitamos el scroll cuando se muestren todos los espectaculos.
-        cargarEspectaculos();
-    }
-
+    //GETTERS Y SETTERS DE FILTROS. Por si acaso hacen falta en otro momento
     public TextField getFiltroNombreField(){
         return filtroNombreField;
     }

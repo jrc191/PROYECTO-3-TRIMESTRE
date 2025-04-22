@@ -20,6 +20,7 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import models.Butaca;
+import models.Espectaculo;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -48,6 +49,7 @@ public class ReservasController {
     private List<Butaca> butacasOcupadas;
     private List<Butaca> butacasVIP;
     private ButacaDaoI butacaDao;
+    private Espectaculo espectaculo;
 
     private String emailUsuarioLogueado;
     private String espectaculoSeleccionado;
@@ -58,11 +60,12 @@ public class ReservasController {
         // Constructor vacío
     }
 
-    public ReservasController(String emailUsuario, String nombreEspectaculo, String idEspectaculo, CestaController cestaController) {
+    public ReservasController(String emailUsuario, String nombreEspectaculo, String idEspectaculo, CestaController cestaController, Espectaculo espectaculo) {
         this.emailUsuarioLogueado = emailUsuario;
         this.espectaculoSeleccionado = nombreEspectaculo;
         this.idEspectaculoSeleccionado = idEspectaculo;
         this.cestaController = cestaController;
+        this.espectaculo = espectaculo;
     }
 
     @FXML
@@ -102,88 +105,35 @@ public class ReservasController {
         mostrarTodasButacas();
     }
 
-    private void mostrarTodasButacas() {
-        gridPane.getChildren().clear();
-        butacasOcupadas = butacaDao.obtenerButacasOcupadas(idEspectaculoSeleccionado);
-        todosLosAsientos = butacaDao.obtenerTodasButacas(idEspectaculoSeleccionado);
-
-        for (Butaca butaca : todosLosAsientos) {
-            Button boton = crearAsiento(butaca);
-            gridPane.add(boton, butaca.getColumna(), butaca.getFila());
-        }
+    public void fadeInScene(Node rootNode) {
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(500), rootNode);
+        fadeIn.setFromValue(0.0);
+        fadeIn.setToValue(1.0);
+        fadeIn.play();
     }
 
-    private Button crearAsiento(Butaca butaca) {
-        Button button = new Button();
-        button.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
-
-        ImageView imageView = new ImageView();
-        imageView.setFitHeight(40);
-        imageView.setFitWidth(40);
-        imageView.setPreserveRatio(true);
-
-        boolean ocupada = butacasOcupadas.stream()
-                .anyMatch(b -> b.getFila() == butaca.getFila() && b.getColumna() == butaca.getColumna());
-
-        if (ocupada) {
-            setImagenAsientos(imageView, "occupied");
-        } else if (butaca.getTipo() == 'V') {
-            setImagenAsientos(imageView, "vip");
-        } else {
-            setImagenAsientos(imageView, "standard");
-        }
-
-        button.setGraphic(imageView);
-        button.setId("F" + butaca.getFila() + "_C" + butaca.getColumna());
-
-        button.setOnAction(event ->
-                handleSeleccionAsientos(button, butaca.getFila(), butaca.getColumna())
-        );
-
-        return button;
+    public void configureStage(Stage stage) {
+        stage.setMinWidth(750);
+        stage.setMinHeight(550);
+        stage.setMaxWidth(800);
+        stage.setMaxHeight(700);
     }
 
-    private void setImagenAsientos(ImageView imageView, String tipoAsiento) {
-        String imagePath = switch (tipoAsiento.toLowerCase()) {
-            case "vip" -> ASIENTOS_VIP;
-            case "occupied" -> ASIENTOS_OCUPADOS;
-            default -> ASIENTOS_ESTANDAR;
-        };
+    // Método para oscurecer la imagen del asiento
+    private void oscurecerAsiento(Button button) {
+        ImageView imageView = (ImageView) button.getGraphic();
 
-        try {
-            Image image = new Image(getClass().getResourceAsStream(imagePath));
-            imageView.setImage(image);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        // Aplicar el filtro para oscurecer la imagen
+        ColorAdjust colorAdjust = new ColorAdjust();
+        colorAdjust.setBrightness(-0.5);  // Hace que la imagen sea más oscura
+
+        imageView.setEffect(colorAdjust);
     }
 
-    private void handleSeleccionAsientos(Button button, int fila, int columna) {
 
-        // Verifica si las listas están inicializadas
-        if (butacasOcupadas == null) {
-            System.out.println("Error: Las listas de butacas están vacías o no inicializadas.");
-            return;
-        }
-
-        boolean ocupada = butacasOcupadas.stream()
-                .anyMatch(b -> b.getFila() == fila && b.getColumna() == columna);
-
-        if (ocupada) {
-            System.out.println("Asiento ocupado - no se puede seleccionar");
-        } else {
-            boolean isVip = butacasVIP.stream()
-                    .anyMatch(b -> b.getFila() == fila && b.getColumna() == columna);
-
-            double precio = isVip ? 15.0 : 10.0;
-
-            if (cestaController != null) {
-                cestaController.agregarEntrada(espectaculoSeleccionado, fila, columna, precio, isVip);
-                System.out.println("Asiento añadido a la cesta.");
-            } else {
-                System.out.println("Error: La cesta no está inicializada.");
-            }
-        }
+    public void cerrarSesion(ActionEvent actionEvent) {
+        emailUsuarioLogueado = null;
+        cambioEscena("../views/login.fxml");
     }
 
     @FXML
@@ -211,7 +161,7 @@ public class ReservasController {
                 // Aquí aplicamos la lógica correctamente
                 if ((tipoSeleccionado.equals("VIP") && asiento.getTipo() == 'V') ||
                         (tipoSeleccionado.equals("Estandar") && asiento.getTipo() == 'E'
-                        && !ocupada)) {
+                                && !ocupada)) {
 
 
                 } else {
@@ -225,18 +175,104 @@ public class ReservasController {
         }
     }
 
+    //Para mostrar las butacas. Usa método auxiliar para mostrar butacas según ocupadas, vip o estándar
+    private void mostrarTodasButacas() {
+        gridPane.getChildren().clear();
+        butacasOcupadas = butacaDao.obtenerButacasOcupadas(idEspectaculoSeleccionado);
+        todosLosAsientos = butacaDao.obtenerTodasButacas(idEspectaculoSeleccionado);
 
-    // Método para oscurecer la imagen del asiento
-    private void oscurecerAsiento(Button button) {
-        ImageView imageView = (ImageView) button.getGraphic();
-
-        // Aplicar el filtro para oscurecer la imagen
-        ColorAdjust colorAdjust = new ColorAdjust();
-        colorAdjust.setBrightness(-0.5);  // Hace que la imagen sea más oscura
-
-        imageView.setEffect(colorAdjust);
+        for (Butaca butaca : todosLosAsientos) {
+            Button boton = crearAsiento(butaca);
+            gridPane.add(boton, butaca.getColumna(), butaca.getFila());
+        }
     }
 
+    // Duro con cojones. Para crear un asiento de un color u otro según si está OCUPADO (ROJO), VIP (AMARILLO) o ESTÁNDAR (VERDE)
+    private Button crearAsiento(Butaca butaca) {
+        Button button = new Button();
+        button.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
+
+        //Mismo tamaño para cada butaca.
+        ImageView imageView = new ImageView();
+        imageView.setFitHeight(40);
+        imageView.setFitWidth(40);
+        imageView.setPreserveRatio(true);
+
+        //Lee la lista de las butacasOcupadas. Si hay alguna coincidencia con alguna de la lista de todas las butacas, es que está ocupada.
+        boolean ocupada = butacasOcupadas.stream()
+                .anyMatch(b -> b.getFila() == butaca.getFila() && b.getColumna() == butaca.getColumna());
+
+        if (ocupada) {
+            setImagenAsientos(imageView, "occupied"); //Si está ocupada, da igual si es vip o no
+        } else if (butaca.getTipo() == 'V') {
+            setImagenAsientos(imageView, "vip");
+        } else {
+            setImagenAsientos(imageView, "standard");
+        }
+
+        button.setGraphic(imageView);
+        button.setId("F" + butaca.getFila() + "_C" + butaca.getColumna()); //Seteamos un ID según fila y columna (P.EJ: F1_C1)
+
+        button.setOnAction(event ->
+                handleSeleccionAsientos(button, butaca.getFila(), butaca.getColumna()) //Método para manejar lo que hacemos cuando seleccionamos el asiento.
+        );
+
+        return button;
+    }
+
+    // Método para setear la imagen según el tipo de asiento. La ruta siempre es la misma, así que usamos un final y lo creamos al principio del controlador.
+    private void setImagenAsientos(ImageView imageView, String tipoAsiento) {
+        String imagePath = switch (tipoAsiento.toLowerCase()) {
+            case "vip" -> ASIENTOS_VIP;
+            case "occupied" -> ASIENTOS_OCUPADOS;
+            default -> ASIENTOS_ESTANDAR;
+        };
+
+        //Seteamos la imagen según la ruta
+        try {
+            Image image = new Image(getClass().getResourceAsStream(imagePath));
+            imageView.setImage(image);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    //Método para manejar la selección del asiento.
+    private void handleSeleccionAsientos(Button button, int fila, int columna) {
+
+        // Verifica si las listas están inicializadas
+        if (butacasOcupadas == null) {
+            System.out.println("Error: Las listas de butacas están vacías o no inicializadas.");
+            return;
+        }
+
+        //Lee la lista de las butacasOcupadas.
+        boolean ocupada = butacasOcupadas.stream()
+                .anyMatch(b -> b.getFila() == fila && b.getColumna() == columna);
+
+        if (ocupada) {
+            System.out.println("Asiento ocupado - no se puede seleccionar"); //Los asientos seleccionados no se pueden reservar
+        } else {
+            //Comprobamos si es VIP
+            boolean isVip = butacasVIP.stream()
+                    .anyMatch(b -> b.getFila() == fila && b.getColumna() == columna);
+
+            double precio=0.0;
+            if (isVip){
+                precio=espectaculo.getPrecioVip();
+            }
+            else{
+                precio=espectaculo.getPrecioBase();
+            }
+
+            if (cestaController != null) {
+                cestaController.agregarEntrada(espectaculoSeleccionado, fila, columna, precio, isVip);
+                System.out.println("Asiento añadido a la cesta.");
+            } else {
+                System.out.println("Error: La cesta no está inicializada.");
+            }
+        }
+    }
 
     private Butaca getButacaPosicion(int fila, int columna) {
         return todosLosAsientos.stream()
@@ -269,28 +305,12 @@ public class ReservasController {
         return idEspectaculoSeleccionado;
     }
 
-    public void cerrarSesion(ActionEvent actionEvent) {
-        emailUsuarioLogueado = null;
-        cambioEscena("../views/login.fxml");
-    }
 
     public void volverCartelera(ActionEvent actionEvent) {
         cambioEscena("../views/cartelera.fxml");
     }
 
-    public void fadeInScene(Node rootNode) {
-        FadeTransition fadeIn = new FadeTransition(Duration.millis(500), rootNode);
-        fadeIn.setFromValue(0.0);
-        fadeIn.setToValue(1.0);
-        fadeIn.play();
-    }
 
-    public void configureStage(Stage stage) {
-        stage.setMinWidth(750);
-        stage.setMinHeight(550);
-        stage.setMaxWidth(800);
-        stage.setMaxHeight(700);
-    }
 
     private void cambioEscena(String name) {
         try {
@@ -316,6 +336,7 @@ public class ReservasController {
     @FXML
     private void cesta(ActionEvent event) {
         System.out.println("Botón 'Cesta' presionado (placeholder).");
+
         cambioEscena("/views/cesta.fxml");
     }
 

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/23.0.1"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="controllers.EntradaCestaController"
+      spacing="10"
+      style="-fx-background-color: #2a325c; -fx-padding: 15; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 5, 0, 0, 3);">
+
+    <HBox alignment="CENTER_LEFT" spacing="10">
+        <VBox spacing="5">
+            <Label fx:id="nombreLabel" style="-fx-font-weight: bold; -fx-text-fill: white; -fx-font-size: 14px;" />
+            <Label fx:id="detalleLabel" style="-fx-text-fill: #e0e0e0; -fx-font-size: 12px;" />
+            <Label fx:id="precioLabel" style="-fx-text-fill: #e0e0e0; -fx-font-size: 12px;" />
+        </VBox>
+        <Region HBox.hgrow="ALWAYS" />
+        <Button fx:id="eliminarBtn"
+                style="-fx-background-color: #ff4444; -fx-text-fill: white; -fx-font-weight: bold;"
+                text="Eliminar" />
+    </HBox>
+</VBox>
