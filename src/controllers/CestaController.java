@@ -4,14 +4,14 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.DatePicker;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.scene.control.Button;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import models.EntradaCesta;
@@ -31,6 +31,8 @@ public class CestaController {
     private Label usuarioLabel;
     @FXML
     private VBox plantillaEntrada;
+    @FXML private ScrollPane scrollEntradas;
+    @FXML private Label arribaBtn, abajoBtn;
 
     // Parámetros usados para cerrar sesión, reservar ... entre otros
     private String emailUsuarioLogueado;
@@ -43,13 +45,43 @@ public class CestaController {
     private double total = 0.0; //precio total de las entradas de la cesta
 
     public void initialize() {
-        // Mostrar el email del usuario logueado
-
         if (emailUsuarioLogueado != null) {
             usuarioLabel.setText("Email: " + emailUsuarioLogueado);
         }
 
+        // Configurar el scroll
+        scrollEntradas.setStyle("-fx-background: #1c2242; -fx-background-color: #1c2242;");
+        scrollEntradas.setFitToWidth(true);
+
+        // Configurar listeners para las flechas
+        agregarListenersScroll();
+
         actualizarCesta();
+    }
+
+    // Agregar este método para manejar el scroll
+    private void agregarListenersScroll() {
+        // Mostrar/ocultar flechas al entrar/salir del scroll
+        scrollEntradas.setOnMouseEntered(e -> {
+            arribaBtn.setOpacity(0);
+            abajoBtn.setOpacity(0);
+        });
+
+        scrollEntradas.setOnMouseExited(e -> {
+            arribaBtn.setOpacity(1);
+            abajoBtn.setOpacity(1);
+        });
+
+        // Controlar el scroll con las flechas
+        arribaBtn.setOnMouseClicked(e ->
+                scrollEntradas.setVvalue(scrollEntradas.getVvalue() - 0.2));
+
+        abajoBtn.setOnMouseClicked(e ->
+                scrollEntradas.setVvalue(scrollEntradas.getVvalue() + 0.2));
+
+        // Ajustar opacidad inicial
+        arribaBtn.setOpacity(0);
+        abajoBtn.setOpacity(0);
     }
 
     public void agregarEntrada(String nombreEspectaculo, int fila, int col, double precio, boolean esVip) {
@@ -80,6 +112,55 @@ public class CestaController {
         }
     }
 
+    private void actualizarCesta() {
+        contenedorEntradas.getChildren().clear();
+        total = 0.0;
+
+        for (EntradaCesta entrada : entradas) {
+            VBox entradaCard = new VBox(10);
+            entradaCard.setStyle("-fx-background-color: #2a325c; -fx-padding: 15; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 5);");
+            entradaCard.setPrefWidth(680);
+
+            HBox contentBox = new HBox(15);
+            contentBox.setAlignment(Pos.CENTER_LEFT);
+
+            VBox infoBox = new VBox(5);
+
+            Label nombreLabel = new Label(entrada.getNombreEspectaculo());
+            nombreLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: white; -fx-font-size: 16px;");
+
+            Label detalleLabel = new Label("Butaca: " + entrada.getFila() + ", " + entrada.getCol() +
+                    (entrada.isVip() ? " (VIP)" : " (Estándar)"));
+            detalleLabel.setStyle("-fx-text-fill: #e0e0e0; -fx-font-size: 14px;");
+
+            Label precioLabel = new Label(String.format("Precio: %.2f €", entrada.getPrecio()));
+            precioLabel.setStyle("-fx-text-fill: #e0e0e0; -fx-font-size: 14px;");
+
+            infoBox.getChildren().addAll(nombreLabel, detalleLabel, precioLabel);
+
+            Button eliminarBtn = new Button("Eliminar");
+            eliminarBtn.setStyle("-fx-background-color: #ff4444; -fx-text-fill: white; -fx-font-weight: bold;");
+            eliminarBtn.setOnAction(e -> {
+                entradas.remove(entrada);
+                total -= entrada.getPrecio();
+                actualizarCesta();
+                utils.CestaStorage.guardarCesta(emailUsuarioLogueado, entradas);
+            });
+
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+
+            contentBox.getChildren().addAll(infoBox, spacer, eliminarBtn);
+            entradaCard.getChildren().add(contentBox);
+
+            contenedorEntradas.getChildren().add(entradaCard);
+            total += entrada.getPrecio();
+        }
+
+        totalLabel.setText(String.format("Total: %.2f €", total));
+    }
+
+    /*
     private void actualizarCesta() {
         contenedorEntradas.getChildren().clear();
         total = 0.0;
@@ -136,6 +217,7 @@ public class CestaController {
 
         totalLabel.setText(String.format("Total: %.2f €", total));
     }
+    */
 
 
     //método para cerrar sesión y volver al login

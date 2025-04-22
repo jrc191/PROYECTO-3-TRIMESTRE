@@ -367,4 +367,29 @@ public class CarteleraController {
     public void setFiltroNombre(TextField filtroNombre) {
         this.filtroNombreField = filtroNombre;
     }
+
+    @FXML
+    private void cesta(ActionEvent event) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/cesta.fxml"));
+            Parent root = loader.load();
+            CestaController cestaController = loader.getController();
+            cestaController.setEmailUsuarioLogueado(emailUsuarioLogueado);
+            //cestaController.setEspectaculoSeleccionado(espectaculoSeleccionado);
+            //cestaController.setIdEspectaculoSeleccionado(idEspectaculoSeleccionado);
+
+            Stage stage = (Stage) usuarioLabel.getScene().getWindow();
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("../Resources/styles.css").toExternalForm());
+            stage.setTitle("CINES JRC");
+
+            Image icon = new Image(getClass().getResourceAsStream("../Resources/logo.png"));
+            stage.getIcons().add(icon);
+
+            stage.setScene(scene);
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
