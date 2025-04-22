@@ -39,7 +39,7 @@ public class EntradaCestaController {
     }
 
     public void setOnEliminar(Runnable callback) {
-        this.onEliminarCallback = callback;
+        this.onEliminarCallback = callback; //para eliminar entradas
     }
 
     @FXML
