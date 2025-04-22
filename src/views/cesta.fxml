@@ -12,7 +12,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="650" prefWidth="800" style="-fx-background-color: linear-gradient(to bottom, #0F1C3F, #1A2A5A);" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.CestaController">
+<AnchorPane prefHeight="650" prefWidth="800" style="-fx-background-color: linear-gradient(to bottom, #0F1C3F, #1A2A5A);" xmlns="http://javafx.com/javafx/21.0.6" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.CestaController">
     <VBox prefHeight="650.0" prefWidth="730.0" spacing="20">
         <HBox alignment="CENTER_LEFT" spacing="20">
             <Label prefHeight="40.0" prefWidth="241.0" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: white;" styleClass="align" text="Cesta" textAlignment="CENTER" textFill="WHITE">
@@ -92,8 +92,8 @@
             </Button>
         </HBox>
 
-        <!-- BOTON VOLVER
-        <Button onAction="#volverReservas" style="-fx-background-color: #1c2242; -fx-text-fill: white; -fx-font-weight: bold;" text="&lt;- Volver">
+
+        <Button onAction="#volverCartelera" style="-fx-background-color: #1c2242; -fx-text-fill: white; -fx-font-weight: bold;" text="&lt;- Volver">
             <cursor>
                 <Cursor fx:constant="HAND" />
             </cursor>
@@ -104,7 +104,7 @@
             <Insets bottom="15.0" left="15.0" />
          </VBox.margin>
         </Button>
-        -->
+
     </VBox>
 
     <!-- Plantilla para cada entrada en la cesta (oculta, se usará como plantilla) -->

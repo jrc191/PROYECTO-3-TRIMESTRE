@@ -335,9 +335,27 @@ public class ReservasController {
 
     @FXML
     private void cesta(ActionEvent event) {
-        System.out.println("Botón 'Cesta' presionado (placeholder).");
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/cesta.fxml"));
+            Parent root = loader.load();
+            CestaController cestaController = loader.getController();
+            cestaController.setEmailUsuarioLogueado(emailUsuarioLogueado);
+            cestaController.setEspectaculoSeleccionado(espectaculoSeleccionado);
+            cestaController.setIdEspectaculoSeleccionado(idEspectaculoSeleccionado);
 
-        cambioEscena("/views/cesta.fxml");
+            Stage stage = (Stage) usuarioLabel.getScene().getWindow();
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("../Resources/styles.css").toExternalForm());
+            stage.setTitle("CINES JRC");
+
+            Image icon = new Image(getClass().getResourceAsStream("../Resources/logo.png"));
+            stage.getIcons().add(icon);
+
+            stage.setScene(scene);
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 

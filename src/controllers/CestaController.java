@@ -82,25 +82,34 @@ public class CestaController {
 
     private void actualizarCesta() {
         contenedorEntradas.getChildren().clear();
+        total = 0.0;
 
         for (EntradaCesta entrada : entradas) {
             try {
-                VBox nuevaEntrada = FXMLLoader.load(getClass().getResource("../views/entrada_cesta.fxml")); // Si decides mover la plantilla a su propio FXML
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("../views/entrada_cesta.fxml"));
+                VBox nuevaEntrada = loader.load();
+
+                EntradaCestaController controller = loader.getController();
+                controller.setEntrada(entrada);
+                controller.setOnEliminar(() -> {
+                    entradas.remove(entrada);
+                    total -= entrada.getPrecio();
+                    actualizarCesta();
+                    utils.CestaStorage.guardarCesta(emailUsuarioLogueado, entradas);
+                });
+
+                contenedorEntradas.getChildren().add(nuevaEntrada);
+                total += entrada.getPrecio();
             } catch (IOException ex) {
                 ex.printStackTrace();
-                System.err.println("AÑADIENDO MANUALMENTE");
-                // Alternativamente, clonar la plantilla manualmente:
+                // Fallback manual si hay error cargando el FXML
                 VBox nuevaEntrada = new VBox();
-                nuevaEntrada.setStyle(plantillaEntrada.getStyle());
-                nuevaEntrada.setPadding(new Insets(15));
-                nuevaEntrada.setSpacing(10);
-                nuevaEntrada.setBackground(plantillaEntrada.getBackground());
-                nuevaEntrada.setEffect(plantillaEntrada.getEffect());
+                nuevaEntrada.setStyle("-fx-background-color: #2a325c; -fx-padding: 15; -fx-background-radius: 10;");
 
                 Label nombreLabel = new Label(entrada.getNombreEspectaculo());
                 nombreLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: white; -fx-font-size: 14px;");
 
-                Label detalleLabel = new Label("Butaca: " + entrada.getFila() +", "+entrada.getCol()+
+                Label detalleLabel = new Label("Butaca: " + entrada.getFila() + ", " + entrada.getCol() +
                         (entrada.isVip() ? " (VIP)" : " (Estándar)"));
                 detalleLabel.setStyle("-fx-text-fill: #e0e0e0; -fx-font-size: 12px;");
 
@@ -109,7 +118,6 @@ public class CestaController {
 
                 Button eliminarBtn = new Button("Eliminar");
                 eliminarBtn.setStyle("-fx-background-color: #ff4444; -fx-text-fill: white; -fx-font-weight: bold;");
-                eliminarBtn.setCursor(javafx.scene.Cursor.HAND);
                 eliminarBtn.setOnAction(e -> {
                     entradas.remove(entrada);
                     total -= entrada.getPrecio();
@@ -117,13 +125,12 @@ public class CestaController {
                     utils.CestaStorage.guardarCesta(emailUsuarioLogueado, entradas);
                 });
 
-
-
-                VBox infoBox = new VBox(5, nombreLabel, detalleLabel, precioLabel);
-                HBox entradaBox = new HBox(10, infoBox, eliminarBtn);
+                HBox entradaBox = new HBox(10,
+                        new VBox(5, nombreLabel, detalleLabel, precioLabel),
+                        eliminarBtn);
                 nuevaEntrada.getChildren().add(entradaBox);
-
                 contenedorEntradas.getChildren().add(nuevaEntrada);
+                total += entrada.getPrecio();
             }
         }
 
@@ -140,8 +147,8 @@ public class CestaController {
     }
 
     //A IMPLEMENTAR
-    public void volverReservas(ActionEvent actionEvent) {
-        cambioEscena("../views/reserva.fxml");
+    public void volverCartelera(ActionEvent actionEvent) {
+        cambioEscena("../views/cartelera.fxml");
     }
 
     //método para cambiar de escena
@@ -187,7 +194,10 @@ public class CestaController {
             usuarioLabel.setText("Email: " + email);
         }
 
-        this.entradas = utils.CestaStorage.cargarCesta(email); // cargar entradas desde fichero
+        // Cargar la cesta desde el almacenamiento
+        this.entradas = utils.CestaStorage.cargarCesta(email);
+        // Recalcular el total
+        this.total = entradas.stream().mapToDouble(EntradaCesta::getPrecio).sum();
         actualizarCesta();
     }
 

@@ -20,7 +20,7 @@ public class EntradaCestaController {
     @FXML
     private Button eliminarBtn;
 
-    private Runnable onEliminarCallback; // Para notificar al controlador principal (CestaController) cuando se elimina
+    private Runnable onEliminarCallback;
 
     private EntradaCesta entrada;
 
