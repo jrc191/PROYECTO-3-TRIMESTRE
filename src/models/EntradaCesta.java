@@ -2,6 +2,7 @@ package models;
 
 import java.io.Serializable;
 
+//Para que cada entrada sea serializable y poderla guardar en un fichero .ser. Necesita un serial.
 public class EntradaCesta implements Serializable {
     private static final long serialVersionUID = 1L;
 

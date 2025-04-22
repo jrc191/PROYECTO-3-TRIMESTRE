@@ -14,18 +14,13 @@ import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import models.Usuario;
+import utils.Transitions;
 
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 
 public class LoginController {
-
-    // DAO
-    private UsuarioDaoI usuarioDao;
-
-    // Mail del usuario logueado (para mantener sesión)
-    private static String usuarioLogueadoEmail;
 
     // FXML Login
     @FXML private TextField loginEmailField;
@@ -40,6 +35,12 @@ public class LoginController {
     // Mensajes
     @FXML private Label messageLabelLogin;
     @FXML private Label messageLabelRegistro;
+
+    // DAO
+    private UsuarioDaoI usuarioDao;
+
+    // Mail del usuario logueado (para mantener sesión)
+    private static String usuarioLogueadoEmail;
 
     @FXML
     public void initialize() {
@@ -79,7 +80,8 @@ public class LoginController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/login.fxml"));
             Parent root = loader.load();
             LoginController controller = loader.getController();
-            fadeInScene(root);
+            Transitions transitions = new Transitions();
+            transitions.fadeInScene(root);
             Stage stage = (Stage) messageLabelRegistro.getScene().getWindow();
             controller.configureStage(stage);
             stage.setScene(new Scene(root));
@@ -96,7 +98,8 @@ public class LoginController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/registro.fxml"));
             Parent root = loader.load();
             LoginController controller = loader.getController();
-            fadeInScene(root);
+            Transitions transitions = new Transitions();
+            transitions.fadeInScene(root);
             Stage stage = (Stage) messageLabelLogin.getScene().getWindow();
             controller.configureStage(stage);
             stage.setScene(new Scene(root));
@@ -184,7 +187,9 @@ public class LoginController {
 
     private boolean dniValido(String dni) {
         final String LETRAS_DNI = "TRWAGMYFPDXBNJZSQVHLCKE";
-        if (dni == null || !dni.matches("\\d{8}[A-Z]")) return false;
+        if (dni == null || !dni.matches("\\d{8}[A-Z]")) {
+            return false;
+        }
 
         int num = Integer.parseInt(dni.substring(0, 8));
         char letraEsperada = LETRAS_DNI.charAt(num % 23);

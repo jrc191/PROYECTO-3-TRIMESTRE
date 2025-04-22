@@ -267,6 +267,7 @@ public class ReservasController {
 
             if (cestaController != null) {
                 cestaController.agregarEntrada(espectaculoSeleccionado, fila, columna, precio, isVip);
+
                 System.out.println("Asiento añadido a la cesta.");
             } else {
                 System.out.println("Error: La cesta no está inicializada.");

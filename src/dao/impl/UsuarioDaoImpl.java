@@ -13,6 +13,8 @@ public class UsuarioDaoImpl implements UsuarioDaoI {
         this.conn = conn;
     }
 
+
+
     @Override
     public boolean registrarUsuario(Usuario usuario) throws SQLException {
         String query = "INSERT INTO USUARIOS (id_usuario, nombre, email, password) VALUES (?, ?, ?, ?)";

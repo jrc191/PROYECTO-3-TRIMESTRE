@@ -3,6 +3,7 @@ package controllers;
 import dao.DatabaseConnection;
 import dao.EspectaculoDaoI;
 import dao.impl.EspectaculoDaoImpl;
+import javafx.animation.FadeTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -18,6 +19,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import models.Espectaculo;
+import utils.Transitions;
 
 import java.io.IOException;
 import java.sql.*;
@@ -31,7 +33,7 @@ import static controllers.LoginController.*;
 public class CarteleraController {
 
     //Parámetro email usuario logueado del LoginController
-    private static String emailUsuarioLogueado = getUsuarioLogueadoEmail();
+    private String emailUsuarioLogueado = getUsuarioLogueadoEmail();
 
     //Implementamos Interfaz Dao
     private EspectaculoDaoI espectaculoDao;
@@ -332,7 +334,7 @@ public class CarteleraController {
         emailUsuarioLogueado=null;
 
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("../views/login.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("../views/registro.fxml"));
             Parent root = loader.load();
 
             // Obtener el Stage actual, con utilizar cualquier atributo fxml o nodo sirve.
@@ -340,6 +342,10 @@ public class CarteleraController {
 
             // Crear una nueva escena
             Scene scene = new Scene(root);
+
+            Transitions transitions = new Transitions();
+            transitions.fadeInScene(root);
+
             scene.getStylesheets().add(getClass().getResource("../Resources/styles.css").toExternalForm());
             stage.setTitle("CINES JRC");
 
@@ -380,11 +386,15 @@ public class CarteleraController {
 
             Stage stage = (Stage) usuarioLabel.getScene().getWindow();
             Scene scene = new Scene(root);
+
             scene.getStylesheets().add(getClass().getResource("../Resources/styles.css").toExternalForm());
             stage.setTitle("CINES JRC");
 
             Image icon = new Image(getClass().getResourceAsStream("../Resources/logo.png"));
             stage.getIcons().add(icon);
+
+            Transitions transitions = new Transitions();
+            transitions.fadeInScene(root);
 
             stage.setScene(scene);
             stage.show();

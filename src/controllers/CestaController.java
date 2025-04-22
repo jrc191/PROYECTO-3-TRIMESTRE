@@ -1,26 +1,41 @@
 package controllers;
 
+import dao.impl.ReservaDaoImpl;
+import javafx.animation.FadeTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
+import javafx.util.Duration;
+import models.Butaca;
 import models.EntradaCesta;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import oracle.sql.TIMESTAMP;
+import utils.Transitions;
 
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class CestaController {
+
     @FXML
     private VBox contenedorEntradas;
     @FXML
@@ -48,6 +63,8 @@ public class CestaController {
         if (emailUsuarioLogueado != null) {
             usuarioLabel.setText("Email: " + emailUsuarioLogueado);
         }
+
+
 
         // Configurar el scroll
         scrollEntradas.setStyle("-fx-background: #1c2242; -fx-background-color: #1c2242;");
@@ -79,9 +96,16 @@ public class CestaController {
         abajoBtn.setOnMouseClicked(e ->
                 scrollEntradas.setVvalue(scrollEntradas.getVvalue() + 0.2));
 
+
+        arribaBtn.setOnKeyPressed(e->
+                scrollEntradas.setVvalue(scrollEntradas.getVvalue() - 0.2));
+
         // Ajustar opacidad inicial
         arribaBtn.setOpacity(0);
         abajoBtn.setOpacity(0);
+
+        scrollEntradas.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+
     }
 
     public void agregarEntrada(String nombreEspectaculo, int fila, int col, double precio, boolean esVip) {
@@ -94,11 +118,11 @@ public class CestaController {
         total += precio;
         actualizarCesta();
 
-        utils.CestaStorage.guardarCesta(emailUsuarioLogueado, entradas); //Espectacular. Para guardar la cesta en ficheros según el mail
+        utils.CestaStorage.guardarCesta(emailUsuarioLogueado, entradas); //Sencillamente espectacular. Para guardar la cesta en ficheros según el mail
     }
 
 
-    //Para devolver la cesta en otros controladores. YA NO HACE FALTA, DEBIDO A QUE AHORA SE USAN FICHEROS
+    //Para devolver la cesta en otros controladores. YA NO HACE FALTA, DEBIDO A QUE AHORA SE USAN FICHEROS SERIALIZABLES
     private CestaController getOrCreateCestaController() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("../views/cesta.fxml"));
@@ -162,13 +186,16 @@ public class CestaController {
 
         totalLabel.setText(String.format("Total: %.2f €", total));
     }
+    //CONFIRMAR COMPRA.
+
+
 
     //método para cerrar sesión y volver al login
     //bastante sencillo, setea el valor del mail a nulo y manda de vuelta al login
     public void cerrarSesion(ActionEvent actionEvent) {
         emailUsuarioLogueado=null;
 
-        cambioEscena("../views/login.fxml");
+        cambioEscena("../views/registro.fxml");
     }
 
     //A IMPLEMENTAR
@@ -187,12 +214,28 @@ public class CestaController {
 
             // Crear una nueva escena
             Scene scene = new Scene(root);
+
+            Transitions transitions = new Transitions();
+            transitions.fadeInScene(root);
+
             scene.getStylesheets().add(getClass().getResource("../Resources/styles.css").toExternalForm());
             stage.setTitle("CINES JRC");
 
             // Establecer el icono de la ventana
             Image icon = new Image(getClass().getResourceAsStream("../Resources/logo.png"));
             stage.getIcons().add(icon);
+
+            //HANDLE DE BOTON ARRIBA PARA SUBIR EL SCROLLPANE
+            scene.setOnKeyPressed(event -> {
+                if (event.getCode() == KeyCode.UP) {
+                    arribaBtn.setOnKeyPressed(e ->
+                            scrollEntradas.setVvalue(scrollEntradas.getVvalue() - 0.2));
+                } else if (event.getCode() == KeyCode.DOWN) {
+                    abajoBtn.setOnKeyPressed(e->
+                            scrollEntradas.setVvalue(scrollEntradas.getVvalue() + 0.2));
+
+                }
+            });
 
             // Cambiar la escena
             stage.setScene(scene);
@@ -210,7 +253,15 @@ public class CestaController {
     public void mostrarTodas(ActionEvent actionEvent) {
     }
 
-    public void filtrarPorNombre(ActionEvent actionEvent) {
+
+    // Método para oscurecer la entrada
+    private void oscurecerEntrada(VBox entradaCesta) {
+
+        // Aplicar el filtro para oscurecer la imagen
+        ColorAdjust colorAdjust = new ColorAdjust();
+        colorAdjust.setBrightness(-0.5);  // Hace que la imagen sea más oscura
+
+        entradaCesta.setEffect(colorAdjust);
     }
 
     public void setEmailUsuarioLogueado(String email) {
@@ -235,4 +286,19 @@ public class CestaController {
         this.idEspectaculoSeleccionado = idEspectaculo;
     }
 
+    public void filtrarPorAsiento(ActionEvent actionEvent) {
+    }
+
+    public void filtrarPorNombre(ActionEvent actionEvent) {
+    }
+
+    public void confirmarCompra(ActionEvent actionEvent) {
+
+        Alert alert = new Alert(AlertType.INFORMATION);
+        alert.setTitle("CONFIRMAR COMPRA");
+        alert.setContentText("¿Quiere usted confirmar su compra?");
+
+        alert.show();
+        //ReservaDaoImpl reservaDao = new ReservaDaoImpl();
+    }
 }
