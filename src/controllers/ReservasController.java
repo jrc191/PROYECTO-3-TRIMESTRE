@@ -2,7 +2,11 @@ package controllers;
 
 import dao.ButacaDaoI;
 import dao.DatabaseConnection;
+import dao.ReservasDaoI;
+import dao.UsuarioDaoI;
 import dao.impl.ButacaDaoImpl;
+import dao.impl.ReservaDaoImpl;
+import dao.impl.UsuarioDaoImpl;
 import javafx.animation.FadeTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -19,16 +23,13 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import models.Butaca;
-import models.Espectaculo;
+import models.*;
 
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
-import static controllers.LoginController.*;
 
 public class ReservasController {
 
@@ -48,10 +49,14 @@ public class ReservasController {
     private List<Butaca> todosLosAsientos;
     private List<Butaca> butacasOcupadas;
     private List<Butaca> butacasVIP;
+    private List<EntradaCesta> cestaList;
     private ButacaDaoI butacaDao;
+    private UsuarioDaoI usuarioDao;
+    private ReservasDaoI reservasDao;
     private Espectaculo espectaculo;
 
     private String emailUsuarioLogueado;
+    private String idUsuario;
     private String espectaculoSeleccionado;
     private String idEspectaculoSeleccionado;
     private CestaController cestaController;
@@ -73,14 +78,20 @@ public class ReservasController {
         try {
             Connection conn = DatabaseConnection.getConnection();
             this.butacaDao = new ButacaDaoImpl(conn);
+            this.reservasDao = new ReservaDaoImpl(conn);
+            this.usuarioDao = new UsuarioDaoImpl(conn);
 
             // Inicialización de las listas
             butacasOcupadas = new ArrayList<>();
             butacasVIP = new ArrayList<>();
+            cestaList = new ArrayList<>();
+
+            idUsuario = usuarioDao.getIDUsuarioByEmail(emailUsuarioLogueado);
 
             // Obtener las butacas ocupadas y VIP
             butacasOcupadas = butacaDao.obtenerButacasOcupadas(idEspectaculoSeleccionado);
             butacasVIP = butacaDao.obtenerButacasVIP();
+            cestaList = utils.CestaStorage.cargarCesta(emailUsuarioLogueado);
 
         } catch (SQLException e) {
             throw new RuntimeException("Error al conectar con la base de datos", e);
@@ -141,37 +152,34 @@ public class ReservasController {
         String tipoSeleccionado = eleccionBox.getValue();
         gridPane.getChildren().clear();
 
-        int filas = 10;
-        int columnas = 10;
+        // Cargar butacas en la cesta
+        List<EntradaCesta> butacasEnCesta = utils.CestaStorage.cargarCesta(emailUsuarioLogueado);
 
-        for (int fila = 0; fila < filas; fila++) {
-            for (int columna = 0; columna < columnas; columna++) {
+        for (Butaca asiento : todosLosAsientos) {
+            Button boton = crearAsiento(asiento);
+            boolean ocupada = butacasOcupadas.stream()
+                    .anyMatch(b -> b.getFila() == asiento.getFila() && b.getColumna() == asiento.getColumna());
 
-                int f = fila;
-                int c = columna;
+            // Verificar si la butaca está en la cesta
+            boolean enCesta = butacasEnCesta.stream()
+                    .anyMatch(e -> e.getFila() == asiento.getFila()
+                            && e.getCol() == asiento.getColumna()
+                            && e.getNombreEspectaculo().equals(espectaculoSeleccionado));
 
-                Butaca asiento = getButacaPosicion(fila, columna);
-                if (asiento == null) continue;
+            // Aplicar filtro por tipo y oscurecer si está en cesta o no coincide con el filtro
+            if ((tipoSeleccionado.equals("VIP") && asiento.getTipo() == 'V') ||
+                    (tipoSeleccionado.equals("Estandar") && asiento.getTipo() == 'E')) {
 
-                boolean ocupada = butacasOcupadas.stream()
-                        .anyMatch(b -> b.getFila() == f && b.getColumna() == c);
-
-                Button boton = crearAsiento(asiento);
-
-                // Aquí aplicamos la lógica correctamente
-                if ((tipoSeleccionado.equals("VIP") && asiento.getTipo() == 'V') ||
-                        (tipoSeleccionado.equals("Estandar") && asiento.getTipo() == 'E'
-                                && !ocupada)) {
-
-
-                } else {
-                    // Si no corresponde al tipo seleccionado, lo oscurecemos
+                if (enCesta || ocupada) {
                     oscurecerAsiento(boton);
-                    boton.setDisable(true);  // Deshabilitar si no es del tipo seleccionado
+                    boton.setDisable(true);
                 }
-
-                gridPane.add(boton, columna, fila);
+            } else {
+                oscurecerAsiento(boton);
+                boton.setDisable(true);
             }
+
+            gridPane.add(boton, asiento.getColumna(), asiento.getFila());
         }
     }
 
@@ -180,9 +188,22 @@ public class ReservasController {
         gridPane.getChildren().clear();
         butacasOcupadas = butacaDao.obtenerButacasOcupadas(idEspectaculoSeleccionado);
         todosLosAsientos = butacaDao.obtenerTodasButacas(idEspectaculoSeleccionado);
+        cestaList = utils.CestaStorage.cargarCesta(emailUsuarioLogueado);
 
         for (Butaca butaca : todosLosAsientos) {
             Button boton = crearAsiento(butaca);
+
+            // Verificar si la butaca está en la cesta
+            boolean enCesta = cestaList.stream()
+                    .anyMatch(e -> e.getFila() == butaca.getFila()
+                            && e.getCol() == butaca.getColumna()
+                            && e.getNombreEspectaculo().equals(espectaculoSeleccionado));
+
+            if (enCesta) {
+                oscurecerAsiento(boton);
+                boton.setDisable(true);
+            }
+
             gridPane.add(boton, butaca.getColumna(), butaca.getFila());
         }
     }
@@ -202,8 +223,18 @@ public class ReservasController {
         boolean ocupada = butacasOcupadas.stream()
                 .anyMatch(b -> b.getFila() == butaca.getFila() && b.getColumna() == butaca.getColumna());
 
-        if (ocupada) {
-            setImagenAsientos(imageView, "occupied"); //Si está ocupada, da igual si es vip o no
+        // Verificar si está en la cesta
+        boolean enCesta = utils.CestaStorage.cargarCesta(emailUsuarioLogueado).stream()
+                .anyMatch(e -> e.getFila() == butaca.getFila()
+                        && e.getCol() == butaca.getColumna()
+                        && e.getNombreEspectaculo().equals(espectaculoSeleccionado));
+
+
+
+        if (ocupada || enCesta) {
+            setImagenAsientos(imageView, "occupied");
+            button.setDisable(true);//Si está ocupada, da igual si es vip o no
+
         } else if (butaca.getTipo() == 'V') {
             setImagenAsientos(imageView, "vip");
         } else {
@@ -241,38 +272,61 @@ public class ReservasController {
     private void handleSeleccionAsientos(Button button, int fila, int columna) {
 
         // Verifica si las listas están inicializadas
-        if (butacasOcupadas == null) {
-            System.out.println("Error: Las listas de butacas están vacías o no inicializadas.");
+        if (butacasOcupadas == null || cestaList==null) {
+            System.out.println("Error: Las listas de butacas o la cesta no están inicializadas.");
             return;
         }
 
-        //Lee la lista de las butacasOcupadas.
+        //Lee la lista de las butacasOcupadas y devuelve true si encuentra las butacas ocupadas en la lista de butacas original
         boolean ocupada = butacasOcupadas.stream()
                 .anyMatch(b -> b.getFila() == fila && b.getColumna() == columna);
 
-        if (ocupada) {
-            System.out.println("Asiento ocupado - no se puede seleccionar"); //Los asientos seleccionados no se pueden reservar
-        } else {
-            //Comprobamos si es VIP
-            boolean isVip = butacasVIP.stream()
-                    .anyMatch(b -> b.getFila() == fila && b.getColumna() == columna);
+        //maravilloso lo del stream. Comprueba si en la lista hay alguna entrada que coincida la fila, columna y el nombre del espectaculo, evitando la duplicidad
+        boolean yaEnCesta= cestaList.stream().anyMatch(ec -> ec.getFila() == fila && ec.getCol() == columna && ec.getNombreEspectaculo().equals(espectaculoSeleccionado));
 
-            double precio=0.0;
-            if (isVip){
-                precio=espectaculo.getPrecioVip();
-            }
-            else{
-                precio=espectaculo.getPrecioBase();
-            }
+        if (ocupada || yaEnCesta) {
+            System.out.println("Asiento ocupado o ya en la cesta - no se puede seleccionar");
+            button.setDisable(true);
+            return;
+        }
+
+        //comprueba si hay butacas vip en la lista de butacas.
+        boolean isVip = butacasVIP.stream()
+                .anyMatch(b -> b.getFila() == fila && b.getColumna() == columna);
+
+
+        double precio=0.0;
+        if (isVip){
+            precio=espectaculo.getPrecioVip();
+        }
+        else{
+            precio=espectaculo.getPrecioBase();
+        }
 
             if (cestaController != null) {
-                cestaController.agregarEntrada(espectaculoSeleccionado, fila, columna, precio, isVip);
 
-                System.out.println("Asiento añadido a la cesta.");
-            } else {
-                System.out.println("Error: La cesta no está inicializada.");
+                //Creamos una reserva temporal para actualizar dinámicamente las butacas
+                Reservas reservaTemp = new Reservas();
+
+                reservaTemp.setId_butaca("F"+fila+"-C"+columna);
+                reservaTemp.setId_espectaculo(idEspectaculoSeleccionado);
+                reservaTemp.setId_usuario(idUsuario);
+
+                reservaTemp.setId_reserva(idEspectaculoSeleccionado+"_"+idUsuario+"_F"+fila+"-C"+columna);
+
+                try {
+                    reservasDao.registrarReservasTEMP(reservaTemp);
+                    cestaController.agregarEntrada(espectaculoSeleccionado, fila, columna, precio, isVip);
+                    System.out.println("Asiento añadido a la cesta y registrado temporalmente.");
+                    mostrarTodasButacas();
+                } catch (SQLException e) {
+                    System.err.println("Error al registrar la reserva temporal: " + e.getMessage());
+                }
+
+
+        } else{
+                System.err.println("Error: La cesta no está inicializada.");
             }
-        }
     }
 
     private Butaca getButacaPosicion(int fila, int columna) {
@@ -343,6 +397,7 @@ public class ReservasController {
             cestaController.setEmailUsuarioLogueado(emailUsuarioLogueado);
             cestaController.setEspectaculoSeleccionado(espectaculoSeleccionado);
             cestaController.setIdEspectaculoSeleccionado(idEspectaculoSeleccionado);
+            cestaController.setIdUsuario(idUsuario);
 
             Stage stage = (Stage) usuarioLabel.getScene().getWindow();
             Scene scene = new Scene(root);
@@ -351,6 +406,8 @@ public class ReservasController {
 
             Image icon = new Image(getClass().getResourceAsStream("../Resources/logo.png"));
             stage.getIcons().add(icon);
+
+
 
             stage.setScene(scene);
             stage.show();

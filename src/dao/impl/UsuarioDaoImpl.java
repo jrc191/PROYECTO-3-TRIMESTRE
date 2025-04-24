@@ -14,7 +14,6 @@ public class UsuarioDaoImpl implements UsuarioDaoI {
     }
 
 
-
     @Override
     public boolean registrarUsuario(Usuario usuario) throws SQLException {
         String query = "INSERT INTO USUARIOS (id_usuario, nombre, email, password) VALUES (?, ?, ?, ?)";
@@ -44,11 +43,28 @@ public class UsuarioDaoImpl implements UsuarioDaoI {
 
     @Override
     public boolean existeDni(String dni) throws SQLException {
-        String query = "SELECT COUNT(*) FROM USUARIOS_CINE WHERE id_usuario = ?";
+        String query = "SELECT COUNT(*) FROM USUARIOS WHERE id_usuario = ?";
         try (PreparedStatement pstmt = conn.prepareStatement(query)) {
             pstmt.setString(1, dni);
             ResultSet rs = pstmt.executeQuery();
             return rs.next() && rs.getInt(1) > 0;
         }
+    }
+
+    @Override
+    public String getIDUsuarioByEmail(String email) throws SQLException {
+        String query = "SELECT id_usuario FROM USUARIOS WHERE email = ?";
+        String dato ="";
+        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, email);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()){
+                dato = rs.getString("id_usuario");
+            }
+
+
+        }
+        return dato;
     }
 }

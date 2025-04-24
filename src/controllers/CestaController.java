@@ -1,6 +1,9 @@
 package controllers;
 
+import dao.DatabaseConnection;
+import dao.UsuarioDaoI;
 import dao.impl.ReservaDaoImpl;
+import dao.impl.UsuarioDaoImpl;
 import javafx.animation.FadeTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -25,11 +28,16 @@ import models.Butaca;
 import models.EntradaCesta;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import models.Reservas;
 import oracle.sql.TIMESTAMP;
+import utils.CestaStorage;
 import utils.Transitions;
 
 import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -51,6 +59,8 @@ public class CestaController {
 
     // Parámetros usados para cerrar sesión, reservar ... entre otros
     private String emailUsuarioLogueado;
+    private String idUsuario;
+    private UsuarioDaoI usuarioDao;
     private String espectaculoSeleccionado;
     private String idEspectaculoSeleccionado;
     public DatePicker filtroFechaField;
@@ -59,11 +69,21 @@ public class CestaController {
     private List<EntradaCesta> entradas = new ArrayList<>();
     private double total = 0.0; //precio total de las entradas de la cesta
 
+    public CestaController() throws SQLException {
+    }
+
     public void initialize() {
         if (emailUsuarioLogueado != null) {
             usuarioLabel.setText("Email: " + emailUsuarioLogueado);
+            try {
+                Connection conn = DatabaseConnection.getConnection();
+                this.usuarioDao = new UsuarioDaoImpl(conn);
+                idUsuario = usuarioDao.getIDUsuarioByEmail(emailUsuarioLogueado);
+                System.out.println("ID Usuario obtenido: " + idUsuario); // Debug
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
-
 
 
         // Configurar el scroll
@@ -118,7 +138,7 @@ public class CestaController {
         total += precio;
         actualizarCesta();
 
-        utils.CestaStorage.guardarCesta(emailUsuarioLogueado, entradas); //Sencillamente espectacular. Para guardar la cesta en ficheros según el mail
+        CestaStorage.guardarCesta(emailUsuarioLogueado, entradas); //Sencillamente espectacular. Para guardar la cesta en ficheros según el mail
     }
 
 
@@ -167,11 +187,31 @@ public class CestaController {
 
             Button eliminarBtn = new Button("Eliminar");
             eliminarBtn.setStyle("-fx-background-color: #ff4444; -fx-text-fill: white; -fx-font-weight: bold;");
+
+
             eliminarBtn.setOnAction(e -> {
                 entradas.remove(entrada);
                 total -= entrada.getPrecio();
+
+                try {
+                    Connection conn = DatabaseConnection.getConnection();
+                    ReservaDaoImpl reservaDao = new ReservaDaoImpl(conn);
+
+                    // Usar el mismo formato que en ReservasController
+                    String idReservaTemp = idEspectaculoSeleccionado + "_" + idUsuario + "_F" + entrada.getFila() + "-C" + entrada.getCol();
+                    System.out.println("Intentando eliminar reserva temporal con ID: " + idReservaTemp); // Debug
+
+                    reservaDao.eliminarReservaTemporal(idReservaTemp);
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                    Alert alert = new Alert(AlertType.ERROR);
+                    alert.setTitle("Error");
+                    alert.setContentText("No se pudo eliminar la reserva temporal: " + ex.getMessage());
+                    alert.show();
+                }
+
                 actualizarCesta();
-                utils.CestaStorage.guardarCesta(emailUsuarioLogueado, entradas);
+                CestaStorage.guardarCesta(emailUsuarioLogueado, entradas);
             });
 
             Region spacer = new Region();
@@ -187,7 +227,59 @@ public class CestaController {
         totalLabel.setText(String.format("Total: %.2f €", total));
     }
     //CONFIRMAR COMPRA.
+    public void confirmarCompra(ActionEvent actionEvent) {
+        Alert alert = new Alert(AlertType.CONFIRMATION);
+        alert.setTitle("CONFIRMAR COMPRA");
+        alert.setContentText("¿Quiere usted confirmar su compra?");
 
+        alert.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                try {
+                    Connection conn = DatabaseConnection.getConnection();
+                    ReservaDaoImpl reservaDao = new ReservaDaoImpl(conn);
+
+                    // Eliminar reservas temporales
+                    String deleteQuery = "DELETE FROM RESERVAS_TEMP WHERE id_usuario = ?";
+                    try (PreparedStatement pstmt = conn.prepareStatement(deleteQuery)) {
+                        pstmt.setString(1, idUsuario);
+                        pstmt.executeUpdate();
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    // Guardar las reservas definitivas
+                    for (EntradaCesta entrada : entradas) {
+                        Reservas reserva = new Reservas();
+
+                        String idReserva = idEspectaculoSeleccionado+ "_" + idUsuario + "_F" + entrada.getFila() + "-C" + entrada.getCol();
+                        reserva.setId_reserva(idReserva);
+                        reserva.setId_espectaculo(idEspectaculoSeleccionado);
+                        reserva.setId_butaca("F" + entrada.getFila() + "-C" + entrada.getCol());
+                        reserva.setId_usuario(idUsuario);
+                        reserva.setPrecio(entrada.getPrecio());
+                        reserva.setEstado('O'); // 'O' para ocupado
+                        reservaDao.registrarReservas(reserva);
+                    }
+
+                    // Limpiar la cesta
+                    entradas.clear();
+                    CestaStorage.guardarCesta(emailUsuarioLogueado, entradas);
+                    actualizarCesta();
+
+                    Alert successAlert = new Alert(AlertType.INFORMATION);
+                    successAlert.setTitle("Compra confirmada");
+                    successAlert.setContentText("La compra se ha realizado con éxito.");
+                    successAlert.show();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    Alert errorAlert = new Alert(AlertType.ERROR);
+                    errorAlert.setTitle("Error");
+                    errorAlert.setContentText("No se pudo confirmar la compra.");
+                    errorAlert.show();
+                }
+            }
+        });
+    }
 
 
     //método para cerrar sesión y volver al login
@@ -270,8 +362,18 @@ public class CestaController {
             usuarioLabel.setText("Email: " + email);
         }
 
+        // Obtener el ID del usuario al establecer el email
+        try {
+            Connection conn = DatabaseConnection.getConnection();
+            this.usuarioDao = new UsuarioDaoImpl(conn);
+            this.idUsuario = usuarioDao.getIDUsuarioByEmail(email);
+            System.out.println("ID Usuario obtenido: " + idUsuario); // Debug
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
         // Cargar la cesta desde el almacenamiento
-        this.entradas = utils.CestaStorage.cargarCesta(email);
+        this.entradas = CestaStorage.cargarCesta(email);
         // Recalcular el total
         this.total = entradas.stream().mapToDouble(EntradaCesta::getPrecio).sum();
         actualizarCesta();
@@ -292,13 +394,7 @@ public class CestaController {
     public void filtrarPorNombre(ActionEvent actionEvent) {
     }
 
-    public void confirmarCompra(ActionEvent actionEvent) {
-
-        Alert alert = new Alert(AlertType.INFORMATION);
-        alert.setTitle("CONFIRMAR COMPRA");
-        alert.setContentText("¿Quiere usted confirmar su compra?");
-
-        alert.show();
-        //ReservaDaoImpl reservaDao = new ReservaDaoImpl();
+    public void setIdUsuario(String idUsuario) {
+        this.idUsuario=idUsuario;
     }
 }

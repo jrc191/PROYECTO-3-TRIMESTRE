@@ -1,7 +1,6 @@
 package dao.impl;
 
 import dao.ReservasDaoI;
-import models.Butaca;
 import models.Reservas;
 
 import java.sql.Connection;
@@ -24,13 +23,27 @@ public class ReservaDaoImpl implements ReservasDaoI {
         String query = "INSERT INTO RESERVAS (id_reserva, id_espectaculo, id_butaca, id_usuario, estado, precio) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement pstmt = conn.prepareStatement(query)) {
-            String estado= ""+reserva.getEstado();
+            char estado= reserva.getEstado();
             pstmt.setString(1, reserva.getId_reserva());
             pstmt.setString(2, reserva.getId_espectaculo());
             pstmt.setString(3, reserva.getId_butaca());
             pstmt.setString(4, reserva.getId_usuario());
-            pstmt.setString(5, estado);
+            pstmt.setString(5, String.valueOf(estado));
             pstmt.setDouble(6, reserva.getPrecio());
+            pstmt.executeUpdate();
+            return true;
+        }
+    }
+
+    @Override
+    public boolean registrarReservasTEMP(Reservas reserva) throws SQLException {
+        String query = "INSERT INTO RESERVAS_TEMP (id_reserva, id_espectaculo, id_butaca, id_usuario) VALUES (?, ?, ?, ?)";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, reserva.getId_reserva());
+            pstmt.setString(2, reserva.getId_espectaculo());
+            pstmt.setString(3, reserva.getId_butaca());
+            pstmt.setString(4, reserva.getId_usuario());
             pstmt.executeUpdate();
             return true;
         }
@@ -50,5 +63,37 @@ public class ReservaDaoImpl implements ReservasDaoI {
         }
 
         return reservasList;
+    }
+
+    @Override
+    public List<Reservas> consultarReservasTEMP(String id_espectaculo, String id_usuario) throws SQLException {
+        List<Reservas> reservasList = new ArrayList<>();
+        String query = "SELECT id_reserva, id_espectaculo, id_butaca, id_usuario FROM RESERVAS_TEMP WHERE id_usuario = ? AND id_espectaculo = ?";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, id_usuario);
+            pstmt.setString(2, id_espectaculo);
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                Reservas reserva = new Reservas();
+                reserva.setId_reserva(rs.getString("id_reserva"));
+                reserva.setId_espectaculo(rs.getString("id_espectaculo"));
+                reserva.setId_butaca(rs.getString("id_butaca"));
+                reserva.setId_usuario(rs.getString("id_usuario"));
+                reservasList.add(reserva);
+            }
+        }
+        return reservasList;
+    }
+
+    @Override
+    public void eliminarReservaTemporal(String idReserva) throws SQLException {
+        String query = "DELETE FROM RESERVAS_TEMP WHERE id_reserva = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, idReserva);
+            int affectedRows = pstmt.executeUpdate();
+            System.out.println("Filas afectadas al eliminar reserva temporal: " + affectedRows);
+        }
     }
 }

@@ -17,6 +17,10 @@ public class Reservas {
         this.estado = estado;
     }
 
+    public Reservas() {
+
+    }
+
     public String getId_reserva() { return id_reserva; }
     public String getId_espectaculo() { return id_espectaculo; }
     public String getId_butaca() { return id_butaca; }
