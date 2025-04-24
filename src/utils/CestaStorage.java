@@ -3,24 +3,22 @@ package utils;
 import models.EntradaCesta;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class CestaStorage {
-    private static final String BASE_PATH = "../resources/data/cestas/";                //ruta del fichero serializable
+    private static final String BASE_PATH = System.getProperty("user.home") + File.separator + "miApp" + File.separator + "data" + File.separator + "cestas" + File.separator;
 
     public static void guardarCesta(String email, List<EntradaCesta> entradas) {
         if (email == null || email.isEmpty()) {
             throw new IllegalArgumentException("Email no puede ser nulo o vacío");
         }
 
-        Path path = Paths.get(BASE_PATH);
         try {
-            Files.createDirectories(path);
-            Path filePath = path.resolve(email + ".ser"); //el fichero es RUTA+email+.ser (p.ej: admin@admin.com.ser)
+            Path path = Paths.get(BASE_PATH);
+            Files.createDirectories(path); // crea carpetas si no existen
+            Path filePath = path.resolve(email + ".ser");
 
             try (ObjectOutputStream oos = new ObjectOutputStream(
                     new FileOutputStream(filePath.toFile()))) {
@@ -32,7 +30,6 @@ public class CestaStorage {
         }
     }
 
-
     public static List<EntradaCesta> cargarCesta(String email) {
         if (email == null || email.isEmpty()) {
             return new ArrayList<>();
@@ -43,8 +40,6 @@ public class CestaStorage {
             return new ArrayList<>();
         }
 
-
-        //Carga del fichero serializable
         try (ObjectInputStream ois = new ObjectInputStream(
                 new FileInputStream(filePath.toFile()))) {
             return (List<EntradaCesta>) ois.readObject();
@@ -53,7 +48,5 @@ public class CestaStorage {
             e.printStackTrace();
             return new ArrayList<>();
         }
-
-
     }
 }

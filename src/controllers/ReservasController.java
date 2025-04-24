@@ -206,6 +206,7 @@ public class ReservasController {
 
             gridPane.add(boton, butaca.getColumna(), butaca.getFila());
         }
+        eleccionBox.setValue("-");
     }
 
     // Duro con cojones. Para crear un asiento de un color u otro según si está OCUPADO (ROJO), VIP (AMARILLO) o ESTÁNDAR (VERDE)
@@ -318,7 +319,11 @@ public class ReservasController {
                     reservasDao.registrarReservasTEMP(reservaTemp);
                     cestaController.agregarEntrada(espectaculoSeleccionado, fila, columna, precio, isVip);
                     System.out.println("Asiento añadido a la cesta y registrado temporalmente.");
-                    mostrarTodasButacas();
+                    if (eleccionBox.getValue()=="VIP" || eleccionBox.getValue()=="Estandar"){
+                        filtrarPorAsiento();
+                    } else{
+                        mostrarTodasButacas();
+                    }
                 } catch (SQLException e) {
                     System.err.println("Error al registrar la reserva temporal: " + e.getMessage());
                 }
