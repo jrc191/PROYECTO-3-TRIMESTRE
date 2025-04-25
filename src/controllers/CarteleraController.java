@@ -78,7 +78,6 @@ public class CarteleraController {
 
         //POR FIN, para quitar la puñetera línea blanca de la derecha (2 horas con esto, no es broma)
         scrollEspectaculos.setStyle("-fx-background: #1c2242; -fx-background-color: #1c2242; ");
-        scrollEspectaculos.setFitToWidth(true);
 
         // Habilitar scroll inicialmente
         habilitarScroll(true);
@@ -243,6 +242,7 @@ public class CarteleraController {
         VBox tarjeta = new VBox(10);
         tarjeta.setStyle("-fx-background-color: #2a325c; -fx-padding: 15; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 5);");
         tarjeta.setPrefSize(300, 200);
+        tarjeta.setMinSize(300, 200);
 
         // Guardar el tamaño original para restaurarlo después
         final double originalWidth = tarjeta.getPrefWidth();
