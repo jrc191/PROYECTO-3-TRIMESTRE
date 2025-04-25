@@ -15,6 +15,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -48,13 +49,12 @@ public class CarteleraController {
     private HBox contenedorEspectaculos;
     @FXML
     private TextField filtroNombreField;
-
     @FXML
     private DatePicker filtroFechaField;
     @FXML
     private Label mensajeLabel; // para mostrar mensajes de error, correctos y otra información
     @FXML
-    private Label izquierdaBtn, derechaBtn;
+    private Label izquierdaBtn, derechaBtn; //Botones del ScrollPane
     @FXML
     private ScrollPane scrollEspectaculos;
     @FXML
@@ -65,8 +65,8 @@ public class CarteleraController {
     public void initialize() {
 
         try {
-            Connection conn = DatabaseConnection.getConnection(); // método estático para obtener la conexión
-            setEspectaculoDAO(new EspectaculoDaoImpl(conn));
+            Connection conn = DatabaseConnection.getConnection();
+            setEspectaculoDAO(new EspectaculoDaoImpl(conn)); //Inicializamos los espectaculos
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -182,7 +182,7 @@ public class CarteleraController {
 
 
         }
-        habilitarScroll(false); //deshabilitamos el carrusel cuando está vacío
+        habilitarScroll(false); //deshabilitamos el carrusel del scrollpane cuando está vacío
 
         //si después de cargar los espectáculos no hay resultados, mostramos el mensaje de error que no se han encontrado
         if (espectaculos.isEmpty()) {
@@ -247,6 +247,9 @@ public class CarteleraController {
         // Guardar el tamaño original para restaurarlo después
         final double originalWidth = tarjeta.getPrefWidth();
         final double originalHeight = tarjeta.getPrefHeight();
+
+        //ImageView imagen = new ImageView(); //HAY QUE AÑADIR PARA VISUALIZAR IMAGEN A TRAVÉS DE BBDD. Hay una tabla llamada IMAGENES_ESPECTACULO de la que se obtendrá la imagen según el ID
+
 
         Label nombre = new Label(esp.getNombre());
         nombre.setStyle("-fx-font-weight: bold; -fx-text-fill: white; -fx-font-size: 16;");

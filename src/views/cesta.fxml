@@ -13,7 +13,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="650" prefWidth="800" style="-fx-background-color: linear-gradient(to bottom, #0F1C3F, #1A2A5A);" xmlns="http://javafx.com/javafx/21.0.6" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.CestaController">
+<AnchorPane prefHeight="650" prefWidth="800" style="-fx-background-color: linear-gradient(to bottom, #0F1C3F, #1A2A5A);" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.CestaController">
     <VBox prefHeight="650.0" prefWidth="730.0" spacing="20">
         <HBox alignment="CENTER_LEFT" spacing="20">
             <Label prefHeight="40.0" prefWidth="241.0" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: white;" styleClass="align" text="Cesta" textAlignment="CENTER" textFill="WHITE">
@@ -41,7 +41,7 @@
             <VBox.margin>
                 <Insets left="15.0" right="15.0" />
             </VBox.margin>
-            <Label prefHeight="18.0" prefWidth="126.0" style="-fx-text-fill: white;" text="Filtrar por asiento:" />
+            <Label prefHeight="18.0" prefWidth="126.0" style="-fx-text-fill: white;" text="Filtrar por butaca:" />
             <ChoiceBox fx:id="eleccionBox" prefHeight="26.0" prefWidth="99.0" style="-fx-background-color: black; -fx-blend-mode: add;" />
             <Button alignment="CENTER" onAction="#filtrarPorAsiento" prefHeight="26.0" prefWidth="73.0" style="-fx-background-color: #4e3a74; -fx-text-fill: white; -fx-font-weight: bold;" text="Filtrar">
                 <cursor>

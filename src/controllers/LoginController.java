@@ -121,12 +121,13 @@ public class LoginController {
         }
 
         try {
-            if (usuarioDao != null && usuarioDao.validarUsuario(email, password)) {
+
+            if (usuarioDao!=null && usuarioDao.validarUsuario(email, password) && email.equals("admin@admin.com")){
                 messageLabelLogin.setText("Login exitoso!");
                 messageLabelLogin.setStyle("-fx-text-fill: green;");
                 setUsuarioLogueado(email);
 
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/cartelera.fxml"));
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/admin.fxml"));
                 Parent root = loader.load();
 
                 Stage stage = (Stage) loginEmailField.getScene().getWindow();
@@ -136,10 +137,30 @@ public class LoginController {
                 stage.getIcons().add(new Image(getClass().getResourceAsStream("/Resources/logo.png")));
                 stage.setScene(scene);
                 stage.show();
-            } else {
-                messageLabelLogin.setText("Error en el login. Inténtelo nuevamente.");
-                messageLabelLogin.setStyle("-fx-text-fill: red;");
             }
+            else{
+                if (usuarioDao != null && usuarioDao.validarUsuario(email, password)) {
+                    messageLabelLogin.setText("Login exitoso!");
+                    messageLabelLogin.setStyle("-fx-text-fill: green;");
+                    setUsuarioLogueado(email);
+
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/cartelera.fxml"));
+                    Parent root = loader.load();
+
+                    Stage stage = (Stage) loginEmailField.getScene().getWindow();
+                    Scene scene = new Scene(root);
+                    scene.getStylesheets().add(getClass().getResource("/Resources/styles.css").toExternalForm());
+                    stage.setTitle("CINES JRC");
+                    stage.getIcons().add(new Image(getClass().getResourceAsStream("/Resources/logo.png")));
+                    stage.setScene(scene);
+                    stage.show();
+                } else {
+                    messageLabelLogin.setText("Error en el login. Inténtelo nuevamente.");
+                    messageLabelLogin.setStyle("-fx-text-fill: red;");
+                }
+            }
+
+
         } catch (IOException | SQLException e) {
             e.printStackTrace();
             messageLabelLogin.setText("Error al procesar el login");

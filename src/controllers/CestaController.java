@@ -54,8 +54,12 @@ public class CestaController {
     private Label usuarioLabel;
     @FXML
     private VBox plantillaEntrada;
-    @FXML private ScrollPane scrollEntradas;
-    @FXML private Label arribaBtn, abajoBtn;
+    @FXML
+    private ScrollPane scrollEntradas;
+    @FXML
+    private Label arribaBtn, abajoBtn;
+    @FXML
+    private ChoiceBox<String> eleccionBox;
 
     // Parámetros usados para cerrar sesión, reservar ... entre otros
     private String emailUsuarioLogueado;
@@ -75,6 +79,10 @@ public class CestaController {
     public void initialize() {
         if (emailUsuarioLogueado != null) {
             usuarioLabel.setText("Email: " + emailUsuarioLogueado);
+            // Inicializamos opciones del ChoiceBox
+            eleccionBox.getItems().addAll( "OPCION 1", "OPCION 2");
+            eleccionBox.setValue("-");
+
             try {
                 Connection conn = DatabaseConnection.getConnection();
                 this.usuarioDao = new UsuarioDaoImpl(conn);
@@ -94,6 +102,14 @@ public class CestaController {
         agregarListenersScroll();
 
         actualizarCesta();
+    }
+
+    @FXML
+    private void filtrarPorButaca() {
+        String tipoSeleccionado = eleccionBox.getValue();
+
+
+
     }
 
     // Agregar este método para manejar el scroll

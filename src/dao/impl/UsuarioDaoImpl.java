@@ -1,9 +1,12 @@
 package dao.impl;
 
 import dao.UsuarioDaoI;
+import models.Reservas;
 import models.Usuario;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UsuarioDaoImpl implements UsuarioDaoI {
 
@@ -66,5 +69,30 @@ public class UsuarioDaoImpl implements UsuarioDaoI {
 
         }
         return dato;
+    }
+
+    @Override
+    public List<Usuario> listUsuariosAdmin(){
+        List<Usuario> usuarioList= new ArrayList<>();
+
+        String query = "SELECT id_usuario, nombre, email FROM USUARIOS";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                Usuario usuario = new Usuario();
+                usuario.setDni(rs.getString("id_usuario"));
+                usuario.setNombre(rs.getString("nombre"));
+                usuario.setEmail(rs.getString("email"));
+                usuarioList.add(usuario);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return usuarioList;
+
+
     }
 }
