@@ -207,7 +207,7 @@ public class AdminController {
 
     }
 
-    // Resto de métodos existentes...
+
     private void agregarListenersScroll() {
         scrollUsuarios.setOnMouseEntered(e -> {
             arribaBtn.setOpacity(0);

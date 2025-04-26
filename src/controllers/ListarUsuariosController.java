@@ -2,6 +2,7 @@ package controllers;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import models.Usuario;
@@ -10,8 +11,16 @@ import java.util.List;
 public class ListarUsuariosController {
     @FXML
     private VBox usuariosVBox;
+    @FXML
+    private ScrollPane scrollUsuarios;
+    @FXML
+    private Label flechaArriba;
+    @FXML
+    private Label flechaAbajo;
 
     private List<Usuario> usuariosOriginal;
+    private boolean scrollConfigDone = false;
+
     public void mostrarUsuarios(List<Usuario> usuarios) {
         usuariosVBox.getChildren().clear();
         // Cabecera tipo tabla (estática, sin interacción)
@@ -43,6 +52,11 @@ public class ListarUsuariosController {
             email.setStyle("-fx-text-fill: white;");
             row.getChildren().addAll(dni, nombre, email);
             usuariosVBox.getChildren().add(row);
+        }
+        // Configuración de scroll sólo una vez
+        if (!scrollConfigDone && scrollUsuarios != null && flechaArriba != null && flechaAbajo != null) {
+            utils.Transitions.configurarListenersScroll(scrollUsuarios, flechaArriba, flechaAbajo);
+            scrollConfigDone = true;
         }
     }
 
