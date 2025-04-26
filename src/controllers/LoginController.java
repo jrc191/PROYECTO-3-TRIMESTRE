@@ -163,7 +163,7 @@ public class LoginController {
 
         } catch (IOException | SQLException e) {
             e.printStackTrace();
-            messageLabelLogin.setText("Error al procesar el login");
+            messageLabelLogin.setText("Error al procesar el login.");
         }
     }
 

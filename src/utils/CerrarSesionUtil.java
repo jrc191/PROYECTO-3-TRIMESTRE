@@ -11,9 +11,6 @@ import java.io.IOException;
 public class CerrarSesionUtil {
     /**
      * Cierra la sesión y redirige a la vista de registro/login.
-     * @param stage Stage actual
-     * @param stylesheetPath Ruta de la hoja de estilos (puede ser null)
-     * @param iconPath Ruta del icono (puede ser null)
      */
     public static void cerrarSesion(Stage stage, String stylesheetPath, String iconPath) {
         try {

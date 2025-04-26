@@ -49,11 +49,11 @@ public class RegistroController {
                 messageLabelRegistro.setText("Usuario registrado con éxito!");
                 clearFields();
             } else {
-                messageLabelRegistro.setText("Error al registrar el usuario");
+                messageLabelRegistro.setText("Error al registrar el usuario.");
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            messageLabelRegistro.setText("Error en la base de datos");
+            messageLabelRegistro.setText("Error en la base de datos.");
         }
     }
 

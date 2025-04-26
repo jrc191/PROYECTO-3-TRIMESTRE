@@ -72,7 +72,7 @@ public class CarteleraController {
         }
 
         if (espectaculoDao == null) {
-            mensajeLabel.setText("Error al conectar con la base de datos");
+            mensajeLabel.setText("Error al conectar con la base de datos.");
             return;
         }
 

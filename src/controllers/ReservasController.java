@@ -264,7 +264,7 @@ public class ReservasController {
             default -> ASIENTOS_ESTANDAR;
         };
 
-        //Seteamos la imagen según la ruta
+        //Seteamos la imagen según la ruta.
         try {
             Image image = new Image(getClass().getResourceAsStream(imagePath));
             imageView.setImage(image);

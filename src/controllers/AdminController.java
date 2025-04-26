@@ -197,7 +197,7 @@ public class AdminController {
 
     @FXML
     private void cargarListarPeliculas(ActionEvent event) {
-        cargarVista("listarPeliculas");
+        cargarVista("listarPeliculas.");
     }
 
     private void cargarVista(String vista) {

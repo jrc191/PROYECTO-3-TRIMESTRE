@@ -23,7 +23,7 @@ public class ListarUsuariosController {
 
     public void mostrarUsuarios(List<Usuario> usuarios) {
         usuariosVBox.getChildren().clear();
-        // Cabecera tipo tabla (estática, sin interacción)
+        // Cabecera tipo tabla (estática, sin interacción).
         HBox header = new HBox();
         header.setStyle("-fx-background-color: #232a4d; -fx-padding: 8px;");
         Label dniHeader = new Label("DNI");

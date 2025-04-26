@@ -105,7 +105,7 @@ public class CestaController {
 
     }
 
-    // Para manejar el scroll de la cesta
+    // Para manejar el scroll de la cesta.
     private void agregarListenersScroll() {
         Transitions.configurarListenersScroll(scrollEntradas, arribaBtn, abajoBtn);
     }
@@ -124,7 +124,7 @@ public class CestaController {
     }
 
 
-    //Para devolver la cesta en otros controladores. YA NO HACE FALTA, DEBIDO A QUE AHORA SE USAN FICHEROS SERIALIZABLES
+    //Para devolver la cesta en otros controladores. YA NO HACE FALTA, DEBIDO A QUE AHORA SE USAN FICHEROS SERIALIZABLES.
     private CestaController getOrCreateCestaController() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("../views/cesta.fxml"));
