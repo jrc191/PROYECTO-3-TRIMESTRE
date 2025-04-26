@@ -1,5 +1,8 @@
 package controllers;
 
+import javafx.stage.Stage;
+import javafx.scene.control.Label;
+
 import utils.DatabaseConnection;
 import dao.UsuarioDaoI;
 import dao.impl.ReservaDaoImpl;
@@ -255,11 +258,11 @@ public class CestaController {
 
 
     //método para cerrar sesión y volver al login
-    //bastante sencillo, setea el valor del mail a nulo y manda de vuelta al login
+//bastante sencillo, setea el valor del mail a nulo y manda de vuelta al login
     public void cerrarSesion(ActionEvent actionEvent) {
-        emailUsuarioLogueado=null;
-
-        cambioEscena("../views/registro.fxml");
+        emailUsuarioLogueado = null;
+        Stage stage = (Stage) usuarioLabel.getScene().getWindow();
+        utils.CerrarSesionUtil.cerrarSesion(stage, "/Resources/styles.css", "/Resources/logo.png");
     }
 
     //A IMPLEMENTAR

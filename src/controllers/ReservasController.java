@@ -1,5 +1,8 @@
 package controllers;
 
+import javafx.stage.Stage;
+import javafx.scene.control.Label;
+
 import dao.ButacaDaoI;
 import utils.DatabaseConnection;
 import dao.ReservasDaoI;
@@ -144,7 +147,8 @@ public class ReservasController {
 
     public void cerrarSesion(ActionEvent actionEvent) {
         emailUsuarioLogueado = null;
-        cambioEscena("../views/login.fxml");
+        Stage stage = (Stage) usuarioLabel.getScene().getWindow();
+        utils.CerrarSesionUtil.cerrarSesion(stage, "/Resources/styles.css", "/Resources/logo.png");
     }
 
     @FXML

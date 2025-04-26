@@ -18,6 +18,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import models.Usuario;
 import utils.Transitions;
+import utils.CerrarSesionUtil;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -145,7 +146,8 @@ public class AdminController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/listarUsuarios.fxml"));
             Parent listarUsuariosView = loader.load();
             controllers.ListarUsuariosController controller = loader.getController();
-            // Obtener usuarios vía DAO
+
+            // Obtener usuarios
             Connection conn = utils.DatabaseConnection.getConnection();
             dao.UsuarioDaoI usuarioDao = new dao.impl.UsuarioDaoImpl(conn);
             java.util.List<models.Usuario> usuarios = usuarioDao.listUsuariosAdmin();
@@ -203,10 +205,7 @@ public class AdminController {
         Label label = new Label("Cargando vista: " + vista);
         label.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
         contenidoArea.getChildren().add(label);
-
-
     }
-
 
     private void agregarListenersScroll() {
         scrollUsuarios.setOnMouseEntered(e -> {
@@ -235,30 +234,8 @@ public class AdminController {
     }
 
     public void cerrarSesion(ActionEvent actionEvent) {
-        emailUsuarioLogueado=null;
-
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("../views/registro.fxml"));
-            Parent root = loader.load();
-
-            Stage stage = (Stage) usuarioLabel.getScene().getWindow();
-
-            Scene scene = new Scene(root);
-
-            Transitions transitions = new Transitions();
-            transitions.fadeInScene(root);
-
-            scene.getStylesheets().add(getClass().getResource("../Resources/styles.css").toExternalForm());
-            stage.setTitle("CINES JRC");
-
-            Image icon = new Image(getClass().getResourceAsStream("../Resources/logo.png"));
-            stage.getIcons().add(icon);
-
-            stage.setScene(scene);
-            stage.show();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        emailUsuarioLogueado = null;
+        Stage stage = (Stage) usuarioLabel.getScene().getWindow();
+        utils.CerrarSesionUtil.cerrarSesion(stage, "/Resources/styles.css", "/Resources/logo.png");
     }
 }

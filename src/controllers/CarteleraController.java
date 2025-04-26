@@ -1,5 +1,8 @@
 package controllers;
 
+import javafx.stage.Stage;
+import javafx.scene.control.Label;
+
 import utils.DatabaseConnection;
 import dao.EspectaculoDaoI;
 import dao.impl.EspectaculoDaoImpl;
@@ -19,12 +22,12 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import models.Espectaculo;
 import utils.Transitions;
+import utils.CerrarSesionUtil;
 
 import java.io.IOException;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.List;
-
 
 import static controllers.LoginController.*;
 
@@ -331,39 +334,10 @@ public class CarteleraController {
     //bastante sencillo, setea el valor del mail a nulo y manda de vuelta al login
 
     public void cerrarSesion(ActionEvent actionEvent) {
-        emailUsuarioLogueado=null;
-
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("../views/registro.fxml"));
-            Parent root = loader.load();
-
-            // Obtener el Stage actual, con utilizar cualquier atributo fxml o nodo sirve.
-            Stage stage = (Stage) contenedorEspectaculos.getScene().getWindow();
-
-            // Crear una nueva escena
-            Scene scene = new Scene(root);
-
-            Transitions transitions = new Transitions();
-            transitions.fadeInScene(root);
-
-            scene.getStylesheets().add(getClass().getResource("../Resources/styles.css").toExternalForm());
-            stage.setTitle("CINES JRC");
-
-            // Establecer el icono de la ventana
-            Image icon = new Image(getClass().getResourceAsStream("../Resources/logo.png"));
-            stage.getIcons().add(icon);
-
-            // Cambiar la escena
-            stage.setScene(scene);
-            stage.show();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-
-        }
+        emailUsuarioLogueado = null;
+        Stage stage = (Stage) contenedorEspectaculos.getScene().getWindow();
+        CerrarSesionUtil.cerrarSesion(stage, "/Resources/styles.css", "/Resources/logo.png");
     }
-
-
 
     //GETTERS Y SETTERS DE FILTROS. Por si acaso hacen falta en otro momento
     public TextField getFiltroNombreField(){
