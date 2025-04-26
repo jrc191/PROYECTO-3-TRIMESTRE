@@ -20,7 +20,7 @@
         <VBox fx:id="leftPane" alignment="CENTER" prefWidth="400" spacing="15" style="-fx-background-color: #1A2A5A;">
             <ImageView fitHeight="175.0" fitWidth="229.0" pickOnBounds="true" preserveRatio="true">
                 <image>
-                    <Image url="@../resources/logo.png" />
+                    <Image url="@../resources/images/logo.png" />
                 </image>
             </ImageView>
 

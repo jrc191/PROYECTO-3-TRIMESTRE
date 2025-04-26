@@ -257,7 +257,7 @@ public class CestaController {
     public void cerrarSesion(ActionEvent actionEvent) {
         emailUsuarioLogueado = null;
         Stage stage = (Stage) usuarioLabel.getScene().getWindow();
-        CerrarSesion.cerrarSesion(stage, "/Resources/styles.css", "/Resources/logo.png");
+        CerrarSesion.cerrarSesion(stage, "/Resources/styles/styles.css", "/Resources/images/logo.png");
     }
 
     //A IMPLEMENTAR
@@ -270,7 +270,7 @@ public class CestaController {
     private void cambioEscena(String name) {
         Stage stage = (Stage) contenedorEntradas.getScene().getWindow();
         // Se asume que el stylesheet y el icon path son los mismos siempre
-        Transitions.cambioEscena(stage, name, "../Resources/styles.css", "CINES JRC", "../Resources/logo.png", null);
+        Transitions.cambioEscena(stage, name, "../Resources/styles/styles.css", "CINES JRC", "../Resources/images/logo.png", null);
     }
 
     public void filtrarPorFecha(ActionEvent actionEvent) {
@@ -282,10 +282,11 @@ public class CestaController {
 
     // Método para oscurecer la entrada
     // Ahora se usa Transitions.oscurecerEntrada
+    /*
     private void oscurecerEntrada(VBox entradaCesta) {
         Transitions.oscurecerEntrada(entradaCesta);
     }
-
+    */
     public void setEmailUsuarioLogueado(String email) {
         this.emailUsuarioLogueado = email;
         if (usuarioLabel != null) {

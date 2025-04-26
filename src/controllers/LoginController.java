@@ -132,9 +132,9 @@ public class LoginController {
 
                 Stage stage = (Stage) loginEmailField.getScene().getWindow();
                 Scene scene = new Scene(root);
-                scene.getStylesheets().add(getClass().getResource("/Resources/styles.css").toExternalForm());
+                scene.getStylesheets().add(getClass().getResource("/Resources/styles/styles.css").toExternalForm());
                 stage.setTitle("CINES JRC");
-                stage.getIcons().add(new Image(getClass().getResourceAsStream("/Resources/logo.png")));
+                stage.getIcons().add(new Image(getClass().getResourceAsStream("/Resources/images/logo.png")));
                 stage.setScene(scene);
                 stage.show();
             }
@@ -149,9 +149,9 @@ public class LoginController {
 
                     Stage stage = (Stage) loginEmailField.getScene().getWindow();
                     Scene scene = new Scene(root);
-                    scene.getStylesheets().add(getClass().getResource("/Resources/styles.css").toExternalForm());
+                    scene.getStylesheets().add(getClass().getResource("/Resources/styles/styles.css").toExternalForm());
                     stage.setTitle("CINES JRC");
-                    stage.getIcons().add(new Image(getClass().getResourceAsStream("/Resources/logo.png")));
+                    stage.getIcons().add(new Image(getClass().getResourceAsStream("/Resources/images/logo.png")));
                     stage.setScene(scene);
                     stage.show();
                 } else {

@@ -32,9 +32,9 @@ public class ListarUsuariosController {
         dniHeader.setPrefWidth(150);
         nombreHeader.setPrefWidth(200);
         emailHeader.setPrefWidth(250);
-        dniHeader.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
-        nombreHeader.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
-        emailHeader.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+        dniHeader.setStyle("-fx-text-fill: #FFC107; -fx-font-weight: bold;");
+        nombreHeader.setStyle("-fx-text-fill: #FFC107; -fx-font-weight: bold;");
+        emailHeader.setStyle("-fx-text-fill: #FFC107; -fx-font-weight: bold;");
         header.getChildren().addAll(dniHeader, nombreHeader, emailHeader);
         usuariosVBox.getChildren().add(header);
         // Filas
@@ -53,7 +53,7 @@ public class ListarUsuariosController {
             row.getChildren().addAll(dni, nombre, email);
             usuariosVBox.getChildren().add(row);
         }
-        // Configuración de scroll sólo una vez
+        // Configuración de scroll
         if (!scrollConfigDone && scrollUsuarios != null && flechaArriba != null && flechaAbajo != null) {
             utils.Transitions.configurarListenersScroll(scrollUsuarios, flechaArriba, flechaAbajo);
             scrollConfigDone = true;
