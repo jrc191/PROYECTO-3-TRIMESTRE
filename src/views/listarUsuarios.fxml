@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/21.0.6" fx:controller="controllers.ListarUsuariosController">
+    <VBox fx:id="usuariosVBox" layoutX="14.0" layoutY="14.0" prefHeight="400.0" prefWidth="500.0" spacing="4" style="-fx-background-color: #1c2242;">
+    <!-- Aquí se añadirán los Labels de cada usuario dinámicamente -->
+</VBox>
+</AnchorPane>

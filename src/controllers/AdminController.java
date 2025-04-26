@@ -141,7 +141,24 @@ public class AdminController {
 
     @FXML
     private void cargarListarUsuarios(ActionEvent event) {
-        cargarVista("listarUsuarios");
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/listarUsuarios.fxml"));
+            Parent listarUsuariosView = loader.load();
+            controllers.ListarUsuariosController controller = loader.getController();
+            // Obtener usuarios vía DAO
+            Connection conn = utils.DatabaseConnection.getConnection();
+            dao.UsuarioDaoI usuarioDao = new dao.impl.UsuarioDaoImpl(conn);
+            java.util.List<models.Usuario> usuarios = usuarioDao.listUsuariosAdmin();
+            controller.mostrarUsuarios(usuarios);
+            contenidoArea.getChildren().clear();
+            contenidoArea.getChildren().add(listarUsuariosView);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Label errorLabel = new Label("Error al cargar la lista de usuarios");
+            errorLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
+            contenidoArea.getChildren().clear();
+            contenidoArea.getChildren().add(errorLabel);
+        }
     }
 
     // Métodos para cargar vistas de reservas
