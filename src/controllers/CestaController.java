@@ -3,6 +3,7 @@ package controllers;
 import javafx.stage.Stage;
 import javafx.scene.control.Label;
 
+import utils.CerrarSesion;
 import utils.DatabaseConnection;
 import dao.UsuarioDaoI;
 import dao.impl.ReservaDaoImpl;
@@ -12,16 +13,11 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.effect.ColorAdjust;
-import javafx.scene.image.Image;
-import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
-import javafx.stage.Stage;
 import models.EntradaCesta;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -31,7 +27,6 @@ import utils.Transitions;
 
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -262,7 +257,7 @@ public class CestaController {
     public void cerrarSesion(ActionEvent actionEvent) {
         emailUsuarioLogueado = null;
         Stage stage = (Stage) usuarioLabel.getScene().getWindow();
-        utils.CerrarSesionUtil.cerrarSesion(stage, "/Resources/styles.css", "/Resources/logo.png");
+        CerrarSesion.cerrarSesion(stage, "/Resources/styles.css", "/Resources/logo.png");
     }
 
     //A IMPLEMENTAR

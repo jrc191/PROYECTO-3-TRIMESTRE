@@ -127,7 +127,7 @@ public class LoginController {
                 messageLabelLogin.setStyle("-fx-text-fill: green;");
                 setUsuarioLogueado(email);
 
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/admin.fxml"));
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/admin/admin.fxml"));
                 Parent root = loader.load();
 
                 Stage stage = (Stage) loginEmailField.getScene().getWindow();

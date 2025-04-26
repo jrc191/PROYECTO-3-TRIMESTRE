@@ -4,6 +4,7 @@ import javafx.stage.Stage;
 import javafx.scene.control.Label;
 
 import dao.ButacaDaoI;
+import utils.CerrarSesion;
 import utils.DatabaseConnection;
 import dao.ReservasDaoI;
 import dao.UsuarioDaoI;
@@ -19,12 +20,10 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.Label;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
-import javafx.stage.Stage;
 import javafx.util.Duration;
 import models.*;
 
@@ -148,7 +147,7 @@ public class ReservasController {
     public void cerrarSesion(ActionEvent actionEvent) {
         emailUsuarioLogueado = null;
         Stage stage = (Stage) usuarioLabel.getScene().getWindow();
-        utils.CerrarSesionUtil.cerrarSesion(stage, "/Resources/styles.css", "/Resources/logo.png");
+        CerrarSesion.cerrarSesion(stage, "/Resources/styles.css", "/Resources/logo.png");
     }
 
     @FXML

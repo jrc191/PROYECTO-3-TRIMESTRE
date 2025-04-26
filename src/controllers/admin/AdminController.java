@@ -1,4 +1,4 @@
-package controllers;
+package controllers.admin;
 
 import utils.DatabaseConnection;
 import dao.UsuarioDaoI;
@@ -7,18 +7,15 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
-import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import models.Usuario;
-import utils.Transitions;
-import utils.CerrarSesionUtil;
+import utils.CerrarSesion;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -117,7 +114,7 @@ public class AdminController {
     @FXML
     private void cargarAgregarUsuario(ActionEvent event) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/regComponent.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/admin/regComponent.fxml"));
             Parent registrationView = loader.load();
             contenidoArea.getChildren().clear();
             contenidoArea.getChildren().add(registrationView);
@@ -143,9 +140,9 @@ public class AdminController {
     @FXML
     private void cargarListarUsuarios(ActionEvent event) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/listarUsuarios.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/admin/listarUsuarios.fxml"));
             Parent listarUsuariosView = loader.load();
-            controllers.ListarUsuariosController controller = loader.getController();
+            ListarUsuariosController controller = loader.getController();
 
             // Obtener usuarios
             Connection conn = utils.DatabaseConnection.getConnection();
@@ -236,6 +233,6 @@ public class AdminController {
     public void cerrarSesion(ActionEvent actionEvent) {
         emailUsuarioLogueado = null;
         Stage stage = (Stage) usuarioLabel.getScene().getWindow();
-        utils.CerrarSesionUtil.cerrarSesion(stage, "/Resources/styles.css", "/Resources/logo.png");
+        CerrarSesion.cerrarSesion(stage, "/Resources/styles.css", "/Resources/logo.png");
     }
 }

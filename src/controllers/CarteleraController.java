@@ -19,10 +19,9 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
 import models.Espectaculo;
 import utils.Transitions;
-import utils.CerrarSesionUtil;
+import utils.CerrarSesion;
 
 import java.io.IOException;
 import java.sql.*;
@@ -336,7 +335,7 @@ public class CarteleraController {
     public void cerrarSesion(ActionEvent actionEvent) {
         emailUsuarioLogueado = null;
         Stage stage = (Stage) contenedorEspectaculos.getScene().getWindow();
-        CerrarSesionUtil.cerrarSesion(stage, "/Resources/styles.css", "/Resources/logo.png");
+        CerrarSesion.cerrarSesion(stage, "/Resources/styles.css", "/Resources/logo.png");
     }
 
     //GETTERS Y SETTERS DE FILTROS. Por si acaso hacen falta en otro momento

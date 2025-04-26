@@ -12,7 +12,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="650" prefWidth="800" style="-fx-background-color: linear-gradient(to bottom, #0F1C3F, #1A2A5A);" xmlns="http://javafx.com/javafx/21.0.6" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.AdminController">
+<AnchorPane prefHeight="650" prefWidth="800" style="-fx-background-color: linear-gradient(to bottom, #0F1C3F, #1A2A5A);" xmlns="http://javafx.com/javafx/21.0.6" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.admin.AdminController">
     <VBox prefHeight="650.0" prefWidth="800.0" spacing="20">
         <!-- Barra superior -->
         <HBox alignment="CENTER_LEFT" prefHeight="50.0" prefWidth="706.0" spacing="20" style="-fx-background-color: #1c2242; -fx-border-radius: 10; -fx-border-insets: 10; -fx-background-radius: 10;">
@@ -59,7 +59,7 @@
                         <graphic>
                             <ImageView fitHeight="16.0" fitWidth="16.0" preserveRatio="true">
                                 <image>
-                                    <Image url="@../resources/images/user-48.png" />
+                                    <Image url="@../../resources/images/user-48.png" />
                                 </image>
                             </ImageView>
                         </graphic>
@@ -84,7 +84,7 @@
                         <graphic>
                             <ImageView fitHeight="16.0" fitWidth="16.0" preserveRatio="true">
                                 <image>
-                                    <Image url="@../resources/images/default-show.png" />
+                                    <Image url="@../../resources/images/default-show.png" />
                                 </image>
                             </ImageView>
                         </graphic>
@@ -108,7 +108,7 @@
                         <graphic>
                             <ImageView fitHeight="16.0" fitWidth="16.0" preserveRatio="true">
                                 <image>
-                                    <Image url="@../resources/images/default-show.png" />
+                                    <Image url="@../../resources/images/default-show.png" />
                                 </image>
                             </ImageView>
                         </graphic>

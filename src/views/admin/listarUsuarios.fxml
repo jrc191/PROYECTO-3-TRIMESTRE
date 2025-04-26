@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane xmlns="http://javafx.com/javafx/21.0.6" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.ListarUsuariosController">
+<AnchorPane xmlns="http://javafx.com/javafx/21.0.6" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.admin.ListarUsuariosController">
     <ScrollPane fx:id="scrollUsuarios" fitToWidth="true" hbarPolicy="NEVER" layoutX="14.0" layoutY="14.0" prefHeight="400.0" prefWidth="500.0" style="-fx-background: #1c2242; -fx-border-color: #232a4d; -fx-border-width: 2;">
         <content>
             <VBox fx:id="usuariosVBox" spacing="4" style="-fx-background-color: #1c2242;">
