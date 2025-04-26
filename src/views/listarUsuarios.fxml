@@ -10,7 +10,7 @@
     <ScrollPane fx:id="scrollUsuarios" fitToWidth="true" hbarPolicy="NEVER" layoutX="14.0" layoutY="14.0" prefHeight="400.0" prefWidth="500.0" style="-fx-background: #1c2242; -fx-border-color: #232a4d; -fx-border-width: 2;">
         <content>
             <VBox fx:id="usuariosVBox" spacing="4" style="-fx-background-color: #1c2242;">
-                <!-- Aquí se añadirán los Labels de cada usuario dinámicamente -->
+                <!-- Aquí se añaden los usuarios dinámicamente -->
             </VBox>
         </content>
       <cursor>
