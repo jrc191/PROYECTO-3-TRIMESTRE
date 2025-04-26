@@ -1,7 +1,7 @@
 package controllers;
 
 import dao.ButacaDaoI;
-import dao.DatabaseConnection;
+import utils.DatabaseConnection;
 import dao.ReservasDaoI;
 import dao.UsuarioDaoI;
 import dao.impl.ButacaDaoImpl;

@@ -96,4 +96,16 @@ public class ReservaDaoImpl implements ReservasDaoI {
             System.out.println("Filas afectadas al eliminar reserva temporal: " + affectedRows);
         }
     }
+
+    /**
+     * Elimina todas las reservas temporales de un usuario (por id_usuario) en RESERVAS_TEMP.
+     */
+    public void eliminarReservasTemporalesUsuario(String idUsuario) throws SQLException {
+        String query = "DELETE FROM RESERVAS_TEMP WHERE id_usuario = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, idUsuario);
+            int affectedRows = pstmt.executeUpdate();
+            System.out.println("Filas afectadas al eliminar reservas temporales del usuario: " + affectedRows);
+        }
+    }
 }

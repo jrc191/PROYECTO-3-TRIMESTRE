@@ -1,46 +1,37 @@
 package controllers;
 
-import dao.DatabaseConnection;
+import utils.DatabaseConnection;
 import dao.UsuarioDaoI;
 import dao.impl.ReservaDaoImpl;
 import dao.impl.UsuarioDaoImpl;
-import javafx.animation.FadeTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
-import javafx.util.Duration;
-import models.Butaca;
 import models.EntradaCesta;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import models.Reservas;
-import oracle.sql.TIMESTAMP;
 import utils.CestaStorage;
 import utils.Transitions;
 
-import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class CestaController {
 
@@ -104,44 +95,16 @@ public class CestaController {
         actualizarCesta();
     }
 
+    //A IMPLEMENTAR
     @FXML
     private void filtrarPorButaca() {
         String tipoSeleccionado = eleccionBox.getValue();
 
-
-
     }
 
-    // Agregar este método para manejar el scroll
+    // Para manejar el scroll de la cesta
     private void agregarListenersScroll() {
-        // Mostrar/ocultar flechas al entrar/salir del scroll
-        scrollEntradas.setOnMouseEntered(e -> {
-            arribaBtn.setOpacity(0);
-            abajoBtn.setOpacity(0);
-        });
-
-        scrollEntradas.setOnMouseExited(e -> {
-            arribaBtn.setOpacity(1);
-            abajoBtn.setOpacity(1);
-        });
-
-        // Controlar el scroll con las flechas
-        arribaBtn.setOnMouseClicked(e ->
-                scrollEntradas.setVvalue(scrollEntradas.getVvalue() - 0.2));
-
-        abajoBtn.setOnMouseClicked(e ->
-                scrollEntradas.setVvalue(scrollEntradas.getVvalue() + 0.2));
-
-
-        arribaBtn.setOnKeyPressed(e->
-                scrollEntradas.setVvalue(scrollEntradas.getVvalue() - 0.2));
-
-        // Ajustar opacidad inicial
-        arribaBtn.setOpacity(0);
-        abajoBtn.setOpacity(0);
-
-        scrollEntradas.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-
+        Transitions.configurarListenersScroll(scrollEntradas, arribaBtn, abajoBtn);
     }
 
     public void agregarEntrada(String nombreEspectaculo, int fila, int col, double precio, boolean esVip) {
@@ -254,20 +217,13 @@ public class CestaController {
                     Connection conn = DatabaseConnection.getConnection();
                     ReservaDaoImpl reservaDao = new ReservaDaoImpl(conn);
 
-                    // Eliminar reservas temporales
-                    String deleteQuery = "DELETE FROM RESERVAS_TEMP WHERE id_usuario = ?";
-                    try (PreparedStatement pstmt = conn.prepareStatement(deleteQuery)) {
-                        pstmt.setString(1, idUsuario);
-                        pstmt.executeUpdate();
-                    } catch (SQLException e) {
-                        throw new RuntimeException(e);
-                    }
+                    // Eliminar todas las reservas temporales del usuario usando el DAO
+                    reservaDao.eliminarReservasTemporalesUsuario(idUsuario);
 
                     // Guardar las reservas definitivas
                     for (EntradaCesta entrada : entradas) {
                         Reservas reserva = new Reservas();
-
-                        String idReserva = idEspectaculoSeleccionado+ "_" + idUsuario + "_F" + entrada.getFila() + "-C" + entrada.getCol();
+                        String idReserva = idEspectaculoSeleccionado + "_" + idUsuario + "_F" + entrada.getFila() + "-C" + entrada.getCol();
                         reserva.setId_reserva(idReserva);
                         reserva.setId_espectaculo(idEspectaculoSeleccionado);
                         reserva.setId_butaca("F" + entrada.getFila() + "-C" + entrada.getCol());
@@ -312,47 +268,11 @@ public class CestaController {
     }
 
     //método para cambiar de escena
+    // Ahora se usa Transitions.cambioEscena para cambiar de escena
     private void cambioEscena(String name) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(name));
-            Parent root = loader.load();
-
-            // Obtener el Stage actual, con utilizar cualquier atributo fxml o nodo sirve.
-            Stage stage = (Stage) contenedorEntradas.getScene().getWindow();
-
-            // Crear una nueva escena
-            Scene scene = new Scene(root);
-
-            Transitions transitions = new Transitions();
-            transitions.fadeInScene(root);
-
-            scene.getStylesheets().add(getClass().getResource("../Resources/styles.css").toExternalForm());
-            stage.setTitle("CINES JRC");
-
-            // Establecer el icono de la ventana
-            Image icon = new Image(getClass().getResourceAsStream("../Resources/logo.png"));
-            stage.getIcons().add(icon);
-
-            //HANDLE DE BOTON ARRIBA PARA SUBIR EL SCROLLPANE
-            scene.setOnKeyPressed(event -> {
-                if (event.getCode() == KeyCode.UP) {
-                    arribaBtn.setOnKeyPressed(e ->
-                            scrollEntradas.setVvalue(scrollEntradas.getVvalue() - 0.2));
-                } else if (event.getCode() == KeyCode.DOWN) {
-                    abajoBtn.setOnKeyPressed(e->
-                            scrollEntradas.setVvalue(scrollEntradas.getVvalue() + 0.2));
-
-                }
-            });
-
-            // Cambiar la escena
-            stage.setScene(scene);
-            stage.show();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-
-        }
+        Stage stage = (Stage) contenedorEntradas.getScene().getWindow();
+        // Se asume que el stylesheet y el icon path son los mismos siempre
+        Transitions.cambioEscena(stage, name, "../Resources/styles.css", "CINES JRC", "../Resources/logo.png", null);
     }
 
     public void filtrarPorFecha(ActionEvent actionEvent) {
@@ -363,13 +283,9 @@ public class CestaController {
 
 
     // Método para oscurecer la entrada
+    // Ahora se usa Transitions.oscurecerEntrada
     private void oscurecerEntrada(VBox entradaCesta) {
-
-        // Aplicar el filtro para oscurecer la imagen
-        ColorAdjust colorAdjust = new ColorAdjust();
-        colorAdjust.setBrightness(-0.5);  // Hace que la imagen sea más oscura
-
-        entradaCesta.setEffect(colorAdjust);
+        Transitions.oscurecerEntrada(entradaCesta);
     }
 
     public void setEmailUsuarioLogueado(String email) {

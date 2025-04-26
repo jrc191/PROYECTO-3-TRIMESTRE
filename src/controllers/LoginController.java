@@ -1,6 +1,6 @@
 package controllers;
 
-import dao.DatabaseConnection;
+import utils.DatabaseConnection;
 import dao.UsuarioDaoI;
 import dao.impl.UsuarioDaoImpl;
 import javafx.animation.FadeTransition;
