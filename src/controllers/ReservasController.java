@@ -147,7 +147,7 @@ public class ReservasController {
     public void cerrarSesion(ActionEvent actionEvent) {
         emailUsuarioLogueado = null;
         Stage stage = (Stage) usuarioLabel.getScene().getWindow();
-        CerrarSesion.cerrarSesion(stage, "/Resources/styles/styles.css", "/Resources/images/logo.png");
+        CerrarSesion.cerrarSesion(stage, "/resources/styles/styles.css", "/Resources/images/logo.png");
     }
 
     @FXML
@@ -382,10 +382,10 @@ public class ReservasController {
 
             Stage stage = (Stage) usuarioLabel.getScene().getWindow();
             Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("../Resources/styles/styles.css").toExternalForm());
+            scene.getStylesheets().add(getClass().getResource("../resources/styles/styles.css").toExternalForm());
             stage.setTitle("CINES JRC");
 
-            Image icon = new Image(getClass().getResourceAsStream("../Resources/images/logo.png"));
+            Image icon = new Image(getClass().getResourceAsStream("../resources/images/logo.png"));
             stage.getIcons().add(icon);
 
             stage.setScene(scene);
@@ -409,10 +409,10 @@ public class ReservasController {
 
             Stage stage = (Stage) usuarioLabel.getScene().getWindow();
             Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("../Resources/styles/styles.css").toExternalForm());
+            scene.getStylesheets().add(getClass().getResource("../resources/styles/styles.css").toExternalForm());
             stage.setTitle("CINES JRC");
 
-            Image icon = new Image(getClass().getResourceAsStream("../Resources/images/logo.png"));
+            Image icon = new Image(getClass().getResourceAsStream("../resources/images/logo.png"));
             stage.getIcons().add(icon);
 
             stage.setScene(scene);

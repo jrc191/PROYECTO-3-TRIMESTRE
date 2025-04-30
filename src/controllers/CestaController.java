@@ -257,12 +257,12 @@ public class CestaController {
     public void cerrarSesion(ActionEvent actionEvent) {
         emailUsuarioLogueado = null;
         Stage stage = (Stage) usuarioLabel.getScene().getWindow();
-        CerrarSesion.cerrarSesion(stage, "/Resources/styles/styles.css", "/Resources/images/logo.png");
+        CerrarSesion.cerrarSesion(stage, "/resources/styles/styles.css", "/resources/images/logo.png");
     }
 
     //A IMPLEMENTAR
     public void volverCartelera(ActionEvent actionEvent) {
-        cambioEscena("../views/cartelera.fxml");
+        cambioEscena("/views/cartelera.fxml");
     }
 
     //método para cambiar de escena
@@ -270,7 +270,7 @@ public class CestaController {
     private void cambioEscena(String name) {
         Stage stage = (Stage) contenedorEntradas.getScene().getWindow();
         // Se asume que el stylesheet y el icon path son los mismos siempre
-        Transitions.cambioEscena(stage, name, "../Resources/styles/styles.css", "CINES JRC", "../Resources/images/logo.png", null);
+        Transitions.cambioEscena(stage, name, "/resources/styles/styles.css", "CINES JRC", "/resources/images/logo.png", null);
     }
 
     public void filtrarPorFecha(ActionEvent actionEvent) {

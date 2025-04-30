@@ -233,6 +233,6 @@ public class AdminController {
     public void cerrarSesion(ActionEvent actionEvent) {
         emailUsuarioLogueado = null;
         Stage stage = (Stage) usuarioLabel.getScene().getWindow();
-        CerrarSesion.cerrarSesion(stage, "/Resources/styles/styles.css", "/Resources/images/logo.png");
+        CerrarSesion.cerrarSesion(stage, "/resources/styles/styles.css", "/resources/images/logo.png");
     }
 }

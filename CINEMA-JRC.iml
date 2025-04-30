@@ -11,7 +11,7 @@
     <orderEntry type="module-library" exported="">
       <library>
         <CLASSES>
-          <root url="jar://C:/JDBC/ojdbc17.jar!/" />
+          <root url="jar://$USER_HOME$/JDBC/ojdbc17.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

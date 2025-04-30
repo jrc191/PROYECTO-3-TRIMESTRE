@@ -335,7 +335,7 @@ public class CarteleraController {
     public void cerrarSesion(ActionEvent actionEvent) {
         emailUsuarioLogueado = null;
         Stage stage = (Stage) contenedorEspectaculos.getScene().getWindow();
-        CerrarSesion.cerrarSesion(stage, "/Resources/styles/styles.css", "/Resources/images/logo.png");
+        CerrarSesion.cerrarSesion(stage, "/resources/styles/styles.css", "/resources/images/logo.png");
     }
 
     //GETTERS Y SETTERS DE FILTROS. Por si acaso hacen falta en otro momento
@@ -360,10 +360,10 @@ public class CarteleraController {
             Stage stage = (Stage) usuarioLabel.getScene().getWindow();
             Scene scene = new Scene(root);
 
-            scene.getStylesheets().add(getClass().getResource("../Resources/styles/styles.css").toExternalForm());
+            scene.getStylesheets().add(getClass().getResource("../resources/styles/styles.css").toExternalForm());
             stage.setTitle("CINES JRC");
 
-            Image icon = new Image(getClass().getResourceAsStream("../Resources/images/logo.png"));
+            Image icon = new Image(getClass().getResourceAsStream("../resources/images/logo.png"));
             stage.getIcons().add(icon);
 
             Transitions transitions = new Transitions();

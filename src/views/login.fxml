@@ -17,7 +17,7 @@
     <HBox spacing="0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
 
         <!-- Left Panel (Azul Profundo con texto dorado) -->
-        <VBox fx:id="leftPane" alignment="CENTER" prefWidth="400" spacing="20" style="-fx-background-image: url('file:C:/Users/jose/eclipse-workspace/PROYECTO-3TRIMESTRE/src/Resources/background.jpg'); -fx-background-color: #0F1C3F;">
+        <VBox fx:id="leftPane" alignment="CENTER" prefWidth="400" spacing="20" style="-fx-background-image: url('file:/home/jrc/IdeaProjects/PROYECTO-3-TRIMESTRE/src/resources/images/background.jpg'); -fx-background-color: #0F1C3F;">
             <Label style="-fx-font-size: 60px; -fx-font-weight: bold; -fx-effect: dropshadow(gaussian, black, 3, 0.5, 0, 0);" text="CINES JRC" textFill="#FFD700" />
             <VBox alignment="CENTER" prefHeight="119.0" prefWidth="400.0">
                 <Label style="-fx-font-size: 14px; -fx-text-fill: #FFC107;" text="DISFRUTA DE" />

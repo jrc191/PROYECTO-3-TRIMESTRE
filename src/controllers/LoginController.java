@@ -77,7 +77,7 @@ public class LoginController {
     @FXML
     private void showLogin() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/login.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("../views/login.fxml"));
             Parent root = loader.load();
             LoginController controller = loader.getController();
             Transitions transitions = new Transitions();
@@ -95,7 +95,7 @@ public class LoginController {
     @FXML
     private void showRegistro() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/registro.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("../views/registro.fxml"));
             Parent root = loader.load();
             LoginController controller = loader.getController();
             Transitions transitions = new Transitions();
@@ -127,14 +127,14 @@ public class LoginController {
                 messageLabelLogin.setStyle("-fx-text-fill: green;");
                 setUsuarioLogueado(email);
 
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/admin/admin.fxml"));
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("../views/admin/admin.fxml"));
                 Parent root = loader.load();
 
                 Stage stage = (Stage) loginEmailField.getScene().getWindow();
                 Scene scene = new Scene(root);
-                scene.getStylesheets().add(getClass().getResource("/Resources/styles/styles.css").toExternalForm());
+                scene.getStylesheets().add(getClass().getResource("../resources/styles/styles.css").toExternalForm());
                 stage.setTitle("CINES JRC");
-                stage.getIcons().add(new Image(getClass().getResourceAsStream("/Resources/images/logo.png")));
+                stage.getIcons().add(new Image(getClass().getResourceAsStream("../resources/images/logo.png")));
                 stage.setScene(scene);
                 stage.show();
             }
@@ -144,14 +144,14 @@ public class LoginController {
                     messageLabelLogin.setStyle("-fx-text-fill: green;");
                     setUsuarioLogueado(email);
 
-                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/cartelera.fxml"));
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("../views/cartelera.fxml"));
                     Parent root = loader.load();
 
                     Stage stage = (Stage) loginEmailField.getScene().getWindow();
                     Scene scene = new Scene(root);
-                    scene.getStylesheets().add(getClass().getResource("/Resources/styles/styles.css").toExternalForm());
+                    scene.getStylesheets().add(getClass().getResource("../resources/styles/styles.css").toExternalForm());
                     stage.setTitle("CINES JRC");
-                    stage.getIcons().add(new Image(getClass().getResourceAsStream("/Resources/images/logo.png")));
+                    stage.getIcons().add(new Image(getClass().getResourceAsStream("../resources/images/logo.png")));
                     stage.setScene(scene);
                     stage.show();
                 } else {

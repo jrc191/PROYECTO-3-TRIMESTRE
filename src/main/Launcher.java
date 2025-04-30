@@ -17,11 +17,11 @@ public class Launcher extends Application {
             Parent root = loader.load();
 
             Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("../Resources/styles/styles.css").toExternalForm());
+            scene.getStylesheets().add(getClass().getResource("../resources/styles/styles.css").toExternalForm());
             primaryStage.setTitle("CINES JRC");
             
             // Establecer el icono de la ventana
-            Image icon = new Image(getClass().getResourceAsStream("../Resources/images/logo.png"));
+            Image icon = new Image(getClass().getResourceAsStream("../resources/images/logo.png"));
             primaryStage.getIcons().add(icon);  
 
             primaryStage.setResizable(false);

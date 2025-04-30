@@ -1,11 +1,13 @@
 <component name="libraryTable">
   <library name="JAVAFX">
     <CLASSES>
-      <root url="file://$PROJECT_DIR$/../../../../JAVAFX/javafx-sdk-21.0.6/lib" />
-      <root url="jar://$PROJECT_DIR$/../../../../JDBC/ojdbc17.jar!/" />
+      <root url="file://$USER_HOME$/JAVAFX/lib" />
     </CLASSES>
     <JAVADOC />
+    <NATIVE>
+      <root url="file://$USER_HOME$/JAVAFX/lib" />
+    </NATIVE>
     <SOURCES />
-    <jarDirectory url="file://$PROJECT_DIR$/../../../../JAVAFX/javafx-sdk-21.0.6/lib" recursive="false" />
+    <jarDirectory url="file://$USER_HOME$/JAVAFX/lib" recursive="false" />
   </library>
 </component>
