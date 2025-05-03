@@ -13,11 +13,11 @@
                 <!-- Aquí se añaden los usuarios dinámicamente -->
             </VBox>
         </content>
-      <cursor>
-         <Cursor fx:constant="CLOSED_HAND" />
-      </cursor>
+        <cursor>
+            <Cursor fx:constant="CLOSED_HAND" />
+        </cursor>
     </ScrollPane>
-    <!-- Flechas de scroll -->
-    <Label fx:id="flechaArriba" layoutX="490" layoutY="50" style="-fx-text-fill: white; -fx-font-size: 19px; -fx-opacity: 0; -fx-cursor: hand;" text="▲" />
-    <Label fx:id="flechaAbajo" layoutX="490" layoutY="370" style="-fx-text-fill: white; -fx-font-size: 19px; -fx-opacity: 0; -fx-cursor: hand;" text="▼" />
+    <!-- Flechas de scroll vertical -->
+    <Label fx:id="flechaArriba" layoutX="475" layoutY="20" style="-fx-text-fill: white; -fx-font-size: 19px; -fx-opacity: 0; -fx-cursor: hand;" text="▲" />
+    <Label fx:id="flechaAbajo" layoutX="475" layoutY="375" style="-fx-text-fill: white; -fx-font-size: 19px; -fx-opacity: 0; -fx-cursor: hand;" text="▼" />
 </AnchorPane>

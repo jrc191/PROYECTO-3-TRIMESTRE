@@ -11,15 +11,19 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="650" prefWidth="800" style="-fx-background-color: linear-gradient(to bottom, #0F1C3F, #1A2A5A);" xmlns="http://javafx.com/javafx/21.0.6" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.admin.AdminController">
+<AnchorPane prefHeight="650" prefWidth="900" style="-fx-background-color: linear-gradient(to bottom, #0F1C3F, #1A2A5A);" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.admin.AdminController">
     <VBox prefHeight="650.0" prefWidth="800.0" spacing="20">
         <!-- Barra superior -->
         <HBox alignment="CENTER_LEFT" prefHeight="50.0" prefWidth="706.0" spacing="20" style="-fx-background-color: #1c2242; -fx-border-radius: 10; -fx-border-insets: 10; -fx-background-radius: 10;">
-            <Label prefHeight="26.0" prefWidth="330.0" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: white;" text="Panel de Administración">
+            <Label prefHeight="33.0" prefWidth="400.0" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: white;" text="Panel de Administración">
                 <HBox.margin>
                     <Insets bottom="5.0" left="20.0" top="5.0" />
                 </HBox.margin>
+            <font>
+               <Font size="12.0" />
+            </font>
             </Label>
             <Region HBox.hgrow="ALWAYS">
                 <HBox.margin>
@@ -30,14 +34,24 @@
                     <HBox.margin>
                         <Insets />
                     </HBox.margin>
+               <font>
+                  <Font size="12.0" />
+               </font>
                 </Label>
-                <Button onAction="#cerrarSesion" style="-fx-background-color: #ff4444; -fx-text-fill: white; -fx-font-weight: bold;" text="Cerrar sesión">
+                <Button onAction="#cerrarSesion" prefHeight="13.0" prefWidth="33.0" style="-fx-background-color: #ff4444; -fx-text-fill: white; -fx-font-weight: bold;">
                     <cursor>
                         <Cursor fx:constant="HAND" />
                     </cursor>
                     <HBox.margin>
                         <Insets right="20.0" />
                     </HBox.margin>
+               <graphic>
+                  <ImageView fitHeight="15.0" fitWidth="17.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../../resources/images/cerrar-sesion.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
                 </Button>
             </HBox>
             <VBox.margin>
@@ -55,7 +69,7 @@
 
                 <!-- Usuarios Accordion -->
                 <VBox fx:id="usuariosAccordion" spacing="0">
-                    <Button fx:id="usuariosBtn" onAction="#toggleOpcionesUsuarios" prefHeight="26.0" prefWidth="131.0" style="-fx-background-color: #4e3a74; -fx-text-fill: white; -fx-font-weight: bold; -fx-alignment: CENTER_LEFT;" text=" ▶  Usuarios" textAlignment="CENTER">
+                    <Button fx:id="usuariosBtn" onAction="#toggleOpcionesUsuarios" prefHeight="26.0" prefWidth="150.0" style="-fx-background-color: #4e3a74; -fx-text-fill: white; -fx-font-weight: bold; -fx-alignment: CENTER_LEFT;" text=" ▶  Usuarios" textAlignment="CENTER">
                         <graphic>
                             <ImageView fitHeight="16.0" fitWidth="16.0" preserveRatio="true">
                                 <image>
@@ -69,6 +83,9 @@
                   <cursor>
                      <Cursor fx:constant="HAND" />
                   </cursor>
+                  <font>
+                     <Font size="12.0" />
+                  </font>
                     </Button>
                     <VBox fx:id="usuariosOpciones" spacing="5" style="-fx-padding: 5 0 0 15;" visible="false">
                         <Button fx:id="agregarUsuarioBtn" onAction="#cargarAgregarUsuario" prefWidth="95.0" style="-fx-background-color: #3a427c; -fx-text-fill: white; -fx-font-weight: bold; -fx-alignment: CENTER_LEFT;" text="Agregar" />
@@ -80,7 +97,7 @@
 
                 <!-- Reservas Accordion -->
                 <VBox fx:id="reservasAccordion" spacing="0">
-                    <Button fx:id="reservasBtn" onAction="#toggleOpcionesReservas" prefHeight="26.0" prefWidth="136.0" style="-fx-background-color: #4e3a74; -fx-text-fill: white; -fx-font-weight: bold; -fx-alignment: CENTER_LEFT;" text="▶  Reservas">
+                    <Button fx:id="reservasBtn" onAction="#toggleOpcionesReservas" prefHeight="26.0" prefWidth="150.0" style="-fx-background-color: #4e3a74; -fx-text-fill: white; -fx-font-weight: bold; -fx-alignment: CENTER_LEFT;" text="▶  Reservas">
                         <graphic>
                             <ImageView fitHeight="16.0" fitWidth="16.0" preserveRatio="true">
                                 <image>
@@ -94,6 +111,9 @@
                   <cursor>
                      <Cursor fx:constant="HAND" />
                   </cursor>
+                  <font>
+                     <Font size="12.0" />
+                  </font>
                     </Button>
                     <VBox fx:id="reservasOpciones" spacing="5" style="-fx-padding: 5 0 0 15;" visible="false">
                         <Button fx:id="verReservasBtn" onAction="#cargarVerReservas" prefWidth="95.0" style="-fx-background-color: #3a427c; -fx-text-fill: white; -fx-font-weight: bold; -fx-alignment: CENTER_LEFT;" text="Ver" />
@@ -104,7 +124,7 @@
 
                 <!-- Películas Accordion -->
                 <VBox fx:id="peliculasAccordion" spacing="0">
-                    <Button fx:id="peliculasBtn" onAction="#toggleOpcionesPeliculas" prefHeight="26.0" prefWidth="130.0" style="-fx-background-color: #4e3a74; -fx-text-fill: white; -fx-font-weight: bold; -fx-alignment: CENTER_LEFT;" text=" ▶  Películas">
+                    <Button fx:id="peliculasBtn" onAction="#toggleOpcionesPeliculas" prefHeight="26.0" prefWidth="150.0" style="-fx-background-color: #4e3a74; -fx-text-fill: white; -fx-font-weight: bold; -fx-alignment: CENTER_LEFT;" text=" ▶  Películas">
                         <graphic>
                             <ImageView fitHeight="16.0" fitWidth="16.0" preserveRatio="true">
                                 <image>
@@ -118,6 +138,9 @@
                   <cursor>
                      <Cursor fx:constant="HAND" />
                   </cursor>
+                  <font>
+                     <Font size="12.0" />
+                  </font>
                     </Button>
                     <VBox fx:id="peliculasOpciones" spacing="5" style="-fx-padding: 5 0 0 15;" visible="false">
                         <Button fx:id="agregarPeliculaBtn" onAction="#cargarAgregarPelicula" prefHeight="26.0" prefWidth="95.0" style="-fx-background-color: #3a427c; -fx-text-fill: white; -fx-font-weight: bold; -fx-alignment: CENTER_LEFT;" text="Agregar" />
@@ -136,7 +159,10 @@
                 <padding>
                     <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                 </padding>
-                <Label style="-fx-text-fill: white; -fx-font-size: 16px;" text="Seleccione una opción del menú" />
+                <Label style="-fx-text-fill: white; -fx-font-size: 16px;" text="Seleccione una opción del menú">
+               <font>
+                  <Font size="12.0" />
+               </font></Label>
             </StackPane>
          <VBox.margin>
             <Insets bottom="25.0" left="15.0" right="75.0" />

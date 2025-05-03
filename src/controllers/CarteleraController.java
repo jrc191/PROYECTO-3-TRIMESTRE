@@ -78,6 +78,8 @@ public class CarteleraController {
         //POR FIN, para quitar la puñetera línea blanca de la derecha (2 horas con esto, no es broma)
         scrollEspectaculos.setStyle("-fx-background: #1c2242; -fx-background-color: #1c2242; ");
 
+
+
         // Habilitar scroll inicialmente
         habilitarScroll(true);
 

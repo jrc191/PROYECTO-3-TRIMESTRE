@@ -8,28 +8,28 @@ import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 public class Launcher extends Application {
-
     @Override
     public void start(Stage primaryStage) {
         try {
-            //Inicio del programa en registro. Cambiar a login.fxml si queremos que abra desde login.fxml
             FXMLLoader loader = new FXMLLoader(getClass().getResource("../views/registro.fxml"));
             Parent root = loader.load();
 
             Scene scene = new Scene(root);
             scene.getStylesheets().add(getClass().getResource("../resources/styles/styles.css").toExternalForm());
             primaryStage.setTitle("CINES JRC");
-            
-            // Establecer el icono de la ventana
-            Image icon = new Image(getClass().getResourceAsStream("../resources/images/logo.png"));
-            primaryStage.getIcons().add(icon);  
 
+            Image icon = new Image(getClass().getResourceAsStream("../resources/images/logo.png"));
+            primaryStage.getIcons().add(icon);
+
+            // Permitir redimensionamiento
             primaryStage.setResizable(false);
 
-            primaryStage.setScene(scene);
-            
-            primaryStage.show();
+            // Establecer tamaño mínimo
+            primaryStage.setMinWidth(800);
+            primaryStage.setMinHeight(625);
 
+            primaryStage.setScene(scene);
+            primaryStage.show();
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Error al cargar el FXML.");
