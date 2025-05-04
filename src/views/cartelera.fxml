@@ -16,18 +16,18 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="625" prefWidth="800" style="-fx-background-color: linear-gradient(to bottom, #0F1C3F, #1A2A5A);" xmlns="http://javafx.com/javafx/21.0.6" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.CarteleraController">
+<AnchorPane prefHeight="625" prefWidth="800" style="-fx-background-color: linear-gradient(to bottom, #0F1C3F, #1A2A5A);" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.CarteleraController">
     <VBox prefHeight="625.0" prefWidth="735.0" spacing="20">
         <HBox alignment="CENTER_LEFT" spacing="20">
-            <Label prefHeight="40.0" prefWidth="241.0" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: white;" styleClass="align" text="Cartelera de Cine" textAlignment="CENTER" textFill="WHITE">
+            <Label prefHeight="40.0" prefWidth="241.0" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: white;" styleClass="align" text="Cartelera" textAlignment="CENTER" textFill="WHITE">
                 <HBox.margin>
-                    <Insets left="20.0" top="10.0" />
+                    <Insets left="20.0" top="15.0" />
                 </HBox.margin>
             <font>
-               <Font size="11.0" />
+               <Font size="12.0" />
             </font>
             </Label>
-            <Region HBox.hgrow="ALWAYS" />
+            <Region prefHeight="50.0" prefWidth="50.0" HBox.hgrow="ALWAYS" />
             <HBox alignment="CENTER_RIGHT" spacing="10">
             <Button onAction="#cesta" prefHeight="26.0" prefWidth="22.0" style="-fx-background-color: #1c2242; -fx-text-fill: white; -fx-font-weight: bold;">
                <cursor>
@@ -43,6 +43,9 @@
                <HBox.margin>
                   <Insets right="10.0" top="10.0" />
                </HBox.margin>
+               <font>
+                  <Font size="12.0" />
+               </font>
             </Button>
                 <Label fx:id="usuarioLabel" style="-fx-font-weight: bold; -fx-text-fill: white;">
                <HBox.margin>
@@ -55,6 +58,9 @@
                     <HBox.margin>
                         <Insets right="10.0" top="10.0" />
                     </HBox.margin>
+               <font>
+                  <Font size="12.0" />
+               </font>
                 </Button>
             </HBox>
         </HBox>
@@ -62,28 +68,46 @@
             <VBox.margin>
                 <Insets left="15.0" right="15.0" />
             </VBox.margin>
-            <Label prefHeight="18.0" prefWidth="116.0" style="-fx-text-fill: white;" text="Filtrar por fecha:" />
-            <DatePicker fx:id="filtroFechaField" accessibleText="FILTRO FECHAS" prefHeight="26.0" prefWidth="134.0" />
-            <Button onAction="#filtrarPorFecha" prefHeight="26.0" prefWidth="73.0" style="-fx-background-color: #4e3a74; -fx-text-fill: white; -fx-font-weight: bold;" text="Filtrar">
+            <Label prefHeight="18.0" prefWidth="46.0" style="-fx-text-fill: white;" text="Fecha:">
+            <font>
+               <Font size="12.0" />
+            </font></Label>
+            <DatePicker fx:id="filtroFechaField" accessibleText="FILTRO FECHAS" prefHeight="26.0" prefWidth="103.0" />
+            <Button onAction="#filtrarPorFecha" prefHeight="26.0" prefWidth="74.0" style="-fx-background-color: #4e3a74; -fx-text-fill: white; -fx-font-weight: bold;" text="Filtrar">
                 <cursor>
                     <Cursor fx:constant="HAND" />
                 </cursor>
+            <font>
+               <Font size="12.0" />
+            </font>
             </Button>
-            <Button onAction="#mostrarTodas" prefHeight="26.0" prefWidth="118.0" style="-fx-background-color: #4e3a74; -fx-text-fill: white; -fx-font-weight: bold;" text="Mostrar todas">
+            <Button onAction="#mostrarTodas" prefHeight="26.0" prefWidth="130.0" style="-fx-background-color: #4e3a74; -fx-text-fill: white; -fx-font-weight: bold;" text="Mostrar todas">
                 <cursor>
                     <Cursor fx:constant="HAND" />
                 </cursor>
+            <font>
+               <Font size="12.0" />
+            </font>
             </Button>
-            <Label prefHeight="18.0" prefWidth="59.0" style="-fx-text-fill: white;" text="Buscar:">
+            <Label prefHeight="18.0" prefWidth="51.0" style="-fx-text-fill: white;" text="Buscar:">
                 <HBox.margin>
                     <Insets left="20.0" />
                 </HBox.margin>
+            <font>
+               <Font size="12.0" />
+            </font>
             </Label>
-            <TextField fx:id="filtroNombreField" prefHeight="26.0" prefWidth="107.0" promptText="Nombre..." />
-            <Button onAction="#filtrarPorNombre" prefHeight="26.0" prefWidth="81.0" style="-fx-background-color: #4e3a74; -fx-text-fill: white; -fx-font-weight: bold;" text="Buscar">
+            <TextField fx:id="filtroNombreField" prefHeight="26.0" prefWidth="94.0" promptText="Nombre...">
+            <font>
+               <Font size="12.0" />
+            </font></TextField>
+            <Button onAction="#filtrarPorNombre" prefHeight="26.0" prefWidth="76.0" style="-fx-background-color: #4e3a74; -fx-text-fill: white; -fx-font-weight: bold;" text="Buscar">
                 <cursor>
                     <Cursor fx:constant="HAND" />
                 </cursor>
+            <font>
+               <Font size="12.0" />
+            </font>
             </Button>
         </HBox>
       <HBox alignment="CENTER_LEFT" layoutX="20.0" layoutY="80.0" prefHeight="454.0" prefWidth="710.0" spacing="10" style="-fx-background-color: #1c2242; -fx-padding: 15; -fx-background-radius: 10;">

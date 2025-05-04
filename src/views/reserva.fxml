@@ -16,16 +16,16 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="650" prefWidth="800" style="-fx-background-color: linear-gradient(to bottom, #0F1C3F, #1A2A5A);" xmlns="http://javafx.com/javafx/21.0.6" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.ReservasController">
+<AnchorPane prefHeight="650" prefWidth="800" style="-fx-background-color: linear-gradient(to bottom, #0F1C3F, #1A2A5A);" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.ReservasController">
     <VBox prefHeight="650.0" prefWidth="730.0" spacing="20">
         <HBox alignment="CENTER_LEFT" prefWidth="800.0" spacing="20">
-            <Label fx:id="espectaculoLabel" maxWidth="500.0" style="-fx-font-weight: bold; -fx-text-fill: white;" textOverrun="ELLIPSIS" wrapText="true">
+            <Label maxWidth="500.0" style="-fx-font-weight: bold; -fx-text-fill: white;" text="Reservas" textOverrun="ELLIPSIS" wrapText="true">
                 <HBox.margin>
-                    <Insets left="20.0" top="15.0" />
+                    <Insets left="25.0" top="20.0" />
                 </HBox.margin>
-                <font>
-                    <Font size="26.0" />
-                </font>
+            <font>
+               <Font size="20.0" />
+            </font>
             </Label>
 
             <Region HBox.hgrow="ALWAYS" />
@@ -46,6 +46,9 @@
                      </image>
                   </ImageView>
                </graphic>
+               <font>
+                  <Font size="12.0" />
+               </font>
             </Button>
                 <Label fx:id="usuarioLabel" style="-fx-font-weight: bold; -fx-text-fill: white;">
                     <HBox.margin>
@@ -59,6 +62,9 @@
                     <HBox.margin>
                         <Insets right="15.0" top="15.0" />
                     </HBox.margin>
+               <font>
+                  <Font size="12.0" />
+               </font>
                 </Button>
             </HBox>
         </HBox>
@@ -68,9 +74,9 @@
             <VBox.margin>
                 <Insets left="15.0" right="15.0" />
             </VBox.margin>
-            <Label prefHeight="18.0" prefWidth="152.0" style="-fx-text-fill: white;" text="Filtrar por tipo de asiento:" />
-         <ChoiceBox fx:id="eleccionBox" prefWidth="150.0" style="-fx-background-color: black; -fx-blend-mode: add;" />
-            <Button alignment="CENTER" onAction="#filtrarPorAsiento" prefHeight="26.0" prefWidth="73.0" style="-fx-background-color: #4e3a74; -fx-text-fill: white; -fx-font-weight: bold;" text="Filtrar">
+            <Label prefHeight="18.0" prefWidth="173.0" style="-fx-text-fill: white;" text="Filtrar por asiento:" />
+         <ChoiceBox fx:id="eleccionBox" prefHeight="24.0" prefWidth="99.0" style="-fx-background-color: black; -fx-blend-mode: add;" />
+            <Button alignment="CENTER" onAction="#filtrarPorAsiento" prefHeight="24.0" prefWidth="96.0" style="-fx-background-color: #4e3a74; -fx-text-fill: white; -fx-font-weight: bold;" text="Filtrar">
                 <cursor>
                     <Cursor fx:constant="HAND" />
                 </cursor>
@@ -84,9 +90,21 @@
                 </cursor>
             </Button>
         </HBox>
-      <HBox alignment="CENTER_LEFT" layoutX="20.0" layoutY="80.0" prefHeight="454.0" prefWidth="710.0" spacing="10" style="-fx-background-color: #1c2242; -fx-padding: 15; -fx-background-radius: 10;">
+      <HBox alignment="CENTER" layoutX="25.0" layoutY="74.0" prefHeight="21.0" prefWidth="700.0" spacing="10" style="-fx-background-color: #1c2242; -fx-padding: 15; -fx-background-radius: 10;">
+         <VBox.margin>
+            <Insets left="15.0" right="15.0" />
+         </VBox.margin>
          <children>
-            <VBox prefHeight="410.0" prefWidth="694.0">
+            <Label fx:id="espectaculoLabel" alignment="CENTER" maxWidth="500.0" style="-fx-font-weight: bold; -fx-text-fill: white;" textAlignment="CENTER" textOverrun="ELLIPSIS" wrapText="true">
+               <font>
+                  <Font size="20.0" />
+               </font>
+            </Label>
+         </children>
+      </HBox>
+      <HBox alignment="CENTER_LEFT" layoutX="20.0" layoutY="80.0" prefHeight="385.0" prefWidth="700.0" spacing="10" style="-fx-background-color: #1c2242; -fx-padding: 15; -fx-background-radius: 10;">
+         <children>
+            <VBox prefHeight="367.0" prefWidth="670.0">
                <children>
                   <HBox prefHeight="26.0" prefWidth="670.0">
                      <children>
@@ -103,7 +121,7 @@
                               <Image url="@../resources/images/BUTACA-ROJA.png" />
                            </image>
                         </ImageView>
-                        <Label layoutX="10.0" layoutY="10.0" prefHeight="26.0" prefWidth="67.0" text="OCUPADAS" textFill="WHITE">
+                        <Label layoutX="10.0" layoutY="10.0" prefHeight="26.0" prefWidth="77.0" text="OCUPADAS" textFill="WHITE">
                            <font>
                               <Font name="System Bold" size="12.0" />
                            </font>
@@ -182,7 +200,7 @@
             <Insets left="15.0" right="15.0" />
          </VBox.margin>
       </HBox>
-      <Button onAction="#volverCartelera" prefHeight="3.0" prefWidth="70.0" style="-fx-background-color: #4e3a74; -fx-text-fill: white; -fx-font-weight: bold;" text="&lt;- Volver">
+      <Button onAction="#volverCartelera" prefHeight="24.0" prefWidth="106.0" style="-fx-background-color: #4e3a74; -fx-text-fill: white; -fx-font-weight: bold;" text="&lt;- Volver">
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor>
