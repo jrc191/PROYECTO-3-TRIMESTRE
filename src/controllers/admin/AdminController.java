@@ -1,5 +1,8 @@
 package controllers.admin;
 
+import dao.ReservasDaoI;
+import dao.impl.ReservaDaoImpl;
+import models.Reservas;
 import utils.DatabaseConnection;
 import dao.UsuarioDaoI;
 import dao.impl.UsuarioDaoImpl;
@@ -163,7 +166,25 @@ public class AdminController {
     // Métodos para cargar vistas de reservas
     @FXML
     private void cargarVerReservas(ActionEvent event) {
-        cargarVista("verReservas");
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/admin/listarReservas.fxml"));
+            Parent listarReservasView = loader.load();
+            ListarReservasController controller = loader.getController();
+
+            // Obtener reservas
+            Connection conn = DatabaseConnection.getConnection();
+            ReservasDaoI reservasDao = new ReservaDaoImpl(conn);
+            List<Reservas> reservas = reservasDao.listarTodasReservas();
+            controller.cargarReservas();
+            contenidoArea.getChildren().clear();
+            contenidoArea.getChildren().add(listarReservasView);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Label errorLabel = new Label("Error al cargar la lista de reservas");
+            errorLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
+            contenidoArea.getChildren().clear();
+            contenidoArea.getChildren().add(errorLabel);
+        }
     }
 
     @FXML

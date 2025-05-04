@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/21.0.6" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.admin.ListarReservasController">
+    <ScrollPane fx:id="scrollReservas" fitToWidth="true" hbarPolicy="NEVER" layoutX="14.0" layoutY="14.0" prefHeight="400.0" prefWidth="500.0" style="-fx-background: #1c2242; -fx-border-color: #232a4d; -fx-border-width: 2;">
+
+        <Label fx:id="mensajeLabel"></Label>
+        <content>
+            <VBox fx:id="contenedorReservas" spacing="4" style="-fx-background-color: #1c2242;">
+                <!-- Aquí se añaden las reservas dinámicamente -->
+            </VBox>
+        </content>
+        <cursor>
+            <Cursor fx:constant="CLOSED_HAND" />
+        </cursor>
+    </ScrollPane>
+    <!-- Flechas de scroll vertical -->
+    <Label fx:id="flechaArriba" layoutX="475" layoutY="20" style="-fx-text-fill: white; -fx-font-size: 19px; -fx-opacity: 0; -fx-cursor: hand;" text="▲" />
+    <Label fx:id="flechaAbajo" layoutX="475" layoutY="375" style="-fx-text-fill: white; -fx-font-size: 19px; -fx-opacity: 0; -fx-cursor: hand;" text="▼" />
+</AnchorPane>

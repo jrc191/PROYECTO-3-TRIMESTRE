@@ -108,9 +108,33 @@ public class ReservaDaoImpl implements ReservasDaoI {
         }
     }
 
+    @Override
+    public List<Reservas> listarTodasReservas() throws SQLException {
+        List<Reservas> reservasList = new ArrayList<>();
+        String query = "SELECT r.id_reserva, r.id_espectaculo, r.id_butaca, r.id_usuario, r.estado, r.precio " +
+                "FROM RESERVAS r ORDER BY r.id_reserva";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                Reservas reserva = new Reservas();
+                reserva.setId_reserva(rs.getString("id_reserva"));
+                reserva.setId_espectaculo(rs.getString("id_espectaculo"));
+                reserva.setId_butaca(rs.getString("id_butaca"));
+                reserva.setId_usuario(rs.getString("id_usuario"));
+                reserva.setEstado(rs.getString("estado").charAt(0));
+                reserva.setPrecio(rs.getDouble("precio"));
+                reservasList.add(reserva);
+            }
+        }
+        return reservasList;
+    }
+
     /**
      * Elimina todas las reservas temporales de un usuario (por id_usuario) en RESERVAS_TEMP.
      */
+
+    @Override
     public void eliminarReservasTemporalesUsuario(String idUsuario) throws SQLException {
         String query = "DELETE FROM RESERVAS_TEMP WHERE id_usuario = ?";
         try (PreparedStatement pstmt = conn.prepareStatement(query)) {
@@ -119,4 +143,6 @@ public class ReservaDaoImpl implements ReservasDaoI {
             System.out.println("Filas afectadas al eliminar reservas temporales del usuario: " + affectedRows);
         }
     }
+
+
 }
