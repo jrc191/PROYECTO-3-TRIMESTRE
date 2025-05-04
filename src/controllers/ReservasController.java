@@ -26,6 +26,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.util.Duration;
 import models.*;
+import utils.Transitions;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -320,7 +321,7 @@ public class ReservasController {
 
                 try {
                     reservasDao.registrarReservasTEMP(reservaTemp);
-                    cestaController.agregarEntrada(espectaculoSeleccionado, fila, columna, precio, isVip);
+                    cestaController.agregarEntrada(espectaculoSeleccionado, idEspectaculoSeleccionado,fila, columna, precio, isVip);
                     System.out.println("Asiento añadido a la cesta y registrado temporalmente.");
                     if (eleccionBox.getValue()=="VIP" || eleccionBox.getValue()=="Estandar"){
                         filtrarPorAsiento();
@@ -403,17 +404,19 @@ public class ReservasController {
             Parent root = loader.load();
             CestaController cestaController = loader.getController();
             cestaController.setEmailUsuarioLogueado(emailUsuarioLogueado);
-            cestaController.setEspectaculoSeleccionado(espectaculoSeleccionado);
-            cestaController.setIdEspectaculoSeleccionado(idEspectaculoSeleccionado);
-            cestaController.setIdUsuario(idUsuario);
+
 
             Stage stage = (Stage) usuarioLabel.getScene().getWindow();
             Scene scene = new Scene(root);
+
             scene.getStylesheets().add(getClass().getResource("../resources/styles/styles.css").toExternalForm());
             stage.setTitle("CINES JRC");
 
             Image icon = new Image(getClass().getResourceAsStream("../resources/images/logo.png"));
             stage.getIcons().add(icon);
+
+            Transitions transitions = new Transitions();
+            transitions.fadeInScene(root);
 
             stage.setScene(scene);
             stage.show();

@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CestaStorage {
-    private static final String BASE_PATH = System.getProperty("user.home") + File.separator + "miApp" + File.separator + "data" + File.separator + "cestas" + File.separator;
+    private static final String BASE_PATH = System.getProperty("user.home") + File.separator + "CINESJRC" + File.separator + "data" + File.separator + "cestas" + File.separator;
 
     public static void guardarCesta(String email, List<EntradaCesta> entradas) {
         if (email == null || email.isEmpty()) {

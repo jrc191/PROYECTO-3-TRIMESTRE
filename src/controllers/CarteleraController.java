@@ -79,7 +79,6 @@ public class CarteleraController {
         scrollEspectaculos.setStyle("-fx-background: #1c2242; -fx-background-color: #1c2242; ");
 
 
-
         // Habilitar scroll inicialmente
         habilitarScroll(true);
 
@@ -168,15 +167,15 @@ public class CarteleraController {
 
         List<Espectaculo> espectaculos;
         //si no se introduce filtro, llamamos al método sin filtro
-        if ( (nombreFiltro == null || nombreFiltro.isEmpty() ) && date == null) {
+        if ((nombreFiltro == null || nombreFiltro.isEmpty()) && date == null) {
             espectaculos = espectaculoDao.obtenerTodos();
         } else {
             //filtrar por fecha
-            if (nombreFiltro == null || nombreFiltro.isEmpty()){
+            if (nombreFiltro == null || nombreFiltro.isEmpty()) {
                 espectaculos = espectaculoDao.obtenerPorFecha(date);
             }
             //filtrar por nombre
-            else{
+            else {
                 espectaculos = espectaculoDao.obtenerPorNombre(nombreFiltro);
             }
 
@@ -202,7 +201,7 @@ public class CarteleraController {
 
                 // Añadir el contenedor del mensaje contenedor de espectaculos
                 contenedorEspectaculos.getChildren().add(contenedorMensaje);
-            } else if (date !=null) {
+            } else if (date != null) {
                 //mostramos mensaje de que no se han encontrado resultados
                 mensajeLabel.setVisible(true);
                 mensajeLabel.setText("No se encontraron espectáculos con la fecha: '" + date.toString() + "'");
@@ -227,7 +226,7 @@ public class CarteleraController {
                 contenedorEspectaculos.getChildren().add(crearTarjetaEspectaculo(esp));
             }
 
-            if (contenedorEspectaculos.getChildren().size()>2){
+            if (contenedorEspectaculos.getChildren().size() > 2) {
                 habilitarScroll(true); //habilitamos el carrusel cuando hay más de 2 resultados
             }
         }
@@ -239,6 +238,88 @@ public class CarteleraController {
     // Para mi yo del futuro: no te metas en más fregaos por mejorar la estética, que mejoras una cosa
     // y te acabas cargando 10.
 
+    // En CarteleraController.java
+
+// Eliminar estos campos si existen (ya no son necesarios)
+// private String espectaculoSeleccionado;
+// private String idEspectaculoSeleccionado;
+
+    // Modificar el método crearTarjetaEspectaculo para no pasar el ID de espectáculo al controlador de cesta
+    private Node crearTarjetaEspectaculo(Espectaculo esp) {
+        VBox tarjeta = new VBox(10);
+        tarjeta.setStyle("-fx-background-color: #2a325c; -fx-padding: 15; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 5);");
+        tarjeta.setPrefSize(300, 200);
+        tarjeta.setMinSize(300, 200);
+
+        final double originalWidth = tarjeta.getPrefWidth();
+        final double originalHeight = tarjeta.getPrefHeight();
+
+        Label nombre = new Label(esp.getNombre());
+        nombre.setStyle("-fx-font-weight: bold; -fx-text-fill: white; -fx-font-size: 16;");
+
+        Label fecha = new Label("Fecha: " + esp.getFecha().getDayOfMonth() + "-" + esp.getFecha().getMonthValue() + "-" + esp.getFecha().getYear());
+        Label precioBase = new Label("Precio base: " + esp.getPrecioBase() + " €");
+        Label precioVip = new Label("Precio VIP: " + esp.getPrecioVip() + " €");
+        fecha.setStyle("-fx-text-fill: #a0a0a0;");
+        precioBase.setStyle("-fx-text-fill: #e0e0e0;");
+        precioVip.setStyle("-fx-text-fill: #e0e0e0;");
+
+        Button reservarBtn = new Button("Reservar entradas");
+        reservarBtn.setStyle("-fx-background-color: #4e3a74; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 5 10;");
+        reservarBtn.setVisible(false);
+        reservarBtn.setCursor(Cursor.HAND);
+        VBox.setMargin(reservarBtn, new Insets(10, 0, 0, 0));
+
+        reservarBtn.setOnAction(event -> {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("../views/reserva.fxml"));
+                FXMLLoader cestaLoader = new FXMLLoader(getClass().getResource("../views/cesta.fxml"));
+
+                Parent cestaRoot = cestaLoader.load();
+                CestaController cestaController = cestaLoader.getController();
+                cestaController.setEmailUsuarioLogueado(emailUsuarioLogueado);
+
+                loader.setControllerFactory(clazz ->
+                        new ReservasController(getUsuarioLogueadoEmail(), esp.getNombre(), esp.getId(), cestaController, esp
+                        ));
+
+                Parent root = loader.load();
+                ReservasController controller = loader.getController();
+
+                controller.fadeInScene(root);
+                Stage stage = (Stage) contenedorEspectaculos.getScene().getWindow();
+                controller.configureStage(stage);
+
+                stage.setScene(new Scene(root));
+                stage.show();
+            } catch (IOException e) {
+                e.printStackTrace();
+                if (messageLabelReserva != null) {
+                    messageLabelReserva.setText("Error al cargar la vista de reservas");
+                }
+            }
+        });
+
+        tarjeta.getChildren().addAll(nombre, fecha, precioBase, precioVip, reservarBtn);
+
+        tarjeta.setOnMouseEntered(event -> {
+            tarjeta.setPrefWidth(originalWidth * 1.05);
+            tarjeta.setPrefHeight(originalHeight * 1.05);
+            tarjeta.setStyle("-fx-background-color: #3a427c; -fx-padding: 15; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 15, 0, 0, 7);");
+            reservarBtn.setVisible(true);
+        });
+
+        tarjeta.setOnMouseExited(event -> {
+            tarjeta.setPrefWidth(originalWidth);
+            tarjeta.setPrefHeight(originalHeight);
+            tarjeta.setStyle("-fx-background-color: #2a325c; -fx-padding: 15; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 5);");
+            reservarBtn.setVisible(false);
+        });
+
+        return tarjeta;
+    }
+
+    /*
     private Node crearTarjetaEspectaculo(Espectaculo esp) {
         VBox tarjeta = new VBox(10);
         tarjeta.setStyle("-fx-background-color: #2a325c; -fx-padding: 15; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 5);");
@@ -331,6 +412,8 @@ public class CarteleraController {
         return tarjeta;
     }
 
+    */
+
     //método para cerrar sesión y volver al login
     //bastante sencillo, setea el valor del mail a nulo y manda de vuelta al login
 
@@ -341,7 +424,7 @@ public class CarteleraController {
     }
 
     //GETTERS Y SETTERS DE FILTROS. Por si acaso hacen falta en otro momento
-    public TextField getFiltroNombreField(){
+    public TextField getFiltroNombreField() {
         return filtroNombreField;
     }
 
@@ -356,8 +439,9 @@ public class CarteleraController {
             Parent root = loader.load();
             CestaController cestaController = loader.getController();
             cestaController.setEmailUsuarioLogueado(emailUsuarioLogueado);
-            //cestaController.setEspectaculoSeleccionado(espectaculoSeleccionado);
-            //cestaController.setIdEspectaculoSeleccionado(idEspectaculoSeleccionado);
+            // Ya no necesitamos estos setters
+            // cestaController.setEspectaculoSeleccionado(espectaculoSeleccionado);
+            // cestaController.setIdEspectaculoSeleccionado(idEspectaculoSeleccionado);
 
             Stage stage = (Stage) usuarioLabel.getScene().getWindow();
             Scene scene = new Scene(root);
