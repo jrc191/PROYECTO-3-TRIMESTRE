@@ -240,9 +240,7 @@ public class CarteleraController {
 
     // En CarteleraController.java
 
-// Eliminar estos campos si existen (ya no son necesarios)
-// private String espectaculoSeleccionado;
-// private String idEspectaculoSeleccionado;
+
 
     // Modificar el método crearTarjetaEspectaculo para no pasar el ID de espectáculo al controlador de cesta
     private Node crearTarjetaEspectaculo(Espectaculo esp) {

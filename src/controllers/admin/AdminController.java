@@ -1,7 +1,10 @@
 package controllers.admin;
 
+import dao.EspectaculoDaoI;
 import dao.ReservasDaoI;
+import dao.impl.EspectaculoDaoImpl;
 import dao.impl.ReservaDaoImpl;
+import models.Espectaculo;
 import models.Reservas;
 import utils.DatabaseConnection;
 import dao.UsuarioDaoI;
@@ -215,7 +218,25 @@ public class AdminController {
 
     @FXML
     private void cargarListarPeliculas(ActionEvent event) {
-        cargarVista("listarPeliculas.");
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/admin/listarEspectaculos.fxml"));
+            Parent listarEspectaculosView = loader.load();
+            ListarEspectaculosController controller = loader.getController();
+
+            // Obtener reservas
+            Connection conn = DatabaseConnection.getConnection();
+            EspectaculoDaoI espectaculoDao = new EspectaculoDaoImpl(conn);
+            List<Espectaculo> espectaculos = espectaculoDao.obtenerTodos();
+            controller.cargarEspectaculos();
+            contenidoArea.getChildren().clear();
+            contenidoArea.getChildren().add(listarEspectaculosView);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Label errorLabel = new Label("Error al cargar la lista de reservas");
+            errorLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
+            contenidoArea.getChildren().clear();
+            contenidoArea.getChildren().add(errorLabel);
+        }
     }
 
     private void cargarVista(String vista) {
