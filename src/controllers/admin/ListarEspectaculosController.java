@@ -1,16 +1,13 @@
 package controllers.admin;
 
 import dao.EspectaculoDaoI;
-import dao.ReservasDaoI;
 import dao.impl.EspectaculoDaoImpl;
-import dao.impl.ReservaDaoImpl;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import models.Espectaculo;
-import models.Reservas;
 import utils.DatabaseConnection;
 import utils.Transitions;
 
@@ -79,10 +76,10 @@ public class ListarEspectaculosController {
 
         // Ajustar ancho de columnas
         espHeader.setPrefWidth(125);
-        nombreHeader.setPrefWidth(125);
+        nombreHeader.setPrefWidth(150);
         fechaHeader.setPrefWidth(125);
-        precioHeader.setPrefWidth(125);
-        precioVIPHeader.setPrefWidth(125);
+        precioHeader.setPrefWidth(100);
+        precioVIPHeader.setPrefWidth(100);
 
         // Estilo del encabezado
         String headerStyle = "-fx-text-fill: #FFC107; -fx-font-weight: bold;";
@@ -110,10 +107,10 @@ public class ListarEspectaculosController {
 
             // Ajustar ancho de celdas (debe coincidir con el encabezado)
             espCell.setPrefWidth(125);
-            nombreCell.setPrefWidth(125);
+            nombreCell.setPrefWidth(150);
             fechaCell.setPrefWidth(125);
-            precioCell.setPrefWidth(125);
-            precioVIPCell.setPrefWidth(125);
+            precioCell.setPrefWidth(100);
+            precioVIPCell.setPrefWidth(100);
 
             // Estilo de celdas
             String cellStyle = "-fx-text-fill: white;";

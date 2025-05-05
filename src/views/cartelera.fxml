@@ -16,7 +16,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="625" prefWidth="800" style="-fx-background-color: linear-gradient(to bottom, #0F1C3F, #1A2A5A);" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.CarteleraController">
+<AnchorPane prefHeight="625" prefWidth="800" style="-fx-background-color: linear-gradient(to bottom, #0F1C3F, #1A2A5A);" xmlns="http://javafx.com/javafx/21.0.6" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.CarteleraController">
     <VBox prefHeight="625.0" prefWidth="735.0" spacing="20">
         <HBox alignment="CENTER_LEFT" spacing="20">
             <Label prefHeight="40.0" prefWidth="241.0" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: white;" styleClass="align" text="Cartelera" textAlignment="CENTER" textFill="WHITE">

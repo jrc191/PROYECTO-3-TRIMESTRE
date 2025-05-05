@@ -6,10 +6,8 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/21.0.6"
-      xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="controllers.EntradaCestaController"
-      spacing="10"
+<VBox xmlns="http://javafx.com/javafx/21.0.6"  xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="controllers.EntradaCestaController"  spacing="10"
       style="-fx-background-color: #2a325c; -fx-padding: 15; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 5, 0, 0, 3;">
     <HBox alignment="CENTER_LEFT" spacing="10">
         <VBox spacing="5">

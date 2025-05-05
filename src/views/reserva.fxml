@@ -16,7 +16,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="650" prefWidth="800" style="-fx-background-color: linear-gradient(to bottom, #0F1C3F, #1A2A5A);" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.ReservasController">
+<AnchorPane prefHeight="650" prefWidth="800" style="-fx-background-color: linear-gradient(to bottom, #0F1C3F, #1A2A5A);" xmlns="http://javafx.com/javafx/21.0.6" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.ReservasController">
     <VBox prefHeight="650.0" prefWidth="730.0" spacing="20">
         <HBox alignment="CENTER_LEFT" prefWidth="800.0" spacing="20">
             <Label maxWidth="500.0" style="-fx-font-weight: bold; -fx-text-fill: white;" text="Reservas" textOverrun="ELLIPSIS" wrapText="true">

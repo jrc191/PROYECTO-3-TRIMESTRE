@@ -13,7 +13,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="650" prefWidth="900" style="-fx-background-color: linear-gradient(to bottom, #0F1C3F, #1A2A5A);" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.admin.AdminController">
+<AnchorPane prefHeight="650" prefWidth="900" style="-fx-background-color: linear-gradient(to bottom, #0F1C3F, #1A2A5A);" xmlns="http://javafx.com/javafx/21.0.6" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.admin.AdminController">
     <VBox prefHeight="650.0" prefWidth="800.0" spacing="20">
         <!-- Barra superior -->
         <HBox alignment="CENTER_LEFT" prefHeight="50.0" prefWidth="706.0" spacing="20" style="-fx-background-color: #1c2242; -fx-border-radius: 10; -fx-border-insets: 10; -fx-background-radius: 10;">
