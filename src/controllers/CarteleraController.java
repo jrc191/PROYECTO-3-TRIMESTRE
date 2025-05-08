@@ -32,16 +32,6 @@ import static controllers.LoginController.*;
 
 public class CarteleraController {
 
-    //Parámetro email usuario logueado del LoginController
-    private String emailUsuarioLogueado = getUsuarioLogueadoEmail();
-
-    //Implementamos Interfaz Dao
-    private EspectaculoDaoI espectaculoDao;
-
-    public void setEspectaculoDAO(EspectaculoDaoI espectaculoDAO) {
-        this.espectaculoDao = espectaculoDAO;
-    }
-
     @FXML
     private Label usuarioLabel;
     @FXML
@@ -59,6 +49,15 @@ public class CarteleraController {
     @FXML
     private Label messageLabelReserva;
 
+    //Parámetro email usuario logueado del LoginController
+    private String emailUsuarioLogueado = getUsuarioLogueadoEmail();
+
+    //Implementamos Interfaz Dao
+    private EspectaculoDaoI espectaculoDao;
+
+    public void setEspectaculoDAO(EspectaculoDaoI espectaculoDAO) {
+        this.espectaculoDao = espectaculoDAO;
+    }
 
     @FXML
     public void initialize() {

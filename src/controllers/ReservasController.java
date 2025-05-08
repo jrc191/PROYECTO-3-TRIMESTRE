@@ -149,7 +149,7 @@ public class ReservasController {
     public void cerrarSesion(ActionEvent actionEvent) {
         emailUsuarioLogueado = null;
         Stage stage = (Stage) usuarioLabel.getScene().getWindow();
-        CerrarSesion.cerrarSesion(stage, "/resources/styles/styles.css", "/Resources/images/logo.png");
+        CerrarSesion.cerrarSesion(stage, "/resources/styles/styles.css", "/resources/images/logo.png");
     }
 
     @FXML
@@ -276,84 +276,94 @@ public class ReservasController {
 
     //Método para manejar la selección del asiento.
     private void handleSeleccionAsientos(Button button, int fila, int columna) {
-
-
-        double precio=0.0;
-        //Lee la lista de las butacasOcupadas y devuelve true si encuentra las butacas ocupadas en la lista de butacas original
-        boolean ocupada = butacasOcupadas.stream()
-                .anyMatch(b -> b.getFila() == fila && b.getColumna() == columna);
-
-        //maravilloso lo del stream. Comprueba si en la lista hay alguna entrada que coincida la fila, columna y el nombre del espectaculo, evitando la duplicidad
-        boolean yaEnCesta= cestaList.stream().anyMatch(ec -> ec.getFila() == fila && ec.getCol() == columna && ec.getNombreEspectaculo().equals(espectaculoSeleccionado));
-
-        //comprueba si hay butacas vip en la lista de butacas.
-        boolean isVip = butacasVIP.stream()
-                .anyMatch(b -> b.getFila() == fila && b.getColumna() == columna);
-
         // Verifica si las listas están inicializadas
-        if (butacasOcupadas == null || cestaList==null) {
+        if (butacasOcupadas == null || cestaList == null) {
             System.out.println("Error: Las listas de butacas o la cesta no están inicializadas.");
             return;
         }
 
+        // Verifica si el asiento está ocupado o ya en la cesta
+        boolean ocupada = butacasOcupadas.stream()
+                .anyMatch(b -> b.getFila() == fila && b.getColumna() == columna);
+        boolean yaEnCesta = cestaList.stream()
+                .anyMatch(ec -> ec.getFila() == fila && ec.getCol() == columna &&
+                        ec.getNombreEspectaculo().equals(espectaculoSeleccionado));
+
         if (ocupada || yaEnCesta) {
             System.out.println("Asiento ocupado o ya en la cesta - no se puede seleccionar");
-            button.setDisable(true);
+            button.setDisable(true); //deshabilitamos la posibilidad de seleccionar el asiento
             return;
         }
 
         // Verifica el límite de 4 entradas por espectáculo
-        if (cestaController != null && !cestaController.puedeAgregarEntrada(idEspectaculoSeleccionado)) {
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("Límite alcanzado");
-            alert.setContentText("No puedes seleccionar más de 4 entradas para este espectáculo.");
-            alert.show();
-            return;
+        if (cestaController != null) {
+            try {
+                Connection conn = DatabaseConnection.getConnection();
+                ReservaDaoImpl reservaDao = new ReservaDaoImpl(conn);
+
+                // Contar reservas existentes en la base de datos
+                int reservasExistentes = reservaDao.contarReservasPorUsuarioYEspectaculo(idUsuario, idEspectaculoSeleccionado);
+
+                // Contar entradas en la cesta para este espectáculo
+                long enCesta = cestaList.stream()
+                        .filter(e -> e.getIdEspectaculo().equals(idEspectaculoSeleccionado))
+                        .count();
+
+                if (reservasExistentes + enCesta >= 4) {
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                    alert.setTitle("Límite alcanzado");
+                    alert.setContentText(String.format(
+                            "Ya tienes %d entradas reservadas y %d en la cesta para este espectáculo.\n" +
+                                    "El límite es de 4 entradas por espectáculo.",
+                            reservasExistentes, enCesta));
+                    alert.show();
+                    return;
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setContentText("No se pudo verificar las reservas existentes.");
+                alert.show();
+                return;
+            }
         }
 
-        //Seteamos el precio
-        if (isVip){
-            precio=espectaculo.getPrecioVip();
-        }
-        else{
-            precio=espectaculo.getPrecioBase();
-        }
+        // Determinar si es VIP y establecer precio
+        boolean isVip = butacasVIP.stream()
+                .anyMatch(b -> b.getFila() == fila && b.getColumna() == columna);
+        double precio = isVip ? espectaculo.getPrecioVip() : espectaculo.getPrecioBase();
 
         if (cestaController != null) {
-
-            //Creamos una reserva temporal para actualizar dinámicamente las butacas
+            // Crear reserva temporal
             Reservas reservaTemp = new Reservas();
-
-            reservaTemp.setId_butaca("F"+fila+"-C"+columna);
+            reservaTemp.setId_butaca("F" + fila + "-C" + columna);
             reservaTemp.setId_espectaculo(idEspectaculoSeleccionado);
             reservaTemp.setId_usuario(idUsuario);
-
-            reservaTemp.setId_reserva(idEspectaculoSeleccionado+"_"+idUsuario+"_F"+fila+"-C"+columna);
+            reservaTemp.setId_reserva(idEspectaculoSeleccionado + "_" + idUsuario + "_F" + fila + "-C" + columna);
 
             try {
                 reservasDao.registrarReservasTEMP(reservaTemp);
-                cestaController.agregarEntrada(espectaculoSeleccionado, idEspectaculoSeleccionado,fila, columna, precio, isVip);
+                cestaController.agregarEntrada(espectaculoSeleccionado, idEspectaculoSeleccionado,
+                        fila, columna, precio, isVip);
                 System.out.println("Asiento añadido a la cesta y registrado temporalmente.");
-                if (eleccionBox.getValue()=="VIP" || eleccionBox.getValue()=="Estandar"){
+
+                // Actualizar vista según filtro del eleccionBox
+                if ("VIP".equals(eleccionBox.getValue()) || "Estandar".equals(eleccionBox.getValue())) {
                     filtrarPorAsiento();
-                } else{
+                } else {
                     mostrarTodasButacas();
                 }
             } catch (SQLException e) {
                 System.err.println("Error al registrar la reserva temporal: " + e.getMessage());
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setContentText("No se pudo reservar el asiento.");
+                alert.show();
             }
-
-
-        }
-        else{
+        } else {
             System.err.println("Error: La cesta no está inicializada.");
         }
-    }
-
-    private Butaca getButacaPosicion(int fila, int columna) {
-        return todosLosAsientos.stream()
-                .filter(a -> a.getFila() == fila && a.getColumna() == columna)
-                .findFirst().orElse(null);
     }
 
     @FXML

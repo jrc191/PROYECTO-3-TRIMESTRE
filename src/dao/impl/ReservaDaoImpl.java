@@ -144,5 +144,21 @@ public class ReservaDaoImpl implements ReservasDaoI {
         }
     }
 
+    @Override
+    public int contarReservasPorUsuarioYEspectaculo(String idUsuario, String idEspectaculo) throws SQLException {
+        String query = "SELECT COUNT(*) as total FROM RESERVAS WHERE id_usuario = ? AND id_espectaculo = ?";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, idUsuario);
+            pstmt.setString(2, idEspectaculo);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt("total");
+            }
+            return 0;
+        }
+    }
+
 
 }

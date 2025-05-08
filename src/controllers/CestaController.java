@@ -102,12 +102,26 @@ public class CestaController {
 
     public boolean puedeAgregarEntrada(String idEspectaculo) {
         if (entradas == null) {
-            return true; //Si no hay entradas puede añadirse siempre
+            entradas = new ArrayList<>();
         }
 
-        long count = entradas.stream() .filter(e -> e.getIdEspectaculo().equals(idEspectaculo))
-                .count(); //CUENTA CUÁNTAS ENTRADAS TIENEN UN ID DE ESPECTÁCULO PROPORCIONADO
-        return count < 4; // Límite de 4 entradas por espectáculo
+        // Contar entradas en la cesta para este espectáculo
+        long enCesta = entradas.stream()
+                .filter(e -> e.getIdEspectaculo().equals(idEspectaculo))
+                .count();
+
+        // Contar reservas ya existentes en la base de datos
+        int enBaseDatos = 0;
+        try {
+            Connection conn = DatabaseConnection.getConnection();
+            ReservaDaoImpl reservaDao = new ReservaDaoImpl(conn);
+            enBaseDatos = reservaDao.contarReservasPorUsuarioYEspectaculo(idUsuario, idEspectaculo);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        // El total no puede superar 4
+        return (enCesta + enBaseDatos) < 4;
     }
 
 

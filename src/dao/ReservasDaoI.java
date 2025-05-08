@@ -14,4 +14,5 @@ public interface ReservasDaoI {
     public void eliminarReservaTemporal(String idReserva) throws SQLException;
     public void eliminarReservasById(String idUser) throws SQLException;
     public void eliminarReservasTemporalesUsuario(String idUsuario) throws SQLException;
+    public int contarReservasPorUsuarioYEspectaculo(String idUsuario, String idEspectaculo) throws SQLException;
 }
