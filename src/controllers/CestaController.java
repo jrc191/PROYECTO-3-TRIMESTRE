@@ -100,6 +100,7 @@ public class CestaController {
 
     }
 
+
     // Para manejar el scroll de la cesta.
     private void agregarListenersScroll() {
         Transitions.configurarListenersScroll(scrollEntradas, arribaBtn, abajoBtn);
@@ -117,6 +118,8 @@ public class CestaController {
 
         CestaStorage.guardarCesta(emailUsuarioLogueado, entradas);
     }
+
+
 
 
     //para actualizar la cesta. Crea cada entrada según el fichero {email}.ser.
@@ -146,6 +149,11 @@ public class CestaController {
 
             infoBox.getChildren().addAll(nombreLabel, detalleLabel, precioLabel);
 
+            eleccionBox.getItems().add(entrada.getNombreEspectaculo()+"-F"+entrada.getFila()+"_C"+entrada.getCol());
+            eleccionBox.setStyle("-fx-background-color: #2a325c; -fx-text-fill: white;");
+            eleccionBox.setValue("-");
+            eleccionBox.setStyle("-fx-font-weight: bold; -fx-text-fill: white;");
+
             Button eliminarBtn = new Button("Eliminar");
             eliminarBtn.setStyle("-fx-background-color: #ff4444; -fx-text-fill: white; -fx-font-weight: bold;");
 
@@ -160,6 +168,7 @@ public class CestaController {
                     // Usar el ID de espectáculo de la entrada específica
                     String idReservaTemp = entrada.getIdEspectaculo() + "_" + idUsuario + "_F" + entrada.getFila() + "-C" + entrada.getCol();
                     System.out.println("Intentando eliminar reserva temporal con ID: " + idReservaTemp);
+                    eleccionBox.getItems().removeAll(entrada.getNombreEspectaculo()+"-F"+entrada.getFila()+"_C"+entrada.getCol());
 
                     reservaDao.eliminarReservaTemporal(idReservaTemp);
                 } catch (SQLException ex) {
@@ -180,12 +189,18 @@ public class CestaController {
             contentBox.getChildren().addAll(infoBox, spacer, eliminarBtn);
             entradaCard.getChildren().add(contentBox);
 
+
+
             contenedorEntradas.getChildren().add(entradaCard);
+            // Inicializamos opciones del ChoiceBox
             total += entrada.getPrecio();
         }
 
         totalLabel.setText(String.format("Total: %.2f €", total));
     }
+
+    public void mostrarTodas(){}
+
 
 
     /*
@@ -359,9 +374,9 @@ public class CestaController {
     public void filtrarPorFecha(ActionEvent actionEvent) {
     }
 
-    public void mostrarTodas(ActionEvent actionEvent) {
+    public String getValorEleccionBox() {
+        return eleccionBox.getValue().toString();
     }
-
 
     // Método para oscurecer la entrada
     // Ahora se usa Transitions.oscurecerEntrada
@@ -395,6 +410,9 @@ public class CestaController {
 
 
     public void filtrarPorAsiento(ActionEvent actionEvent) {
+        String eleccion=getValorEleccionBox();
+        actualizarCesta();
+
     }
 
     public void filtrarPorNombre(ActionEvent actionEvent) {

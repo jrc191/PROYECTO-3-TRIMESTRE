@@ -1,6 +1,7 @@
 package utils;
 
 import javafx.animation.FadeTransition;
+import javafx.animation.TranslateTransition;
 import javafx.scene.Node;
 import javafx.util.Duration;
 import javafx.fxml.FXMLLoader;
@@ -18,11 +19,13 @@ public class Transitions {
 
     // Efecto de fade-in para cualquier nodo
     public static void fadeInScene(Node rootNode) {
-        FadeTransition fadeIn = new FadeTransition(Duration.millis(500), rootNode);
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(400), rootNode);
         fadeIn.setFromValue(0.0);
         fadeIn.setToValue(1.0);
         fadeIn.play();
     }
+
+
 
     // Cambio de escena genérico
     public static void cambioEscena(Stage stage, String fxmlPath, String stylesheetPath, String windowTitle, String iconPath, Object controller) {

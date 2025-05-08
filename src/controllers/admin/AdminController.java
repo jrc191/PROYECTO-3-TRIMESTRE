@@ -197,7 +197,28 @@ public class AdminController {
 
     @FXML
     private void cargarEstadisticas(ActionEvent event) {
-        cargarVista("estadisticas");
+
+
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/admin/estadisticas.fxml"));
+            Parent listarReservasView = loader.load();
+            EstadisticasController controller = loader.getController();
+
+            // Obtener reservas
+            Connection conn = DatabaseConnection.getConnection();
+            ReservasDaoI reservasDao = new ReservaDaoImpl(conn);
+            List<Reservas> reservas = reservasDao.listarTodasReservas();
+            //controller.cargarReservas();
+            contenidoArea.getChildren().clear();
+            contenidoArea.getChildren().add(listarReservasView);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Label errorLabel = new Label("Error al cargar la lista de estadísticas");
+            errorLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
+            contenidoArea.getChildren().clear();
+            contenidoArea.getChildren().add(errorLabel);
+        }
+
     }
 
     // Métodos para cargar vistas de películas
