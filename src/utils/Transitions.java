@@ -73,10 +73,4 @@ public class Transitions {
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
     }
 
-    // Oscurece cualquier VBox (entrada)
-    public static void oscurecerEntrada(VBox entradaCesta) {
-        ColorAdjust colorAdjust = new ColorAdjust();
-        colorAdjust.setBrightness(-0.5);  // Hace que la imagen sea más oscura
-        entradaCesta.setEffect(colorAdjust);
-    }
 }

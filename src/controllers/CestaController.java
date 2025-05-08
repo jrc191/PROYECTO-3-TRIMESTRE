@@ -100,6 +100,16 @@ public class CestaController {
 
     }
 
+    public boolean puedeAgregarEntrada(String idEspectaculo) {
+        if (entradas == null) {
+            return true; //Si no hay entradas puede añadirse siempre
+        }
+
+        long count = entradas.stream() .filter(e -> e.getIdEspectaculo().equals(idEspectaculo))
+                .count(); //CUENTA CUÁNTAS ENTRADAS TIENEN UN ID DE ESPECTÁCULO PROPORCIONADO
+        return count < 4; // Límite de 4 entradas por espectáculo
+    }
+
 
     // Para manejar el scroll de la cesta.
     private void agregarListenersScroll() {
@@ -111,6 +121,14 @@ public class CestaController {
             entradas = new ArrayList<>();
         }
 
+        if (!puedeAgregarEntrada(idEspectaculo)) {
+            Alert alert = new Alert(AlertType.WARNING);
+            alert.setTitle("Límite alcanzado");
+            alert.setContentText("No puedes agregar más de 4 entradas para este espectáculo.");
+            alert.show();
+            return;
+        }
+
         EntradaCesta entrada = new EntradaCesta(nombreEspectaculo, idEspectaculo, fila, col, precio, esVip);
         entradas.add(entrada);
         total += precio;
@@ -118,8 +136,6 @@ public class CestaController {
 
         CestaStorage.guardarCesta(emailUsuarioLogueado, entradas);
     }
-
-
 
 
     //para actualizar la cesta. Crea cada entrada según el fichero {email}.ser.

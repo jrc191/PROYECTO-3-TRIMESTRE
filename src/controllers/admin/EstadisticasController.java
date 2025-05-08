@@ -64,7 +64,7 @@ public class EstadisticasController {
 
         PieChart pieChart = new PieChart(pieData);
         pieChart.setTitle("Reservas por Espectáculo");
-        //pieChart.setStyle(getChartStyle());
+        pieChart.setStyle("-fx-text-fill: white");
         pieChart.setLegendVisible(true);
         pieChart.setLabelsVisible(true);
 
