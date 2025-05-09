@@ -10,4 +10,5 @@ public interface UsuarioDaoI {
     boolean existeDni(String dni) throws SQLException;
     String getIDUsuarioByEmail(String email) throws SQLException;
     List<Usuario> listUsuariosAdmin() throws SQLException;
+    String getNombreUsuarioByEmail(String email) throws SQLException;
 }

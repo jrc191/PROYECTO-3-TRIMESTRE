@@ -72,6 +72,24 @@ public class UsuarioDaoImpl implements UsuarioDaoI {
     }
 
     @Override
+    public String getNombreUsuarioByEmail(String email) throws SQLException {
+        String query = "SELECT nombre FROM USUARIOS WHERE email = ?";
+        String dato ="";
+        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, email);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()){
+                dato = rs.getString("nombre");
+            }
+
+
+        }
+        return dato;
+    }
+
+
+    @Override
     public List<Usuario> listUsuariosAdmin(){
         List<Usuario> usuarioList= new ArrayList<>();
 
