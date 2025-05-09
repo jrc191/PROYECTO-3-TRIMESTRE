@@ -45,7 +45,7 @@ public class NuevoAdminController {
                 idUsuario = usuarioDao.getIDUsuarioByEmail(emailUsuarioLogueado);
                 usuarioLabel.setText(idUsuario);
                 System.out.println("ID Usuario obtenido: " + idUsuario);
-                rutaLabel.setText("/views/admin/admin-NUEVO.fxml");
+                rutaLabel.setText("PANEL DE ADMINISTRACIÓN");
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -104,7 +104,8 @@ public class NuevoAdminController {
             controller.mostrarUsuarios(usuarios);
             contenidoArea.getChildren().clear();
             contenidoArea.getChildren().add(listarUsuariosView);
-            rutaLabel.setText("/views/admin/listarUsuarios");
+            //rutaLabel.setText("USUARIOS"); //MIRAR PARA OBTENER EL LABEL SEGÚN EL BOTÓN Y NO HACERLO MANUAL
+            rutaLabel.setText("USUARIOS");
         } catch (IOException | SQLException e) {
             e.printStackTrace();
             Label errorLabel = new Label("Error al cargar el formulario de listado de usuarios");
@@ -129,7 +130,7 @@ public class NuevoAdminController {
             controller.cargarEspectaculos();
             contenidoArea.getChildren().clear();
             contenidoArea.getChildren().add(listarEspectaculosView);
-            rutaLabel.setText("/views/admin/listarEspectaculos");
+            rutaLabel.setText("ESPECTÁCULOS");
         } catch (IOException | SQLException e) {
             e.printStackTrace();
             Label errorLabel = new Label("Error al cargar el formulario de listado de usuarios");
@@ -153,7 +154,7 @@ public class NuevoAdminController {
             controller.cargarReservas();
             contenidoArea.getChildren().clear();
             contenidoArea.getChildren().add(listarReservasView);
-            rutaLabel.setText("/views/admin/listarReservas.fxml");
+            rutaLabel.setText("RESERVAS");
         } catch (IOException | SQLException e) {
             e.printStackTrace();
             Label errorLabel = new Label("Error al cargar el formulario de listado de reservas.");
