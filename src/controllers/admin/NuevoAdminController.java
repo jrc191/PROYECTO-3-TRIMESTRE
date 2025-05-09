@@ -51,6 +51,7 @@ public class NuevoAdminController {
             }
         }
 
+        //A IMPLEMENTAR SCROLL?
         /*if (scrollContenido != null) {
             scrollContenido.setStyle("-fx-background: #1c2242; -fx-background-color: #1c2242;");
             scrollContenido.setFitToWidth(true);
@@ -132,6 +133,30 @@ public class NuevoAdminController {
         } catch (IOException | SQLException e) {
             e.printStackTrace();
             Label errorLabel = new Label("Error al cargar el formulario de listado de usuarios");
+            errorLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
+            contenidoArea.getChildren().clear();
+            contenidoArea.getChildren().add(errorLabel);
+        }
+
+    }
+
+    public void listarReservas(MouseEvent mouseEvent) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/admin/listarReservas.fxml"));
+            Parent listarReservasView = loader.load();
+            ListarReservasController controller = loader.getController();
+
+            // Obtener usuarios
+            Connection conn = utils.DatabaseConnection.getConnection();
+            dao.ReservasDaoI reservasDao = new dao.impl.ReservaDaoImpl(conn);
+            java.util.List<models.Reservas> reservas = reservasDao.listarTodasReservas();
+            controller.cargarReservas();
+            contenidoArea.getChildren().clear();
+            contenidoArea.getChildren().add(listarReservasView);
+            rutaLabel.setText("/views/admin/listarReservas.fxml");
+        } catch (IOException | SQLException e) {
+            e.printStackTrace();
+            Label errorLabel = new Label("Error al cargar el formulario de listado de reservas.");
             errorLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
             contenidoArea.getChildren().clear();
             contenidoArea.getChildren().add(errorLabel);

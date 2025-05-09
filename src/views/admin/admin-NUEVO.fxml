@@ -10,11 +10,11 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="650.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.admin.NuevoAdminController">
+<AnchorPane prefHeight="650.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/21.0.6" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.admin.NuevoAdminController">
    <children>
       <VBox prefHeight="653.0" prefWidth="901.0" style="-fx-background-color: black;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
-            <VBox prefHeight="59.0" prefWidth="901.0" style="-fx-background-color: GREY;">
+            <VBox prefHeight="58.0" prefWidth="901.0" style="-fx-background-color: GREY;">
                <children>
                   <Label alignment="CENTER" prefHeight="62.0" prefWidth="228.0" style="-fx-text-fill: white;" text="PANEL DE ADMINISTRACION">
                      <VBox.margin>
@@ -62,13 +62,21 @@
                         <Insets top="10.0" />
                      </VBox.margin>
                   </Label>
+                  <Label alignment="CENTER" layoutX="10.0" layoutY="56.0" onMousePressed="#listarReservas" prefHeight="26.0" prefWidth="221.0" style="-fx-text-fill: white;" text="RESERVAS">
+                     <padding>
+                        <Insets top="10.0" />
+                     </padding>
+                     <VBox.margin>
+                        <Insets top="10.0" />
+                     </VBox.margin>
+                  </Label>
                </children>
             </VBox>
          </children>
       </VBox>
       <VBox layoutX="221.0" prefHeight="653.0" prefWidth="680.0" style="-fx-background-color: white;">
          <children>
-            <VBox prefHeight="41.0" prefWidth="680.0">
+            <VBox prefHeight="43.0" prefWidth="680.0">
                <children>
                   <HBox prefHeight="45.0" prefWidth="680.0" style="-fx-background-color: grey;">
                      <children>

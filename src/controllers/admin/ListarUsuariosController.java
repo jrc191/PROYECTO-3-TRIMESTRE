@@ -23,7 +23,7 @@ public class ListarUsuariosController {
 
     public void mostrarUsuarios(List<Usuario> usuarios) {
         usuariosVBox.getChildren().clear();
-        // TABLA USUARIOS (estática). Quizás a futuro hacerla dinámica?
+        // TABLA USUARIOS (estática). Quizás a futuro hacerla dinámica?. AÑADIR EDITAR Y BORRAR USERS
         HBox header = new HBox();
         header.setStyle("-fx-background-color: #232a4d; -fx-padding: 8px;");
         Label dniHeader = new Label("DNI");

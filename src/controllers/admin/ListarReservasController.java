@@ -57,13 +57,6 @@ public class ListarReservasController {
             List<Reservas> reservas = reservasDao.listarTodasReservas();
             contenedorReservas.getChildren().clear();
 
-            if (reservas.isEmpty()) {
-                mensajeLabel.setText("No hay reservas registradas");
-                return;
-            }
-
-            mensajeLabel.setText("Total de reservas: " + reservas.size());
-
             // Crear encabezado de la tabla
             HBox header = new HBox();
             header.setStyle("-fx-background-color: #232a4d; -fx-padding: 8px;");
@@ -73,6 +66,18 @@ public class ListarReservasController {
             Label butacaHeader = new Label("Butaca");
             Label usuarioHeader = new Label("Usuario");
             Label precioHeader = new Label("Precio");
+
+            if (reservas.isEmpty()){
+                espHeader.setPrefWidth(500);
+                espHeader.setText("RESULTADOS: ");
+                Label espCell = new Label("NO EXISTEN RESERVAS EN ESTE MOMENTO");
+                HBox row = new HBox();
+                row.setStyle("-fx-background-color: transparent; -fx-padding: 7px;");
+
+                row.getChildren().addAll(espCell);
+                contenedorReservas.getChildren().add(row);
+                return;
+            }
 
             // Ajustar ancho de columnas
             espHeader.setPrefWidth(125);
@@ -90,6 +95,8 @@ public class ListarReservasController {
             header.getChildren().addAll(espHeader, butacaHeader,
                     usuarioHeader, precioHeader);
             contenedorReservas.getChildren().add(header);
+
+
 
             // Filas de datos
             for (Reservas reserva : reservas) {
