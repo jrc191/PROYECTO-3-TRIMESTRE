@@ -132,6 +132,7 @@ public class LoginController {
 
                 Stage stage = (Stage) loginEmailField.getScene().getWindow();
                 Scene scene = new Scene(root);
+                stage.setMinWidth(1000);
                 scene.getStylesheets().add(getClass().getResource("../resources/styles/styles.css").toExternalForm());
                 stage.setTitle("CINES JRC");
                 stage.getIcons().add(new Image(getClass().getResourceAsStream("../resources/images/logo.png")));

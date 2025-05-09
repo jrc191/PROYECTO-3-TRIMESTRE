@@ -10,92 +10,32 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="650.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/21.0.6" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.admin.NuevoAdminController">
+<AnchorPane prefHeight="650.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.admin.NuevoAdminController">
    <children>
-      <VBox prefHeight="653.0" prefWidth="901.0" style="-fx-background-color: black;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <VBox prefHeight="653.0" prefWidth="100.0" style="-fx-background-color: #1c2242;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
-            <VBox prefHeight="58.0" prefWidth="901.0" style="-fx-background-color: GREY;">
+            <HBox prefHeight="70.0" prefWidth="1001.0" style="-fx-background-color: #1c2242;">
                <children>
-                  <Label alignment="CENTER" prefHeight="62.0" prefWidth="228.0" style="-fx-text-fill: white;" text="PANEL DE ADMINISTRACION">
-                     <VBox.margin>
+                  <Label alignment="CENTER" prefHeight="70.0" prefWidth="220.0" style="-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;" text="Panel de Control">
+                     <HBox.margin>
                         <Insets />
-                     </VBox.margin>
+                     </HBox.margin>
                   </Label>
                </children>
-            </VBox>
-            <VBox layoutX="10.0" layoutY="10.0" style="-fx-background-color: yellow;">
+            </HBox>
+            <VBox layoutX="10.0" layoutY="10.0" style="-fx-background-color: #1c2242;">
                <children>
-                  <HBox layoutX="10.0" layoutY="10.0" prefHeight="23.0" prefWidth="901.0">
+                  <HBox layoutX="10.0" layoutY="10.0" prefHeight="60.0" prefWidth="220.0" style="-fx-background-color: #232a4d; -fx-background-radius: 0 10 10 0;">
                      <children>
-                        <ImageView fitHeight="18.0" fitWidth="34.0" pickOnBounds="true" preserveRatio="true">
+                        <ImageView fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
                            <HBox.margin>
-                              <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                              <Insets left="15.0" right="10.0" top="16.0" />
                            </HBox.margin>
                            <image>
                               <Image url="@../../resources/images/user-48.png" />
                            </image>
                         </ImageView>
-                        <Label fx:id="usuarioLabel" prefHeight="47.0" prefWidth="113.0" style="-fx-text-fill: BLACK;">
-                           <padding>
-                              <Insets left="10.0" />
-                           </padding>
-                        </Label>
-                     </children>
-                  </HBox>
-               </children>
-            </VBox>
-            <VBox prefHeight="567.0" prefWidth="901.0">
-               <children>
-                  <Label alignment="CENTER" onMousePressed="#listarUsuarios" prefHeight="26.0" prefWidth="221.0" style="-fx-text-fill: white;" text="USUARIOS">
-                     <padding>
-                        <Insets top="10.0" />
-                     </padding>
-                     <VBox.margin>
-                        <Insets top="10.0" />
-                     </VBox.margin>
-                  </Label>
-                  <Label alignment="CENTER" onMousePressed="#listarEspectaculos" prefHeight="26.0" prefWidth="221.0" style="-fx-text-fill: white;" text="ESPECTACULOS">
-                     <padding>
-                        <Insets top="10.0" />
-                     </padding>
-                     <VBox.margin>
-                        <Insets top="10.0" />
-                     </VBox.margin>
-                  </Label>
-                  <Label alignment="CENTER" layoutX="10.0" layoutY="56.0" onMousePressed="#listarReservas" prefHeight="26.0" prefWidth="221.0" style="-fx-text-fill: white;" text="RESERVAS">
-                     <padding>
-                        <Insets top="10.0" />
-                     </padding>
-                     <VBox.margin>
-                        <Insets top="10.0" />
-                     </VBox.margin>
-                  </Label>
-               </children>
-            </VBox>
-         </children>
-      </VBox>
-      <VBox layoutX="221.0" prefHeight="653.0" prefWidth="680.0" style="-fx-background-color: white;">
-         <children>
-            <VBox prefHeight="43.0" prefWidth="680.0">
-               <children>
-                  <HBox prefHeight="45.0" prefWidth="680.0" style="-fx-background-color: grey;">
-                     <children>
-                        <Button fx:id="volverBtn" mnemonicParsing="false" prefHeight="23.0" prefWidth="30.0" style="-fx-background-color: transparent;">
-                           <HBox.margin>
-                              <Insets bottom="15.0" left="15.0" top="15.0" />
-                           </HBox.margin>
-                           <graphic>
-                              <ImageView fitHeight="10.0" fitWidth="26.0" pickOnBounds="true" preserveRatio="true">
-                                 <image>
-                                    <Image url="@../../resources/images/volver.png" />
-                                 </image>
-                              </ImageView>
-                           </graphic>
-                        </Button>
-                        <Label fx:id="rutaLabel" prefHeight="67.0" prefWidth="447.0" style="-fx-text-fill: blue;" text="PRUEBA RUTA">
-                           <HBox.margin>
-                              <Insets />
-                           </HBox.margin>
+                        <Label fx:id="usuarioLabel" prefHeight="60.0" prefWidth="148.0" style="-fx-text-fill: white; -fx-font-size: 14px;">
                            <padding>
                               <Insets left="15.0" />
                            </padding>
@@ -104,9 +44,72 @@
                   </HBox>
                </children>
             </VBox>
-            <VBox fx:id="contenidoArea" prefHeight="606.0" prefWidth="680.0">
+            <VBox layoutX="10.0" layoutY="80.0" prefHeight="400.0" prefWidth="900.0" style="-fx-background-color: #1c2242;">
                <children>
-                  <ScrollPane fx:id="scrollContenido" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" prefHeight="580.0" prefWidth="640.0" style="-fx-background-color: grey; -fx-background-radius: 15; -fx-background-insets: 15;" vbarPolicy="NEVER">
+                  <Label alignment="CENTER" onMousePressed="#listarUsuarios" prefHeight="40.0" prefWidth="200.0" style="-fx-text-fill: white; -fx-background-color: #232a4d; -fx-background-radius: 50; -fx-font-size: 14px; -fx-cursor: hand; -fx-font-weight: bold;" text="USUARIOS">
+                     <VBox.margin>
+                        <Insets left="10.0" right="10.0" top="20.0" />
+                     </VBox.margin>
+                  </Label>
+                  <Label alignment="CENTER" onMousePressed="#listarEspectaculos" prefHeight="40.0" prefWidth="200.0" style="-fx-text-fill: white; -fx-background-color: #232a4d; -fx-background-radius: 50; -fx-font-size: 14px; -fx-cursor: hand; -fx-font-weight: bold;" text="ESPECTÁCULOS">
+                     <VBox.margin>
+                        <Insets left="10.0" right="10.0" top="20.0" />
+                     </VBox.margin>
+                  </Label>
+                  <Label alignment="CENTER" onMousePressed="#listarReservas" prefHeight="40.0" prefWidth="200.0" style="-fx-text-fill: white; -fx-background-color: #232a4d; -fx-background-radius: 50; -fx-font-size: 14px; -fx-cursor: hand; -fx-font-weight: bold;" text="RESERVAS">
+                     <VBox.margin>
+                        <Insets left="10.0" right="10.0" top="20.0" />
+                     </VBox.margin>
+                  </Label>
+               </children>
+            </VBox>
+            <VBox alignment="BOTTOM_LEFT" layoutX="10.0" layoutY="583.0" prefHeight="80.0" prefWidth="901.0" style="-fx-background-color: #1c2242;">
+               <children>
+                  <Label alignment="CENTER" prefHeight="23.0" prefWidth="180.0" style="-fx-text-fill: white; -fx-background-color: #232a4d; -fx-background-radius: 5; -fx-font-size: 14px; -fx-cursor: hand;" text="Ajustes">
+                     <VBox.margin>
+                        <Insets left="20.0" right="20.0" top="10.0" />
+                     </VBox.margin></Label>
+                  <Button mnemonicParsing="false" prefHeight="10.0" prefWidth="180.0" style="-fx-background-color: red; -fx-text-fill: white; -fx-background-radius: 5; -fx-font-size: 14; -fx-cursor: hand;" text="Cerrar Sesión">
+                     <VBox.margin>
+                        <Insets bottom="10.0" left="20.0" right="20.0" top="10.0" />
+                     </VBox.margin>
+                  </Button>
+               </children>
+            </VBox>
+         </children>
+      </VBox>
+      <VBox layoutX="221.0" prefHeight="653.0" prefWidth="780.0" style="-fx-background-color: white;">
+         <children>
+            <HBox prefHeight="62.0" prefWidth="861.0" style="-fx-background-color: #f8f9fa;">
+               <children>
+                  <Button fx:id="volverBtn" mnemonicParsing="false" prefHeight="23.0" prefWidth="30.0" style="-fx-background-color: transparent;">
+                     <HBox.margin>
+                        <Insets bottom="15.0" left="15.0" top="15.0" />
+                     </HBox.margin>
+                     <graphic>
+                        <ImageView fitHeight="10.0" fitWidth="26.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../../resources/images/volver.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                  </Button>
+                  <Label fx:id="rutaLabel" prefHeight="76.0" prefWidth="447.0" style="-fx-text-fill: #6c757d; -fx-font-size: 14px;" text="PANEL DE ADMINISTRACIÓN">
+                     <HBox.margin>
+                        <Insets />
+                     </HBox.margin>
+                     <padding>
+                        <Insets left="15.0" />
+                     </padding>
+                  </Label>
+               </children>
+               <VBox.margin>
+                  <Insets />
+               </VBox.margin>
+            </HBox>
+            <VBox fx:id="contenidoArea" prefHeight="606.0" prefWidth="747.0">
+               <children>
+                  <ScrollPane fx:id="scrollContenido" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" prefHeight="580.0" prefWidth="640.0" style="-fx-background-color: white; -fx-background-insets: 15;" vbarPolicy="NEVER">
                      <VBox.margin>
                         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
                      </VBox.margin>

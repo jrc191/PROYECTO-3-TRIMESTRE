@@ -2,6 +2,7 @@ package controllers.admin;
 
 import dao.UsuarioDaoI;
 import dao.impl.UsuarioDaoImpl;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -11,6 +12,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import utils.CerrarSesion;
 import utils.DatabaseConnection;
 
 import java.io.IOException;
@@ -25,6 +27,8 @@ public class NuevoAdminController {
     @FXML
     public VBox contenidoArea;
     @FXML
+    public Label cerrarSesion;
+    @FXML
     private Label usuarioLabel;
     @FXML
     public Label rutaLabel;
@@ -37,6 +41,7 @@ public class NuevoAdminController {
 
     @FXML
     public void initialize() {
+
         if (emailUsuarioLogueado != null) {
             try {
                 Connection conn = DatabaseConnection.getConnection();
@@ -51,44 +56,14 @@ public class NuevoAdminController {
             }
         }
 
-        //A IMPLEMENTAR SCROLL?
-        /*if (scrollContenido != null) {
-            scrollContenido.setStyle("-fx-background: #1c2242; -fx-background-color: #1c2242;");
-            scrollContenido.setFitToWidth(true);
-            agregarListenersScroll();
-        }
-
-        */
-
 
     }
 
-    private void agregarListenersScroll() {
-        scrollContenido.setOnMouseEntered(e -> {
-            arribaBtn.setOpacity(0);
-            abajoBtn.setOpacity(0);
-        });
-
-        scrollContenido.setOnMouseExited(e -> {
-            arribaBtn.setOpacity(1);
-            abajoBtn.setOpacity(1);
-        });
-
-        arribaBtn.setOnMouseClicked(e ->
-                scrollContenido.setVvalue(scrollContenido.getVvalue() - 0.2));
-
-        abajoBtn.setOnMouseClicked(e ->
-                scrollContenido.setVvalue(scrollContenido.getVvalue() + 0.2));
-
-        arribaBtn.setOnKeyPressed(e->
-                scrollContenido.setVvalue(scrollContenido.getVvalue() - 0.2));
-
-        arribaBtn.setOpacity(0);
-        abajoBtn.setOpacity(0);
-
-        scrollContenido.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+    public void cerrarSesion(ActionEvent actionEvent) {
+        emailUsuarioLogueado = null;
+        Stage stage = (Stage) usuarioLabel.getScene().getWindow();
+        CerrarSesion.cerrarSesion(stage, "/resources/styles/styles.css", "/resources/images/logo.png");
     }
-
 
     public void listarUsuarios(MouseEvent mouseEvent) {
 
