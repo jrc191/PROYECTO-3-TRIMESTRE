@@ -360,7 +360,7 @@ public class ListarUsuariosController {
                 System.out.println(usuario.getDni()); //LOGS
 
                 // Eliminar reservas
-                int reservasEliminadas = reservasDao.eliminarReservasByUsuario(usuario.getDni());
+                int reservasEliminadas = reservasDao.cancelarReservasByUsuarioID(usuario.getDni());
                 System.out.println("Reservas eliminadas: " + reservasEliminadas);
 
                 // Eliminar reservas temporales

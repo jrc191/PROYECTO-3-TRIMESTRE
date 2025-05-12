@@ -57,6 +57,8 @@ public class NuevoAdminController {
             }
         }
 
+        listarUsuarios(mouseEvent);
+
 
     }
 
