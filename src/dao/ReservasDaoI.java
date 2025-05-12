@@ -11,8 +11,10 @@ public interface ReservasDaoI {
     List<Reservas> consultarReservas(String id_espectaculo, String id_usuario) throws SQLException;
     List<Reservas> consultarReservasTEMP(String id_espectaculo, String id_usuario) throws SQLException;
     List<Reservas> listarTodasReservas() throws SQLException;
-    public void eliminarReservaTemporal(String idReserva) throws SQLException;
-    public void eliminarReservasById(String idUser) throws SQLException;
-    public void eliminarReservasTemporalesUsuario(String idUsuario) throws SQLException;
-    public int contarReservasPorUsuarioYEspectaculo(String idUsuario, String idEspectaculo) throws SQLException;
+    void eliminarReservaTemporal(String idReserva) throws SQLException;
+    void eliminarReservasById(String idUser) throws SQLException;
+    void eliminarReservasTemporalesUsuario(String idUsuario) throws SQLException;
+    int contarReservasPorUsuarioYEspectaculo(String idUsuario, String idEspectaculo) throws SQLException;
+    int eliminarReservasByUsuario(String idUsuario) throws SQLException;
+    int eliminarReservasTemporalesByUsuario(String idUsuario) throws SQLException;
 }

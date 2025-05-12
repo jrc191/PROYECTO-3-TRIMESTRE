@@ -160,5 +160,22 @@ public class ReservaDaoImpl implements ReservasDaoI {
         }
     }
 
+    @Override
+    public int eliminarReservasByUsuario(String idUsuario) throws SQLException {
+        String query = "DELETE FROM RESERVAS WHERE id_usuario = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, idUsuario);
+            return pstmt.executeUpdate();
+        }
+    }
+
+    @Override
+    public int eliminarReservasTemporalesByUsuario(String idUsuario) throws SQLException {
+        String query = "DELETE FROM RESERVAS_TEMP WHERE id_usuario = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, idUsuario);
+            return pstmt.executeUpdate();
+        }
+    }
 
 }

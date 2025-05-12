@@ -1,8 +1,11 @@
 package controllers.admin;
 
+import dao.ReservasDaoI;
 import dao.UsuarioDaoI;
+import dao.impl.ReservaDaoImpl;
 import dao.impl.UsuarioDaoImpl;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -27,6 +30,7 @@ public class ListarUsuariosController {
     private List<Usuario> usuariosOriginal;
     private List<CheckBox> checkBoxes = new ArrayList<>();
     private UsuarioDaoI usuarioDao;
+    private ReservasDaoI reservasDao;
 
     public void mostrarUsuarios(List<Usuario> usuarios) {
         usuariosVBox.getChildren().clear();
@@ -134,6 +138,7 @@ public class ListarUsuariosController {
         eliminarBtn.setOnMouseClicked(e -> eliminarSeleccionados());
     }
 
+    //editar individualmente
     private void editarUsuario(Usuario usuario) {
         if ("admin@admin.com".equals(usuario.getEmail())) {
             System.out.println("No se puede editar el usuario administrador");
@@ -143,6 +148,7 @@ public class ListarUsuariosController {
 
     }
 
+    //eliminar individualmente
     private void eliminarUsuario(Usuario usuario) {
         List<Usuario> usuarios = new ArrayList<>();
         usuarios.add(usuario);
@@ -155,21 +161,29 @@ public class ListarUsuariosController {
 
         eliminarUsuarioYActualizarVista(usuarios);
 
-
     }
 
     private void editarSeleccionados() {
         List<Usuario> seleccionados = getUsuariosSeleccionados();
+
         if (seleccionados.isEmpty()) {
             System.out.println("Seleccione un usuario para editar");
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("ERROR SELECCIÓN");
+            alert.setContentText("Seleccione, al menos, un usuario.");
+            alert.show();
             return;
         }
         if (seleccionados.size() > 1) {
-            System.out.println("Solo puede editar un usuario a la vez");
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error. Límite alcanzado");
+            alert.setContentText("Seleccione, como máximo, un usuario a la vez.");
             return;
         }
         if ("admin@admin.com".equals(seleccionados.get(0).getEmail())) {
-            System.out.println("No se puede editar el usuario administrador");
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error. Permiso denegado.");
+            alert.setContentText("El usuario administrador no puede editarse.");
             return;
         }
         editarUsuario(seleccionados.get(0));
@@ -182,6 +196,11 @@ public class ListarUsuariosController {
 
         if (seleccionados.isEmpty()) {
             System.out.println("Seleccione al menos un usuario para eliminar (excepto administrador)");
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("ERROR SELECCIÓN");
+            alert.setContentText("Seleccione, al menos, un usuario.");
+            alert.show();
+
             return;
         }
         System.out.println("Eliminar usuarios seleccionados: " + seleccionados.size());
@@ -195,23 +214,38 @@ public class ListarUsuariosController {
         try {
             Connection conn = DatabaseConnection.getConnection();
             this.usuarioDao = new UsuarioDaoImpl(conn);
+            this.reservasDao = new ReservaDaoImpl(conn);
 
-            for (Usuario usuario: seleccionados){
-                System.out.println(usuario.getDni());
-                int eliminados=usuarioDao.eliminarUsuarioByID(usuario.getDni());
-                if (eliminados>0){
+            for (Usuario usuario : seleccionados) {
+                System.out.println(usuario.getDni()); //LOGS
+
+                // Eliminar reservas
+                int reservasEliminadas = reservasDao.eliminarReservasByUsuario(usuario.getDni());
+                System.out.println("Reservas eliminadas: " + reservasEliminadas);
+
+                // Eliminar reservas temporales
+                int reservasTempEliminadas = reservasDao.eliminarReservasTemporalesByUsuario(usuario.getDni());
+                System.out.println("Reservas temporales eliminadas: " + reservasTempEliminadas);
+
+                // Eliminar el usuario
+                int eliminados = usuarioDao.eliminarUsuarioByID(usuario.getDni());
+                if (eliminados > 0) {
                     System.out.println("SE BORRARON LOS USUARIOS");
                     usuariosOriginal.remove(usuario);
                     mostrarUsuarios(usuariosOriginal);
-
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Confirmado");
+                    alert.setContentText("Se borró el usuario: " + usuario.getDni() +
+                            "\nReservas eliminadas: " + (reservasEliminadas + reservasTempEliminadas));
+                    alert.show();
                 }
             }
-
-
-
-
         } catch (SQLException e) {
             e.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setContentText("Ocurrió un error al eliminar el usuario o sus reservas.");
+            alert.show();
         }
     }
 
