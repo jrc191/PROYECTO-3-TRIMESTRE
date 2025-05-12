@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="650.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.admin.NuevoAdminController">
+<AnchorPane prefHeight="650.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/21.0.6" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.admin.NuevoAdminController">
    <children>
       <VBox prefHeight="653.0" prefWidth="100.0" style="-fx-background-color: #1c2242;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
@@ -46,17 +46,17 @@
             </VBox>
             <VBox layoutX="10.0" layoutY="80.0" prefHeight="400.0" prefWidth="900.0" style="-fx-background-color: #1c2242;">
                <children>
-                  <Label alignment="CENTER" onMousePressed="#listarUsuarios" prefHeight="40.0" prefWidth="200.0" style="-fx-text-fill: white; -fx-background-color: #232a4d; -fx-background-radius: 40; -fx-font-size: 14px; -fx-cursor: hand; -fx-font-weight: bold;" text="USUARIOS">
+                  <Label fx:id="usuariosLabel" alignment="CENTER" onMousePressed="#listarUsuarios" prefHeight="40.0" prefWidth="200.0" style="-fx-text-fill: white;  -fx-background-radius: 40; -fx-font-size: 14px; -fx-cursor: hand; -fx-font-weight: bold;" text="USUARIOS">
                      <VBox.margin>
                         <Insets left="10.0" right="10.0" top="20.0" />
                      </VBox.margin>
                   </Label>
-                  <Label alignment="CENTER" onMousePressed="#listarEspectaculos" prefHeight="40.0" prefWidth="200.0" style="-fx-text-fill: white; -fx-background-color: #232a4d; -fx-background-radius: 50; -fx-font-size: 14px; -fx-cursor: hand; -fx-font-weight: bold;" text="ESPECTÁCULOS">
+                  <Label fx:id="espectaculosLabel" alignment="CENTER" onMousePressed="#listarEspectaculos" prefHeight="40.0" prefWidth="200.0" style="-fx-text-fill: white; -fx-background-radius: 50; -fx-font-size: 14px; -fx-cursor: hand; -fx-font-weight: bold;" text="ESPECTÁCULOS">
                      <VBox.margin>
                         <Insets left="10.0" right="10.0" top="20.0" />
                      </VBox.margin>
                   </Label>
-                  <Label alignment="CENTER" onMousePressed="#listarReservas" prefHeight="40.0" prefWidth="200.0" style="-fx-text-fill: white; -fx-background-color: #232a4d; -fx-background-radius: 50; -fx-font-size: 14px; -fx-cursor: hand; -fx-font-weight: bold;" text="RESERVAS">
+                  <Label fx:id="reservasLabel" alignment="CENTER" onMousePressed="#listarReservas" prefHeight="40.0" prefWidth="200.0" style="-fx-text-fill: white; -fx-background-radius: 50; -fx-font-size: 14px; -fx-cursor: hand; -fx-font-weight: bold;" text="RESERVAS">
                      <VBox.margin>
                         <Insets left="10.0" right="10.0" top="20.0" />
                      </VBox.margin>

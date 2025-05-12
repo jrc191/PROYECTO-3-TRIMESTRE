@@ -7,6 +7,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.MouseEvent;
@@ -22,22 +23,22 @@ import java.sql.SQLException;
 import static controllers.LoginController.getUsuarioLogueadoEmail;
 
 public class NuevoAdminController {
-    @FXML
-    public ScrollPane scrollContenido;
-    @FXML
-    public VBox contenidoArea;
-    @FXML
-    public Label cerrarSesion;
-    @FXML
-    private Label usuarioLabel;
-    @FXML
-    public Label rutaLabel;
-    @FXML
-    private Label arribaBtn, abajoBtn;
+    @FXML public ScrollPane scrollContenido;
+    @FXML public VBox contenidoArea;
+    @FXML public Label cerrarSesion;
+    @FXML public Label usuariosLabel;
+    @FXML public Label espectaculosLabel;
+    @FXML public Label reservasLabel;
+    @FXML public Button volverBtn;
+    @FXML private Label usuarioLabel;
+    @FXML public Label rutaLabel;
+    @FXML private Label arribaBtn, abajoBtn;
 
     private String emailUsuarioLogueado = getUsuarioLogueadoEmail();
     private String idUsuario;
     private UsuarioDaoI usuarioDao;
+    private String rutaPrevia; //USADO PARA BOTÓN DE VOLVER
+    private MouseEvent mouseEvent;
 
     @FXML
     public void initialize() {
@@ -83,6 +84,10 @@ public class NuevoAdminController {
             contenidoArea.getChildren().add(listarUsuariosView);
             //rutaLabel.setText("USUARIOS"); //MIRAR PARA OBTENER EL LABEL SEGÚN EL BOTÓN Y NO HACERLO MANUAL
             rutaLabel.setText("USUARIOS");
+            usuariosLabel.setOpacity(0.5);
+            reservasLabel.setOpacity(1);
+            espectaculosLabel.setOpacity(1);
+
         } catch (IOException | SQLException e) {
             e.printStackTrace();
             Label errorLabel = new Label("Error al cargar el formulario de listado de usuarios");
@@ -108,6 +113,10 @@ public class NuevoAdminController {
             contenidoArea.getChildren().clear();
             contenidoArea.getChildren().add(listarEspectaculosView);
             rutaLabel.setText("ESPECTÁCULOS");
+            usuariosLabel.setOpacity(1);
+            reservasLabel.setOpacity(1);
+            espectaculosLabel.setOpacity(0.5);
+
         } catch (IOException | SQLException e) {
             e.printStackTrace();
             Label errorLabel = new Label("Error al cargar el formulario de listado de usuarios");
@@ -132,6 +141,10 @@ public class NuevoAdminController {
             contenidoArea.getChildren().clear();
             contenidoArea.getChildren().add(listarReservasView);
             rutaLabel.setText("RESERVAS");
+            usuariosLabel.setOpacity(1);
+            reservasLabel.setOpacity(0.5);
+            espectaculosLabel.setOpacity(1);
+
         } catch (IOException | SQLException e) {
             e.printStackTrace();
             Label errorLabel = new Label("Error al cargar el formulario de listado de reservas.");
@@ -141,4 +154,6 @@ public class NuevoAdminController {
         }
 
     }
+
+
 }
