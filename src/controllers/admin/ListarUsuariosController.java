@@ -5,10 +5,7 @@ import dao.UsuarioDaoI;
 import dao.impl.ReservaDaoImpl;
 import dao.impl.UsuarioDaoImpl;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
@@ -22,15 +19,158 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class ListarUsuariosController {
+    @FXML private ImageView addBtn;
     @FXML private VBox usuariosVBox;
     @FXML private ScrollPane scrollUsuarios;
     @FXML private ImageView editarBtn;
     @FXML private ImageView eliminarBtn;
+    @FXML private Button guardarBtn;
+    @FXML private Button cancelarBtn;
 
     private List<Usuario> usuariosOriginal;
     private List<CheckBox> checkBoxes = new ArrayList<>();
     private UsuarioDaoI usuarioDao;
     private ReservasDaoI reservasDao;
+    private HBox nuevaFila;
+
+    @FXML
+    public void initialize() {
+        addBtn.setOnMouseClicked(e -> agregarNuevoUsuario());
+        guardarBtn.setOnAction(e -> guardarNuevoUsuario());
+        cancelarBtn.setOnAction(e->cancelarNuevoUsuario());
+    }
+
+    private void agregarNuevoUsuario() {
+        // Ocultar botón de añadir y mostrar botón de guardar
+        addBtn.setVisible(false);
+        guardarBtn.setVisible(true);
+        cancelarBtn.setVisible(true);
+
+        // Deshabilitar otros botones de acción
+        editarBtn.setDisable(true);
+        eliminarBtn.setDisable(true);
+
+        // Crear campos de texto para la nueva fila
+        TextField dniField = new TextField();
+        TextField nombreField = new TextField();
+        TextField emailField = new TextField();
+        PasswordField passwordField = new PasswordField();
+
+        // Configurar los campos
+        dniField.setPromptText("DNI");
+        nombreField.setPromptText("Nombre");
+        emailField.setPromptText("Email");
+        passwordField.setPromptText("Contraseña");
+
+        // Establecer anchos
+        dniField.setPrefWidth(120);
+        nombreField.setPrefWidth(200);
+        emailField.setPrefWidth(250);
+        passwordField.setPrefWidth(150);
+
+        // Crear la nueva fila
+        nuevaFila = new HBox();
+        nuevaFila.setStyle("-fx-background-color: #e3f2fd; -fx-padding: 10px; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0;");
+
+        // Añadir los campos a la fila
+        nuevaFila.getChildren().addAll(
+                new Label("Nuevo:"), // Espacio para el checkbox (no aplicable)
+                dniField,
+                nombreField,
+                emailField,
+                passwordField
+        );
+
+        // Insertar la nueva fila al principio de la lista
+        usuariosVBox.getChildren().add(1, nuevaFila);
+
+        // Desplazar la vista para mostrar la nueva fila
+        scrollUsuarios.setVvalue(0);
+    }
+
+    private void guardarNuevoUsuario() {
+        // Obtener los campos de la nueva fila
+        HBox fila = nuevaFila;
+        TextField dniField = (TextField) fila.getChildren().get(1);
+        TextField nombreField = (TextField) fila.getChildren().get(2);
+        TextField emailField = (TextField) fila.getChildren().get(3);
+        PasswordField passwordField = (PasswordField) fila.getChildren().get(4);
+
+        // Validar campos
+        if (dniField.getText().isEmpty() || nombreField.getText().isEmpty() ||
+                emailField.getText().isEmpty() || passwordField.getText().isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setContentText("Todos los campos son obligatorios");
+            alert.show();
+            return;
+        }
+
+        // Validar formato de email
+        if (!emailField.getText().contains("@")) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setContentText("El email debe ser válido");
+            alert.show();
+            return;
+        }
+
+        // Crear nuevo usuario
+        Usuario nuevoUsuario = new Usuario();
+        nuevoUsuario.setDni(dniField.getText());
+        nuevoUsuario.setNombre(nombreField.getText());
+        nuevoUsuario.setEmail(emailField.getText());
+        nuevoUsuario.setPassword(passwordField.getText()); // En una aplicación real, esto debería estar encriptado
+
+        try {
+            Connection conn = DatabaseConnection.getConnection();
+            this.usuarioDao = new UsuarioDaoImpl(conn);
+
+            // Insertar el nuevo usuario en la base de datos
+            boolean exito = usuarioDao.registrarUsuario(nuevoUsuario);
+
+            if (exito) {
+                // Actualizar la lista de usuarios
+                List<Usuario> usuariosActualizados = usuarioDao.listUsuariosAdmin();
+                mostrarUsuarios(usuariosActualizados);
+
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Éxito");
+                alert.setContentText("Usuario añadido correctamente");
+                alert.show();
+            } else {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setContentText("No se pudo añadir el usuario");
+                alert.show();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setContentText("Error al conectar con la base de datos: " + e.getMessage());
+            alert.show();
+        }
+
+        // Restaurar botones
+        addBtn.setVisible(true);
+        guardarBtn.setVisible(false);
+        cancelarBtn.setVisible(false);
+    }
+
+    private void cancelarNuevoUsuario() {
+        // Eliminar la fila de edición si existe
+        if (nuevaFila != null && usuariosVBox.getChildren().contains(nuevaFila)) {
+            usuariosVBox.getChildren().remove(nuevaFila);
+        }
+
+        // Restaurar estado de los botones
+        addBtn.setVisible(true);
+        guardarBtn.setVisible(false);
+        cancelarBtn.setVisible(false);
+        editarBtn.setDisable(false);
+        eliminarBtn.setDisable(false);
+    }
 
     public void mostrarUsuarios(List<Usuario> usuarios) {
         usuariosVBox.getChildren().clear();
