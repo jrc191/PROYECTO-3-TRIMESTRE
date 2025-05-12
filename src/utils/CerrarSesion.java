@@ -12,6 +12,14 @@ public class CerrarSesion {
     /**
      * Cierra la sesión y redirige a la vista de registro/login.
      */
+
+    public static void configureStage(Stage stage) {
+        stage.setMinWidth(700);
+        //stage.setMinHeight(550);
+        stage.setMaxWidth(750);
+        //stage.setMaxHeight(700);
+    }
+
     public static void cerrarSesion(Stage stage, String stylesheetPath, String iconPath) {
         try {
             FXMLLoader loader = new FXMLLoader(CerrarSesion.class.getResource("/views/registro.fxml"));
@@ -25,6 +33,7 @@ public class CerrarSesion {
                 Image icon = new Image(CerrarSesion.class.getResourceAsStream(iconPath));
                 stage.getIcons().add(icon);
             }
+            configureStage(stage);
             stage.setScene(scene);
             stage.show();
         } catch (IOException e) {

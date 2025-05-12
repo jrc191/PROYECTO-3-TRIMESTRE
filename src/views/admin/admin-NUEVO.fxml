@@ -46,7 +46,7 @@
             </VBox>
             <VBox layoutX="10.0" layoutY="80.0" prefHeight="400.0" prefWidth="900.0" style="-fx-background-color: #1c2242;">
                <children>
-                  <Label alignment="CENTER" onMousePressed="#listarUsuarios" prefHeight="40.0" prefWidth="200.0" style="-fx-text-fill: white; -fx-background-color: #232a4d; -fx-background-radius: 50; -fx-font-size: 14px; -fx-cursor: hand; -fx-font-weight: bold;" text="USUARIOS">
+                  <Label alignment="CENTER" onMousePressed="#listarUsuarios" prefHeight="40.0" prefWidth="200.0" style="-fx-text-fill: white; -fx-background-color: #232a4d; -fx-background-radius: 40; -fx-font-size: 14px; -fx-cursor: hand; -fx-font-weight: bold;" text="USUARIOS">
                      <VBox.margin>
                         <Insets left="10.0" right="10.0" top="20.0" />
                      </VBox.margin>
@@ -69,7 +69,7 @@
                      <VBox.margin>
                         <Insets left="20.0" right="20.0" top="10.0" />
                      </VBox.margin></Label>
-                  <Button mnemonicParsing="false" prefHeight="10.0" prefWidth="180.0" style="-fx-background-color: red; -fx-text-fill: white; -fx-background-radius: 5; -fx-font-size: 14; -fx-cursor: hand;" text="Cerrar Sesión">
+                  <Button onAction="#cerrarSesion" mnemonicParsing="false" prefHeight="10.0" prefWidth="180.0" style="-fx-background-color: red; -fx-text-fill: white; -fx-background-radius: 5; -fx-font-size: 14; -fx-cursor: hand;" text="Cerrar Sesión">
                      <VBox.margin>
                         <Insets bottom="10.0" left="20.0" right="20.0" top="10.0" />
                      </VBox.margin>

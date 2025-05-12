@@ -113,4 +113,16 @@ public class UsuarioDaoImpl implements UsuarioDaoI {
 
 
     }
+
+    @Override
+    public int eliminarUsuarioByID(String dni) throws SQLException{
+        String query = "DELETE FROM USUARIOS WHERE id_usuario = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, dni);
+            int affectedRows = pstmt.executeUpdate();
+            System.out.println("Filas afectadas: " + affectedRows);
+            return affectedRows;
+        }
+
+    }
 }

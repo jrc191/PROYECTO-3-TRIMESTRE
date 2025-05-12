@@ -1,5 +1,7 @@
 package controllers.admin;
 
+import dao.UsuarioDaoI;
+import dao.impl.UsuarioDaoImpl;
 import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
@@ -9,6 +11,10 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import models.Usuario;
+import utils.DatabaseConnection;
+
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -20,6 +26,7 @@ public class ListarUsuariosController {
 
     private List<Usuario> usuariosOriginal;
     private List<CheckBox> checkBoxes = new ArrayList<>();
+    private UsuarioDaoI usuarioDao;
 
     public void mostrarUsuarios(List<Usuario> usuarios) {
         usuariosVBox.getChildren().clear();
@@ -133,16 +140,22 @@ public class ListarUsuariosController {
             return;
         }
         System.out.println("Editar usuario: " + usuario.getDni());
-        // IMPLEMENTAR EDITAR USUARIO
+
     }
 
     private void eliminarUsuario(Usuario usuario) {
+        List<Usuario> usuarios = new ArrayList<>();
+        usuarios.add(usuario);
+
         if ("admin@admin.com".equals(usuario.getEmail())) {
             System.out.println("No se puede eliminar el usuario administrador");
             return;
         }
         System.out.println("Eliminar usuario: " + usuario.getDni());
-        // IMPLEMENTAR ELIMINAR USUARIOS
+
+        eliminarUsuarioYActualizarVista(usuarios);
+
+
     }
 
     private void editarSeleccionados() {
@@ -172,7 +185,34 @@ public class ListarUsuariosController {
             return;
         }
         System.out.println("Eliminar usuarios seleccionados: " + seleccionados.size());
+
+        eliminarUsuarioYActualizarVista(seleccionados);
         // IMPLEMENTAR ELIMINAR SELECCIONADOS
+    }
+
+    //MÉTODO PARA ELIMINAR USUARIO INDIVIDUAL O LISTA DE USUARIOS
+    private void eliminarUsuarioYActualizarVista(List<Usuario> seleccionados) {
+        try {
+            Connection conn = DatabaseConnection.getConnection();
+            this.usuarioDao = new UsuarioDaoImpl(conn);
+
+            for (Usuario usuario: seleccionados){
+                System.out.println(usuario.getDni());
+                int eliminados=usuarioDao.eliminarUsuarioByID(usuario.getDni());
+                if (eliminados>0){
+                    System.out.println("SE BORRARON LOS USUARIOS");
+                    usuariosOriginal.remove(usuario);
+                    mostrarUsuarios(usuariosOriginal);
+
+                }
+            }
+
+
+
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     private List<Usuario> getUsuariosSeleccionados() {
