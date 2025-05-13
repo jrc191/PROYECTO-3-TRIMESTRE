@@ -100,10 +100,12 @@ public class CestaController {
 
     }
 
-    public boolean puedeAgregarEntrada(String idEspectaculo) {
+    public boolean puedeAgregarEntrada(String idEspectaculo, int fila, int col) {
         if (entradas == null) {
             entradas = new ArrayList<>();
         }
+
+        String idButaca = "F" + fila + "-C" + col;
 
         // Contar entradas en la cesta para este espectáculo
         long enCesta = entradas.stream()
@@ -115,7 +117,7 @@ public class CestaController {
         try {
             Connection conn = DatabaseConnection.getConnection();
             ReservaDaoImpl reservaDao = new ReservaDaoImpl(conn);
-            enBaseDatos = reservaDao.contarReservasPorUsuarioYEspectaculo(idUsuario, idEspectaculo);
+            enBaseDatos = reservaDao.contarReservasPorUsuarioYEspectaculo(idUsuario, idEspectaculo, idButaca);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -135,10 +137,33 @@ public class CestaController {
             entradas = new ArrayList<>();
         }
 
-        if (!puedeAgregarEntrada(idEspectaculo)) {
+        // Primero verificar límite general por espectáculo (4 entradas)
+        long enCestaEspectaculo = entradas.stream()
+                .filter(e -> e.getIdEspectaculo().equals(idEspectaculo))
+                .count();
+
+        int enBaseDatosEspectaculo = 0;
+        try {
+            Connection conn = DatabaseConnection.getConnection();
+            ReservaDaoImpl reservaDao = new ReservaDaoImpl(conn);
+            enBaseDatosEspectaculo = reservaDao.contarReservasPorUsuarioYEspectaculo(idUsuario, idEspectaculo, "%"); // Usamos % como comodín
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        if ((enCestaEspectaculo + enBaseDatosEspectaculo) >= 4) {
             Alert alert = new Alert(AlertType.WARNING);
             alert.setTitle("Límite alcanzado");
             alert.setContentText("No puedes agregar más de 4 entradas para este espectáculo.");
+            alert.show();
+            return;
+        }
+
+        // Luego verificar disponibilidad específica de la butaca
+        if (!puedeAgregarEntrada(idEspectaculo, fila, col)) {
+            Alert alert = new Alert(AlertType.WARNING);
+            alert.setTitle("Butaca no disponible");
+            alert.setContentText("Esta butaca ya está reservada por ti (aunque hayas cancelado reservas previas).");
             alert.show();
             return;
         }
@@ -232,61 +257,6 @@ public class CestaController {
     public void mostrarTodas(){}
 
 
-
-    /*
-    public void confirmarCompra(ActionEvent actionEvent) {
-        Alert alert = new Alert(AlertType.CONFIRMATION);
-        alert.setTitle("CONFIRMAR COMPRA");
-        alert.setContentText("¿Quiere usted confirmar su compra?");
-
-        alert.showAndWait().ifPresent(response -> {
-            if (response == ButtonType.OK) {
-                try {
-                    Connection conn = DatabaseConnection.getConnection();
-                    ReservaDaoImpl reservaDao = new ReservaDaoImpl(conn);
-
-                    // Eliminar todas las reservas temporales del usuario usando el DAO
-                    reservaDao.eliminarReservasTemporalesUsuario(idUsuario);
-
-                    // Guardar las reservas definitivas
-                    for (EntradaCesta entrada : entradas) {
-                        Reservas reserva = new Reservas();
-                        String idReserva = idEspectaculoSeleccionado + "_" + idUsuario + "_F" + entrada.getFila() + "-C" + entrada.getCol();
-                        reserva.setId_reserva(idReserva);
-                        reserva.setId_espectaculo(idEspectaculoSeleccionado);
-                        reserva.setId_butaca("F" + entrada.getFila() + "-C" + entrada.getCol());
-                        reserva.setId_usuario(idUsuario);
-                        reserva.setPrecio(entrada.getPrecio());
-                        reserva.setEstado('O'); // 'O' para ocupado
-                        reservaDao.registrarReservas(reserva);
-                    }
-
-                    // Limpiar la cesta
-                    entradas.clear();
-                    CestaStorage.guardarCesta(emailUsuarioLogueado, entradas);
-                    actualizarCesta();
-
-                    Alert successAlert = new Alert(AlertType.INFORMATION);
-                    successAlert.setTitle("Compra confirmada");
-                    successAlert.setContentText("La compra se ha realizado con éxito.");
-                    successAlert.show();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                    Alert errorAlert = new Alert(AlertType.ERROR);
-                    errorAlert.setTitle("Error");
-                    errorAlert.setContentText("No se pudo confirmar la compra.");
-
-
-
-
-                    errorAlert.show();
-                }
-            }
-        });
-    }
-
-    */
-
     public void confirmarCompra(ActionEvent actionEvent) {
         if (entradas.isEmpty()) {
             Alert alert = new Alert(AlertType.ERROR);
@@ -355,7 +325,9 @@ public class CestaController {
                 } catch (SQLException e) {
                     errorOcurrido = true;
                     try {
-                        if (conn != null) conn.rollback();
+                        if (conn != null) {
+                            conn.rollback();
+                        }
                     } catch (SQLException ex) {
                         ex.printStackTrace();
                     }

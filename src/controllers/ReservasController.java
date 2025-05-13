@@ -301,8 +301,9 @@ public class ReservasController {
                 Connection conn = DatabaseConnection.getConnection();
                 ReservaDaoImpl reservaDao = new ReservaDaoImpl(conn);
 
+                String idButaca = "F" + fila + "-C" + columna;
                 // Contar reservas existentes en la base de datos
-                int reservasExistentes = reservaDao.contarReservasPorUsuarioYEspectaculo(idUsuario, idEspectaculoSeleccionado);
+                int reservasExistentes = reservaDao.contarReservasPorUsuarioYEspectaculo(idUsuario, idEspectaculoSeleccionado, idButaca);
 
                 // Contar entradas en la cesta para este espectáculo
                 long enCesta = cestaList.stream()

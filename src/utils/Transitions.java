@@ -45,11 +45,19 @@ public class Transitions {
                 stage.getIcons().add(icon);
             }
             fadeInScene(root);
+            configureStage(stage);
             stage.setScene(scene);
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void configureStage(Stage stage) {
+        stage.setMinWidth(750);
+        stage.setMinHeight(550);
+        stage.setMaxWidth(800);
+        stage.setMaxHeight(700);
     }
 
     // Configura listeners de scroll y flechas para cualquier ScrollPane y dos Labels

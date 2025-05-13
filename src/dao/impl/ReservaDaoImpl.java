@@ -145,12 +145,20 @@ public class ReservaDaoImpl implements ReservasDaoI {
     }
 
     @Override
-    public int contarReservasPorUsuarioYEspectaculo(String idUsuario, String idEspectaculo) throws SQLException {
-        String query = "SELECT COUNT(*) as total FROM RESERVAS WHERE id_usuario = ? AND id_espectaculo = ?";
+    public int contarReservasPorUsuarioYEspectaculo(String idUsuario, String idEspectaculo, String idButaca) throws SQLException {
+        String query = """
+        SELECT COUNT(*) as total 
+        FROM RESERVAS 
+        WHERE id_usuario = ? 
+        AND id_espectaculo = ?
+        AND id_butaca = ?
+        AND estado = 'O'
+        """;
 
         try (PreparedStatement pstmt = conn.prepareStatement(query)) {
             pstmt.setString(1, idUsuario);
             pstmt.setString(2, idEspectaculo);
+            pstmt.setString(3, idButaca);
             ResultSet rs = pstmt.executeQuery();
 
             if (rs.next()) {
@@ -165,6 +173,15 @@ public class ReservaDaoImpl implements ReservasDaoI {
         String query = "UPDATE RESERVAS SET estado = 'C' WHERE id_usuario = ? AND estado = 'O'";
         try (PreparedStatement pstmt = conn.prepareStatement(query)) {
             pstmt.setString(1, idUsuario);
+            return pstmt.executeUpdate();
+        }
+    }
+
+    @Override
+    public int cancelarReserva(String idReserva) throws SQLException {
+        String sql = "UPDATE RESERVAS SET estado = 'C' WHERE id_reserva = ? AND estado = 'O'";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, idReserva);
             return pstmt.executeUpdate();
         }
     }

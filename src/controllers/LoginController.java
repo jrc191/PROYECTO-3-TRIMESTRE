@@ -47,6 +47,7 @@ public class LoginController {
         try {
             Connection conn = DatabaseConnection.getConnection();
             this.usuarioDao = new UsuarioDaoImpl(conn);
+
         } catch (SQLException e) {
             e.printStackTrace();
         }

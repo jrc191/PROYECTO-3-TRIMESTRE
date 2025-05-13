@@ -19,11 +19,12 @@ public class ButacaDaoImpl implements ButacaDaoI {
     public List<Butaca> obtenerButacasOcupadas(String idEspectaculo) {
         List<Butaca> lista = new ArrayList<>();
         String query = """
-                SELECT b.id_butaca, b.fila, b.columna, b.tipo
-                FROM BUTACAS b
-                JOIN RESERVAS r ON b.id_butaca = r.id_butaca
-                WHERE r.id_espectaculo = ?
-                """;
+            SELECT b.id_butaca, b.fila, b.columna, b.tipo
+            FROM BUTACAS b
+            JOIN RESERVAS r ON b.id_butaca = r.id_butaca
+            WHERE r.id_espectaculo = ? 
+            AND r.estado = 'O'
+            """;
 
         try (PreparedStatement pstmt = conn.prepareStatement(query)) {
             pstmt.setString(1, idEspectaculo);

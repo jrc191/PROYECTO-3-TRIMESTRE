@@ -15,6 +15,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import utils.CerrarSesion;
 import utils.DatabaseConnection;
+import utils.Transitions;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -66,7 +67,6 @@ public class NuevoAdminController {
     public void cerrarSesion(ActionEvent actionEvent) {
         emailUsuarioLogueado = null;
         Stage stage = (Stage) usuarioLabel.getScene().getWindow();
-        //configureStage(stage);
         CerrarSesion.cerrarSesion(stage, "/resources/styles/styles.css", "/resources/images/logo.png");
     }
 
