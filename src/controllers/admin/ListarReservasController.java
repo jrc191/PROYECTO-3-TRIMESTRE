@@ -64,7 +64,8 @@ public class ListarReservasController {
             Label estadoHeader = new Label("Estado");
             Label accionesHeader = new Label("Acciones");
 
-            // Ajustar ancho de columnas
+
+            // Estilos y tamaños
             seleccionHeader.setPrefWidth(50);
             espectaculoHeader.setPrefWidth(150);
             butacaHeader.setPrefWidth(100);
@@ -73,7 +74,6 @@ public class ListarReservasController {
             estadoHeader.setPrefWidth(80);
             accionesHeader.setPrefWidth(100);
 
-            // Estilo del encabezado
             String headerStyle = "-fx-text-fill: #6c757d; -fx-font-weight: bold;";
             seleccionHeader.setStyle(headerStyle);
             espectaculoHeader.setStyle(headerStyle);
@@ -87,12 +87,11 @@ public class ListarReservasController {
                     usuarioHeader, precioHeader, estadoHeader, accionesHeader);
             reservasVBox.getChildren().add(header);
 
-            // Filas de datos
+            // DAtos
             for (Reservas reserva : reservasOriginal) {
                 HBox row = new HBox();
                 row.setStyle("-fx-background-color: white; -fx-padding: 10px; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0;");
 
-                // Checkbox para selección
                 CheckBox checkBox = new CheckBox();
                 checkBox.setPrefWidth(50);
                 checkBoxes.add(checkBox);
@@ -101,31 +100,31 @@ public class ListarReservasController {
                 Label butaca = new Label(reserva.getId_butaca());
                 Label usuario = new Label(reserva.getId_usuario());
                 Label precio = new Label(String.format("%.2f €", reserva.getPrecio()));
-
-                // Estado como CHAR(1)
                 Label estado = new Label(String.valueOf(reserva.getEstado()));
 
                 // Botones de acción
                 ImageView editarIcon = new ImageView(new Image(getClass().getResourceAsStream("/resources/images/edit.png")));
                 ImageView cancelarIcon = new ImageView(new Image(getClass().getResourceAsStream("/resources/images/cancel.png")));
 
-                // Configurar botones según estado
                 if (reserva.getEstado() == 'C') { // Reserva cancelada
                     checkBox.setDisable(true);
                     checkBox.setOpacity(0.5);
-                    editarIcon.setDisable(true);
-                    editarIcon.setOpacity(0.5);
-                    cancelarIcon.setDisable(true);
-                    cancelarIcon.setOpacity(0.5);
+
+                    editarIcon.setStyle("-fx-cursor: hand;");
+                    editarIcon.setOnMouseClicked(e -> editarReserva(reserva));
                     editarIcon.setFitHeight(16);
                     editarIcon.setFitWidth(16);
+
+                    cancelarIcon.setDisable(true); //No se puede cancelar una reserva cancelada
+                    cancelarIcon.setOpacity(0.5);
                     cancelarIcon.setFitHeight(16);
                     cancelarIcon.setFitWidth(16);
+
                 } else { // Reserva activa
                     editarIcon.setFitHeight(16);
                     editarIcon.setFitWidth(16);
-                    editarIcon.setStyle("-fx-cursor: hand;");
-                    editarIcon.setOnMouseClicked(e -> editarReserva(reserva));
+                    editarIcon.setDisable(true);
+                    editarIcon.setOpacity(0.5);
 
                     cancelarIcon.setFitHeight(16);
                     cancelarIcon.setFitWidth(16);
@@ -136,7 +135,6 @@ public class ListarReservasController {
                 HBox accionesBox = new HBox(5, editarIcon, cancelarIcon);
                 accionesBox.setPrefWidth(100);
 
-                // Ajustar anchos
                 espectaculo.setPrefWidth(150);
                 butaca.setPrefWidth(100);
                 usuario.setPrefWidth(150);
@@ -144,7 +142,6 @@ public class ListarReservasController {
                 estado.setPrefWidth(80);
                 accionesBox.setPrefWidth(100);
 
-                // Estilo de celdas
                 String cellStyle = "-fx-text-fill: #495057;";
                 espectaculo.setStyle(cellStyle);
                 butaca.setStyle(cellStyle);
@@ -152,7 +149,6 @@ public class ListarReservasController {
                 precio.setStyle(cellStyle);
                 estado.setStyle(cellStyle);
 
-                // Color según estado
                 if (reserva.getEstado() == 'C') {
                     estado.setStyle("-fx-text-fill: #f44336; -fx-font-weight: bold;");
                     row.setStyle("-fx-background-color: #f5f5f5; -fx-padding: 10px; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0;");
@@ -174,6 +170,31 @@ public class ListarReservasController {
     private void editarReserva(Reservas reserva) {
         // Implementar lógica de edición
         System.out.println("Editar reserva: " + reserva.getId_reserva());
+        if (reserva.getEstado()=='C'){
+            try {
+                reservasDao.reactivarReserva(reserva.getId_reserva());
+                mostrarMensaje("INFORMACIÓN", "Se reactivó la reserva correctamente.");
+                cargarReservas();
+            } catch (SQLException e) {
+                mostrarError("Hubo un error al reactivar la reserva. Inténtelo de nuevo.");
+                throw new RuntimeException(e);
+            }
+        }
+        else if (reserva.getEstado()=='O'){
+            try {
+                reservasDao.cancelarReserva(reserva.getId_reserva());
+                mostrarMensaje("INFORMACIÓN", "Se canceló la reserva correctamente.");
+                cargarReservas();
+            } catch (SQLException e) {
+                mostrarError("Hubo un error al cancelar la reserva. Inténtelo de nuevo.");
+                throw new RuntimeException(e);
+            }
+
+        }
+        else{
+           System.err.println("Se esperaba un valor de estado diferente. Compruebe la base de datos.");
+           mostrarError("Compruebe la BBDD.");
+        }
     }
 
     private void cancelarReserva(Reservas reserva) {

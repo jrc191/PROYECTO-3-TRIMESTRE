@@ -218,6 +218,15 @@ public class ReservaDaoImpl implements ReservasDaoI {
     }
 
     @Override
+    public int reactivarReserva(String idReserva) throws SQLException {
+        String sql = "UPDATE RESERVAS SET estado = 'O' WHERE id_reserva = ? AND estado = 'C'";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, idReserva);
+            return pstmt.executeUpdate();
+        }
+    }
+
+    @Override
     public int eliminarReservasTemporalesByUsuario(String idUsuario) throws SQLException {
         String query = "DELETE FROM RESERVAS_TEMP WHERE id_usuario = ?";
         try (PreparedStatement pstmt = conn.prepareStatement(query)) {

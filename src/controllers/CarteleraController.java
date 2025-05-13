@@ -125,7 +125,17 @@ public class CarteleraController {
         izquierdaBtn.setOnMouseClicked(e -> scrollEspectaculos.setHvalue(scrollEspectaculos.getHvalue() - 0.2));
         derechaBtn.setOnMouseClicked(e -> scrollEspectaculos.setHvalue(scrollEspectaculos.getHvalue() + 0.2));
 
+        scrollEspectaculos.setOnMouseDragged(e->{
+            scrollEspectaculos.setVvalue(0);
+        });
 
+        scrollEspectaculos.setOnMouseDragEntered(e->{
+            scrollEspectaculos.setVvalue(0);
+        });
+
+        scrollEspectaculos.setOnMouseDragExited(e->{
+            scrollEspectaculos.setVvalue(0);
+        });
     }
 
     //Para habilitar el carrusel cuando es necesario (cuando hay resultados). Cuando no los hay, deshabilitarlo
@@ -137,6 +147,9 @@ public class CarteleraController {
         // true : habilita el arrastrar con ratón, false : deshabilita el arrastrar con ratón.
         // False cuando no hay resultados, true cuando los hay.
         scrollEspectaculos.setPannable(habilitar);
+
+        scrollEspectaculos.setFitToHeight(true);
+
     }
 
     // Método de filtro por fecha auxiliar. Usa el método auxiliar sobrecargado de cargarEspectaculos con parámetro de filtro para filtrar
@@ -242,27 +255,21 @@ public class CarteleraController {
     // Método para ir añadiendo espectáculos en forma de tarjeta a partir de un objeto espectáculo creado
     // con los resultados de la BBDD. Yo no sé ni cuanto tiempo me ha llevado esto ya, pero funciona :)
     // Para mi yo del futuro: no te metas en más fregaos por mejorar la estética, que mejoras una cosa
-    // y te acabas cargando 10.
+    // y te acabas cargando 10. AL FINAL LO HE TOCADO MÁS AÚN PA METER LO DE LAS IMAGENES :(
 
-    // En CarteleraController.java
-
-
-
-    // Modificar el método crearTarjetaEspectaculo para no pasar el ID de espectáculo al controlador de cesta
     private Node crearTarjetaEspectaculo(Espectaculo esp) {
         VBox tarjeta = new VBox(10);
         tarjeta.setStyle("-fx-background-color: transparent; -fx-padding: 0; -fx-background-radius: 15;");
         tarjeta.setPrefSize(300, 400);
         tarjeta.setMinSize(300, 400);
 
-        // Crear StackPane para superponer imagen y contenido
         StackPane stackPane = new StackPane();
         stackPane.setPrefSize(300, 400);
 
-        // 1. Crear ImageView para la imagen del espectáculo
+        //Creamos la imagen
         ImageView imageView = new ImageView();
         try {
-            // Asumimos que las imágenes están en resources/images/ y tienen el mismo nombre que el espectáculo
+            // Asumimos que las imágenes están en resources/images/ y tienen el mismo nombre que el id del espectáculo
             String imagePath = "/resources/images/espectaculos/" + esp.getId() + ".png";
             Image image = new Image(getClass().getResourceAsStream(imagePath));
             imageView.setImage(image);
@@ -270,7 +277,7 @@ public class CarteleraController {
             imageView.setFitHeight(400);
             imageView.setPreserveRatio(false);
         } catch (Exception e) {
-            // Imagen por defecto si no se encuentra la específica
+            // Imagen por defecto
             Image defaultImage = new Image(getClass().getResourceAsStream("/resources/images/espectaculos/default-show.png"));
             imageView.setImage(defaultImage);
             imageView.setFitWidth(300);
@@ -278,7 +285,7 @@ public class CarteleraController {
             imageView.setPreserveRatio(false);
         }
 
-        // 2. Crear VBox con la información (inicialmente invisible)
+        //Vbox con info del espectáculo
         VBox infoBox = new VBox(10);
         infoBox.setStyle("-fx-background-color: #2a325c; -fx-padding: 15; -fx-background-radius: 15;");
         infoBox.setPrefSize(300, 400);
@@ -332,9 +339,9 @@ public class CarteleraController {
         infoBox.getChildren().addAll(nombre, fecha, precioBase, precioVip, reservarBtn);
         stackPane.getChildren().addAll(imageView, infoBox);
 
-        // Efectos de hover
+        // Efectos de pasar el ratón
         stackPane.setOnMouseEntered(event -> {
-            // Transición suave para mostrar la información
+
             FadeTransition fadeOut = new FadeTransition(Duration.millis(300), imageView);
             fadeOut.setFromValue(1.0);
             fadeOut.setToValue(0.0);
@@ -348,7 +355,7 @@ public class CarteleraController {
         });
 
         stackPane.setOnMouseExited(event -> {
-            // Transición suave para volver a mostrar la imagen
+
             FadeTransition fadeIn = new FadeTransition(Duration.millis(300), imageView);
             fadeIn.setFromValue(0.0);
             fadeIn.setToValue(1.0);
