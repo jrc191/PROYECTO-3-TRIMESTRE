@@ -21,14 +21,10 @@ import static controllers.LoginController.getUsuarioLogueadoEmail;
 
 public class ReservasUsuarioController {
 
-    @FXML
-    private VBox contenedorReservas;
-    @FXML
-    private Label usuarioLabel;
-    @FXML
-    private ScrollPane scrollReservas;
-    @FXML
-    private Label arribaBtn, abajoBtn;
+    @FXML private VBox contenedorReservas;
+    @FXML private Label usuarioLabel;
+    @FXML private ScrollPane scrollReservas;
+    @FXML private Label arribaBtn, abajoBtn;
 
     private String emailUsuarioLogueado = getUsuarioLogueadoEmail();
     private String idUsuario;
@@ -85,7 +81,6 @@ public class ReservasUsuarioController {
     }
 
     private VBox crearTarjetaReserva(Reservas reserva) {
-
 
         String estadoReserva = ""; //PARA USAR CON ESTADOLABEL
 

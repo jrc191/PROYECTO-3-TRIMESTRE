@@ -35,23 +35,14 @@ import java.util.List;
 
 public class CarteleraController {
 
-    @FXML
-    private Label usuarioLabel;
-    @FXML
-    private HBox contenedorEspectaculos;
-    @FXML
-    private TextField filtroNombreField;
-    @FXML
-    private DatePicker filtroFechaField;
-    @FXML
-    private Label mensajeLabel; // para mostrar mensajes de error, correctos y otra información
-    @FXML
-    private Label izquierdaBtn, derechaBtn; //Botones del ScrollPane
-    @FXML
-    private ScrollPane scrollEspectaculos;
-    @FXML
-    private Label messageLabelReserva;
-
+    @FXML private Label usuarioLabel;
+    @FXML private HBox contenedorEspectaculos;
+    @FXML private TextField filtroNombreField;
+    @FXML private DatePicker filtroFechaField;
+    @FXML private Label mensajeLabel; // para mostrar mensajes de error, correctos y otra información
+    @FXML private Label izquierdaBtn, derechaBtn; //Botones del ScrollPane
+    @FXML private ScrollPane scrollEspectaculos;
+    @FXML private Label messageLabelReserva;
 
     //Parámetro email usuario logueado del LoginController
     private String emailUsuarioLogueado = getUsuarioLogueadoEmail();

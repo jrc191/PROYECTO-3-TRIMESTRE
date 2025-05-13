@@ -33,29 +33,19 @@ import java.util.List;
 
 public class CestaController {
 
-    @FXML
-    private VBox contenedorEntradas;
-    @FXML
-    private Label totalLabel;
-    @FXML
-    public Label espectaculoLabel;
-    @FXML
-    private Label usuarioLabel;
-    @FXML
-    private VBox plantillaEntrada;
-    @FXML
-    private ScrollPane scrollEntradas;
-    @FXML
-    private Label arribaBtn, abajoBtn;
-    @FXML
-    private ChoiceBox<String> eleccionBox;
+    @FXML private VBox contenedorEntradas;
+    @FXML private Label totalLabel;
+    @FXML public Label espectaculoLabel;
+    @FXML private Label usuarioLabel;
+    @FXML private VBox plantillaEntrada;
+    @FXML private ScrollPane scrollEntradas;
+    @FXML private Label arribaBtn, abajoBtn;
+    @FXML private ChoiceBox<String> eleccionBox;
 
     // Parámetros usados para cerrar sesión, reservar ... entre otros
     private String emailUsuarioLogueado;
     private String idUsuario;
     private UsuarioDaoI usuarioDao;
-    //private String espectaculoSeleccionado;
-    //private String idEspectaculoSeleccionado;
     public DatePicker filtroFechaField;
     public TextField filtroNombreField;
 

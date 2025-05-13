@@ -17,16 +17,11 @@ import java.util.List;
 
 public class ListarEspectaculosController {
 
-    @FXML
-    private VBox contenedorEspectaculos;
-    @FXML
-    private ScrollPane scrollEspectaculos;
-    @FXML
-    private Label mensajeLabel;
-    @FXML
-    private Label flechaArriba;
-    @FXML
-    private Label flechaAbajo;
+    @FXML private VBox contenedorEspectaculos;
+    @FXML private ScrollPane scrollEspectaculos;
+    @FXML private Label mensajeLabel;
+    @FXML private Label flechaArriba;
+    @FXML private Label flechaAbajo;
 
     private EspectaculoDaoI espectaculoDao;
     private boolean scrollConfigDone = false;

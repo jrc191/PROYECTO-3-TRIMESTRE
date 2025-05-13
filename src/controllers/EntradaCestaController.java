@@ -8,17 +8,10 @@ import models.EntradaCesta;
 
 public class EntradaCestaController {
 
-    @FXML
-    private Label nombreLabel;
-
-    @FXML
-    private Label detalleLabel;
-
-    @FXML
-    private Label precioLabel;
-
-    @FXML
-    private Button eliminarBtn;
+    @FXML private Label nombreLabel;
+    @FXML private Label detalleLabel;
+    @FXML private Label precioLabel;
+    @FXML private Button eliminarBtn;
 
     private Runnable onEliminarCallback;
 

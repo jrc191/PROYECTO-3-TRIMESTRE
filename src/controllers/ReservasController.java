@@ -37,14 +37,10 @@ import java.util.List;
 
 public class ReservasController {
 
-    @FXML
-    public Label espectaculoLabel;
-    @FXML
-    private Label usuarioLabel;
-    @FXML
-    private GridPane gridPane;
-    @FXML
-    private ChoiceBox<String> eleccionBox;
+    @FXML public Label espectaculoLabel;
+    @FXML private Label usuarioLabel;
+    @FXML private GridPane gridPane;
+    @FXML private ChoiceBox<String> eleccionBox;
 
     private static final String ASIENTOS_OCUPADOS = "/resources/images/BUTACA-ROJA.png";
     private static final String ASIENTOS_VIP = "/resources/images/BUTACA-AMARILLA.png";
