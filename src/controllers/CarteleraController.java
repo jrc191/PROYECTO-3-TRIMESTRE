@@ -1,8 +1,13 @@
 package controllers;
 
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.scene.control.Label;
 
+import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.util.Duration;
+import javafx.scene.image.ImageView;
 import utils.DatabaseConnection;
 import dao.EspectaculoDaoI;
 import dao.impl.EspectaculoDaoImpl;
@@ -28,8 +33,6 @@ import java.sql.*;
 import java.time.LocalDate;
 import java.util.List;
 
-import static controllers.LoginController.*;
-
 public class CarteleraController {
 
     @FXML
@@ -48,6 +51,7 @@ public class CarteleraController {
     private ScrollPane scrollEspectaculos;
     @FXML
     private Label messageLabelReserva;
+
 
     //Parámetro email usuario logueado del LoginController
     private String emailUsuarioLogueado = getUsuarioLogueadoEmail();
@@ -247,12 +251,38 @@ public class CarteleraController {
     // Modificar el método crearTarjetaEspectaculo para no pasar el ID de espectáculo al controlador de cesta
     private Node crearTarjetaEspectaculo(Espectaculo esp) {
         VBox tarjeta = new VBox(10);
-        tarjeta.setStyle("-fx-background-color: #2a325c; -fx-padding: 15; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 5);");
-        tarjeta.setPrefSize(300, 200);
-        tarjeta.setMinSize(300, 200);
+        tarjeta.setStyle("-fx-background-color: transparent; -fx-padding: 0; -fx-background-radius: 15;");
+        tarjeta.setPrefSize(300, 400);
+        tarjeta.setMinSize(300, 400);
 
-        final double originalWidth = tarjeta.getPrefWidth();
-        final double originalHeight = tarjeta.getPrefHeight();
+        // Crear StackPane para superponer imagen y contenido
+        StackPane stackPane = new StackPane();
+        stackPane.setPrefSize(300, 400);
+
+        // 1. Crear ImageView para la imagen del espectáculo
+        ImageView imageView = new ImageView();
+        try {
+            // Asumimos que las imágenes están en resources/images/ y tienen el mismo nombre que el espectáculo
+            String imagePath = "/resources/images/espectaculos/" + esp.getId() + ".png";
+            Image image = new Image(getClass().getResourceAsStream(imagePath));
+            imageView.setImage(image);
+            imageView.setFitWidth(300);
+            imageView.setFitHeight(400);
+            imageView.setPreserveRatio(false);
+        } catch (Exception e) {
+            // Imagen por defecto si no se encuentra la específica
+            Image defaultImage = new Image(getClass().getResourceAsStream("/resources/images/espectaculos/default-show.png"));
+            imageView.setImage(defaultImage);
+            imageView.setFitWidth(300);
+            imageView.setFitHeight(400);
+            imageView.setPreserveRatio(false);
+        }
+
+        // 2. Crear VBox con la información (inicialmente invisible)
+        VBox infoBox = new VBox(10);
+        infoBox.setStyle("-fx-background-color: #2a325c; -fx-padding: 15; -fx-background-radius: 15;");
+        infoBox.setPrefSize(300, 400);
+        infoBox.setOpacity(0); // Inicialmente invisible
 
         Label nombre = new Label(esp.getNombre());
         nombre.setStyle("-fx-font-weight: bold; -fx-text-fill: white; -fx-font-size: 16;");
@@ -266,7 +296,6 @@ public class CarteleraController {
 
         Button reservarBtn = new Button("Reservar entradas");
         reservarBtn.setStyle("-fx-background-color: #4e3a74; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 5 10;");
-        reservarBtn.setVisible(false);
         reservarBtn.setCursor(Cursor.HAND);
         VBox.setMargin(reservarBtn, new Insets(10, 0, 0, 0));
 
@@ -300,22 +329,39 @@ public class CarteleraController {
             }
         });
 
-        tarjeta.getChildren().addAll(nombre, fecha, precioBase, precioVip, reservarBtn);
+        infoBox.getChildren().addAll(nombre, fecha, precioBase, precioVip, reservarBtn);
+        stackPane.getChildren().addAll(imageView, infoBox);
 
-        tarjeta.setOnMouseEntered(event -> {
-            tarjeta.setPrefWidth(originalWidth * 1.05);
-            tarjeta.setPrefHeight(originalHeight * 1.05);
-            tarjeta.setStyle("-fx-background-color: #3a427c; -fx-padding: 15; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 15, 0, 0, 7);");
-            reservarBtn.setVisible(true);
+        // Efectos de hover
+        stackPane.setOnMouseEntered(event -> {
+            // Transición suave para mostrar la información
+            FadeTransition fadeOut = new FadeTransition(Duration.millis(300), imageView);
+            fadeOut.setFromValue(1.0);
+            fadeOut.setToValue(0.0);
+
+            FadeTransition fadeIn = new FadeTransition(Duration.millis(300), infoBox);
+            fadeIn.setFromValue(0.0);
+            fadeIn.setToValue(1.0);
+
+            ParallelTransition parallelTransition = new ParallelTransition(fadeOut, fadeIn);
+            parallelTransition.play();
         });
 
-        tarjeta.setOnMouseExited(event -> {
-            tarjeta.setPrefWidth(originalWidth);
-            tarjeta.setPrefHeight(originalHeight);
-            tarjeta.setStyle("-fx-background-color: #2a325c; -fx-padding: 15; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 5);");
-            reservarBtn.setVisible(false);
+        stackPane.setOnMouseExited(event -> {
+            // Transición suave para volver a mostrar la imagen
+            FadeTransition fadeIn = new FadeTransition(Duration.millis(300), imageView);
+            fadeIn.setFromValue(0.0);
+            fadeIn.setToValue(1.0);
+
+            FadeTransition fadeOut = new FadeTransition(Duration.millis(300), infoBox);
+            fadeOut.setFromValue(1.0);
+            fadeOut.setToValue(0.0);
+
+            ParallelTransition parallelTransition = new ParallelTransition(fadeIn, fadeOut);
+            parallelTransition.play();
         });
 
+        tarjeta.getChildren().add(stackPane);
         return tarjeta;
     }
 
