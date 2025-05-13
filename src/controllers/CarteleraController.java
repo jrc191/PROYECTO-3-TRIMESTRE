@@ -93,10 +93,13 @@ public class CarteleraController {
             usuarioLabel.setText("Email: " + emailUsuarioLogueado);
         }
 
+
         //métodos para crear el carrusel de espectáculos y cargarlos
         agregarListenersCarrusel();
         cargarEspectaculos();
     }
+
+
 
     //Jodido con cojones, lo he entendido por un rayo de inspiración
     private void agregarListenersCarrusel() {
@@ -362,5 +365,18 @@ public class CarteleraController {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void reservasUsuario(ActionEvent actionEvent) {
+        Transitions transitions = new Transitions();
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/reservasUsuarios.fxml"));
+        Stage stage = (Stage) usuarioLabel.getScene().getWindow();
+        ReservasUsuarioController reservasUsuarioController = loader.getController();
+        transitions.cambioEscena(stage, "/views/reservasUsuarios.fxml","../resources/styles/styles.css", "CINES JRC - RESERVAS", "../resources/images/logo.png", reservasUsuarioController);
+    }
+
+    public static String getUsuarioLogueadoEmail() {
+        String usuarioLogueadoEmail = LoginController.getUsuarioLogueadoEmail();
+        return usuarioLogueadoEmail;
     }
 }

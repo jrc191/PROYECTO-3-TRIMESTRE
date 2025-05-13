@@ -66,6 +66,37 @@ public class ReservaDaoImpl implements ReservasDaoI {
     }
 
     @Override
+    public List<Reservas> consultarReservasByUsuario(String id_usuario) throws SQLException {
+        List<Reservas> reservasList = new ArrayList<>();
+        String query = "SELECT r.ID_RESERVA, r.ID_ESPECTACULO, r.ID_BUTACA, r.ID_USUARIO, r.ESTADO, r.PRECIO " +
+                "FROM RESERVAS r " +
+                "WHERE r.ID_USUARIO = ?";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, id_usuario);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Reservas reserva = new Reservas();
+                    reserva.setId_reserva(rs.getString("ID_RESERVA"));
+                    reserva.setId_espectaculo(rs.getString("ID_ESPECTACULO"));
+                    reserva.setId_butaca(rs.getString("ID_BUTACA"));
+                    reserva.setId_usuario(rs.getString("ID_USUARIO"));
+                    reserva.setEstado(rs.getString("ESTADO").charAt(0));
+                    reserva.setPrecio(rs.getDouble("PRECIO"));
+
+                    reservasList.add(reserva);
+
+                }
+            }
+        }
+
+        //DEBUG
+        System.out.println("Total reservas encontradas: " + reservasList.size());
+        return reservasList;
+    }
+
+    @Override
     public List<Reservas> consultarReservasTEMP(String id_espectaculo, String id_usuario) throws SQLException {
         List<Reservas> reservasList = new ArrayList<>();
         String query = "SELECT id_reserva, id_espectaculo, id_butaca, id_usuario FROM RESERVAS_TEMP WHERE id_usuario = ? AND id_espectaculo = ?";
