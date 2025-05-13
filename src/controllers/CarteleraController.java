@@ -344,9 +344,6 @@ public class CarteleraController {
             Parent root = loader.load();
             CestaController cestaController = loader.getController();
             cestaController.setEmailUsuarioLogueado(emailUsuarioLogueado);
-            // Ya no necesitamos estos setters
-            // cestaController.setEspectaculoSeleccionado(espectaculoSeleccionado);
-            // cestaController.setIdEspectaculoSeleccionado(idEspectaculoSeleccionado);
 
             Stage stage = (Stage) usuarioLabel.getScene().getWindow();
             Scene scene = new Scene(root);
