@@ -1,6 +1,9 @@
 package controllers;
 
+import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.scene.control.Label;
 
@@ -260,13 +263,36 @@ public class CarteleraController {
         //Creamos la imagen
         ImageView imageView = new ImageView();
         try {
-            // Asumimos que las imágenes están en resources/images/ y tienen el mismo nombre que el id del espectáculo
-            String imagePath = "/resources/images/espectaculos/" + esp.getId() + ".png";
+            String imagePath = "/resources/images/espectaculos/" + esp.getId()+ ".png";
             Image image = new Image(getClass().getResourceAsStream(imagePath));
+
+            // Configurar ImageView
             imageView.setImage(image);
-            imageView.setFitWidth(300);
-            imageView.setFitHeight(400);
-            imageView.setPreserveRatio(false);
+            imageView.setPreserveRatio(true);
+            imageView.setSmooth(true);
+
+            // Ajustar tamaño manteniendo relación de aspecto
+            if (image.getWidth() / image.getHeight() > 300.0/400.0) {
+                imageView.setFitWidth(300);
+            } else {
+                imageView.setFitHeight(400);
+            }
+
+            // Crear un rectángulo con bordes redondeados
+            Rectangle clip = new Rectangle(300, 400);
+            clip.setArcWidth(15);
+            clip.setArcHeight(15);
+            imageView.setClip(clip);
+
+            // Fondo para áreas transparentes (opcional)
+            Rectangle bg = new Rectangle(300, 400);
+            bg.setFill(Color.TRANSPARENT);
+            bg.setArcWidth(15);
+            bg.setArcHeight(15);
+
+            StackPane imageContainer = new StackPane(bg, imageView);
+            imageContainer.setEffect(new DropShadow(10, Color.rgb(0, 0, 0, 0.3)));
+            imageContainer.setAlignment(Pos.CENTER);
         } catch (Exception e) {
             // Imagen por defecto
             Image defaultImage = new Image(getClass().getResourceAsStream("/resources/images/espectaculos/default-show.png"));
