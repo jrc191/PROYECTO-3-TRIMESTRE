@@ -32,6 +32,8 @@ public class ListarUsuariosController {
     private UsuarioDaoI usuarioDao;
     private ReservasDaoI reservasDao;
     private HBox nuevaFila;
+    private Usuario usuarioEditando; // Variable para almacenar el usuario que se está editando
+    private boolean modoEdicion = false; // Flag para saber si estamos en modo edición
 
     @FXML
     public void initialize() {
@@ -91,17 +93,25 @@ public class ListarUsuariosController {
     private void guardarNuevoUsuario() {
         // Obtener los campos de la nueva fila
         HBox fila = nuevaFila;
-        TextField dniField = (TextField) fila.getChildren().get(1);
+
+        String dni;
+
+        if (modoEdicion){
+            dni =((Label)fila.getChildren().get(1)).getText();
+        }
+        else{
+            dni =((TextField)fila.getChildren().get(1)).getText();
+        }
+
         TextField nombreField = (TextField) fila.getChildren().get(2);
         TextField emailField = (TextField) fila.getChildren().get(3);
         PasswordField passwordField = (PasswordField) fila.getChildren().get(4);
 
         // Validar campos
-        if (dniField.getText().isEmpty() || nombreField.getText().isEmpty() ||
-                emailField.getText().isEmpty() || passwordField.getText().isEmpty()) {
+        if ((!modoEdicion && dni.isEmpty()) || nombreField.getText().isEmpty() || emailField.getText().isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error");
-            alert.setContentText("Todos los campos son obligatorios");
+            alert.setContentText("DNI, Nombre y Email son obligatorios");
             alert.show();
             return;
         }
@@ -115,34 +125,62 @@ public class ListarUsuariosController {
             return;
         }
 
-        // Crear nuevo usuario
-        Usuario nuevoUsuario = new Usuario();
-        nuevoUsuario.setDni(dniField.getText());
-        nuevoUsuario.setNombre(nombreField.getText());
-        nuevoUsuario.setEmail(emailField.getText());
-        nuevoUsuario.setPassword(passwordField.getText()); // En una aplicación real, esto debería estar encriptado
-
         try {
             Connection conn = DatabaseConnection.getConnection();
             this.usuarioDao = new UsuarioDaoImpl(conn);
 
-            // Insertar el nuevo usuario en la base de datos
-            boolean exito = usuarioDao.registrarUsuario(nuevoUsuario);
+            if (modoEdicion) {
+                // Modo edición - Actualizar usuario existente
+                usuarioEditando.setNombre(nombreField.getText());
+                usuarioEditando.setEmail(emailField.getText());
 
-            if (exito) {
-                // Actualizar la lista de usuarios
-                List<Usuario> usuariosActualizados = usuarioDao.listUsuariosAdmin();
-                mostrarUsuarios(usuariosActualizados);
+                // Solo actualizar contraseña si se proporcionó una nueva
+                if (!passwordField.getText().isEmpty()) {
+                    usuarioEditando.setPassword(passwordField.getText());
+                }
 
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle("Éxito");
-                alert.setContentText("Usuario añadido correctamente");
-                alert.show();
+                boolean exito = usuarioDao.actualizarUsuario(usuarioEditando);
+
+                if (exito) {
+                    // Actualizar la lista de usuarios
+                    List<Usuario> usuariosActualizados = usuarioDao.listUsuariosAdmin();
+                    mostrarUsuarios(usuariosActualizados);
+
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Éxito");
+                    alert.setContentText("Usuario actualizado correctamente");
+                    alert.show();
+                } else {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Error");
+                    alert.setContentText("No se pudo actualizar el usuario");
+                    alert.show();
+                }
             } else {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Error");
-                alert.setContentText("No se pudo añadir el usuario");
-                alert.show();
+                // Modo añadir - Crear nuevo usuario
+                Usuario nuevoUsuario = new Usuario();
+                nuevoUsuario.setDni(dni);
+                nuevoUsuario.setNombre(nombreField.getText());
+                nuevoUsuario.setEmail(emailField.getText());
+                nuevoUsuario.setPassword(passwordField.getText());
+
+                boolean exito = usuarioDao.registrarUsuario(nuevoUsuario);
+
+                if (exito) {
+                    // Actualizar la lista de usuarios
+                    List<Usuario> usuariosActualizados = usuarioDao.listUsuariosAdmin();
+                    mostrarUsuarios(usuariosActualizados);
+
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Éxito");
+                    alert.setContentText("Usuario añadido correctamente");
+                    alert.show();
+                } else {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Error");
+                    alert.setContentText("No se pudo añadir el usuario");
+                    alert.show();
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -152,10 +190,8 @@ public class ListarUsuariosController {
             alert.show();
         }
 
-        // Restaurar botones
-        addBtn.setVisible(true);
-        guardarBtn.setVisible(false);
-        cancelarBtn.setVisible(false);
+        // Restaurar estado
+        resetearModoEdicion();
     }
 
     private void cancelarNuevoUsuario() {
@@ -164,12 +200,22 @@ public class ListarUsuariosController {
             usuariosVBox.getChildren().remove(nuevaFila);
         }
 
-        // Restaurar estado de los botones
+        // Restaurar estado
+        resetearModoEdicion();
+    }
+
+    private void resetearModoEdicion() {
+        // Restaurar botones
         addBtn.setVisible(true);
         guardarBtn.setVisible(false);
         cancelarBtn.setVisible(false);
         editarBtn.setDisable(false);
         eliminarBtn.setDisable(false);
+
+        // Resetear variables de edición
+        modoEdicion = false;
+        usuarioEditando = null;
+        nuevaFila = null;
     }
 
     public void mostrarUsuarios(List<Usuario> usuarios) {
@@ -281,11 +327,59 @@ public class ListarUsuariosController {
     //editar individualmente
     private void editarUsuario(Usuario usuario) {
         if ("admin@admin.com".equals(usuario.getEmail())) {
-            System.out.println("No se puede editar el usuario administrador");
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setContentText("No se puede editar el usuario administrador");
+            alert.show();
             return;
         }
-        System.out.println("Editar usuario: " + usuario.getDni());
 
+        modoEdicion = true;
+        usuarioEditando = usuario;
+
+        // Ocultar botones no necesarios
+        addBtn.setVisible(false);
+        guardarBtn.setVisible(true);
+        cancelarBtn.setVisible(true);
+        editarBtn.setDisable(true);
+        eliminarBtn.setDisable(true);
+
+        // Campo DNI como texto no editable (Label o TextField deshabilitado)
+        Label dniLabel = new Label(usuario.getDni());
+        dniLabel.setPrefWidth(120);
+
+        TextField nombreField = new TextField(usuario.getNombre());
+        TextField emailField = new TextField(usuario.getEmail());
+        PasswordField passwordField = new PasswordField();
+        passwordField.setPromptText("Nueva contraseña (dejar vacío para no cambiar)");
+
+        // Configurar los campos
+        nombreField.setPromptText("Nombre");
+        emailField.setPromptText("Email");
+
+        // Establecer anchos
+        nombreField.setPrefWidth(200);
+        emailField.setPrefWidth(250);
+        passwordField.setPrefWidth(150);
+
+        // Crear la fila de edición
+        nuevaFila = new HBox();
+        nuevaFila.setStyle("-fx-background-color: #fffde7; -fx-padding: 10px; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0;");
+
+        // Añadir los campos a la fila (DNI como Label ahora)
+        nuevaFila.getChildren().addAll(
+                new Label("Editando:"),
+                dniLabel,  // Cambiado de TextField a Label
+                nombreField,
+                emailField,
+                passwordField
+        );
+
+        // Insertar la fila de edición al principio
+        usuariosVBox.getChildren().add(1, nuevaFila);
+
+        // Desplazar la vista para mostrar la fila de edición
+        scrollUsuarios.setVvalue(0);
     }
 
     //eliminar individualmente

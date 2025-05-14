@@ -125,4 +125,31 @@ public class UsuarioDaoImpl implements UsuarioDaoI {
         }
 
     }
+
+    @Override
+    public boolean actualizarUsuario(Usuario usuario) throws SQLException {
+        // SQL para actualizar sin incluir el DNI
+        String sql = "UPDATE USUARIOS SET nombre = ?, email = ? WHERE id_usuario = ?";
+
+        String sqlConPassword = "UPDATE USUARIOS SET nombre = ?, email = ?, password = ? WHERE id_usuario = ?";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(
+                usuario.getPassword() != null && !usuario.getPassword().isEmpty()
+                        ? sqlConPassword
+                        : sql)) {
+
+            pstmt.setString(1, usuario.getNombre());
+            pstmt.setString(2, usuario.getEmail());
+
+            if (usuario.getPassword() != null && !usuario.getPassword().isEmpty()) {
+                pstmt.setString(3, usuario.getPassword());
+                pstmt.setString(4, usuario.getDni()); // DNI como condición WHERE
+            } else {
+                pstmt.setString(3, usuario.getDni()); // DNI como condición WHERE
+            }
+
+            int rowsAffected = pstmt.executeUpdate();
+            return rowsAffected > 0;
+        }
+    }
 }

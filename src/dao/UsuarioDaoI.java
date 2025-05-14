@@ -12,4 +12,5 @@ public interface UsuarioDaoI {
     List<Usuario> listUsuariosAdmin() throws SQLException;
     String getNombreUsuarioByEmail(String email) throws SQLException;
     int eliminarUsuarioByID(String dni) throws SQLException;
+    boolean actualizarUsuario(Usuario usuario) throws SQLException;
 }
