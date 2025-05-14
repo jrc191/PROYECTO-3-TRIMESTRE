@@ -2,6 +2,7 @@ package dao.impl;
 
 import dao.EspectaculoDaoI;
 import models.Espectaculo;
+import models.Reservas;
 
 import java.sql.*;
 import java.time.LocalDate;
@@ -33,6 +34,26 @@ public class EspectaculoDaoImpl implements EspectaculoDaoI {
         String query = "SELECT id_espectaculo, nombre, fecha, precio_base, precio_vip " +
                 "FROM ESPECTACULOS WHERE TRUNC(fecha) = ?";
         return ejecutarConsulta(query, ps -> ps.setDate(1, Date.valueOf(fecha)));
+    }
+
+    @Override
+    public String obtenerNombrePorId(String id) throws SQLException {
+        String query = "SELECT NOMBRE " +
+                "FROM ESPECTACULOS WHERE ID_ESPECTACULO = ?";
+        String dato ="";
+        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+            pstmt.setString(1, id);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()){
+                dato = rs.getString("NOMBRE");
+            }
+
+
+        }
+
+
+        return dato;
     }
 
     private List<Espectaculo> ejecutarConsulta(String query, PreparedStatementSetter setter) {

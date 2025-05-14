@@ -47,7 +47,7 @@ public class ReservasUsuarioController {
             Connection conn = DatabaseConnection.getConnection();
             ReservaDaoImpl reservaDao = new ReservaDaoImpl(conn);
             UsuarioDaoImpl usuarioDao = new UsuarioDaoImpl(conn);
-            EspectaculoDaoImpl espectaculoDao = new EspectaculoDaoImpl(conn);
+
 
             this.idUsuario = usuarioDao.getIDUsuarioByEmail(emailUsuarioLogueado);
             System.out.println("ID -> "+idUsuario);
@@ -102,7 +102,18 @@ public class ReservasUsuarioController {
 
         VBox infoBox = new VBox(5);
 
-        Label espectaculoLabel = new Label("Espectáculo: " + reserva.getId_espectaculo());
+
+        String nombreEsp;
+
+        try {
+            Connection conn = DatabaseConnection.getConnection();
+            EspectaculoDaoImpl espectaculoDao = new EspectaculoDaoImpl(conn);
+            nombreEsp=espectaculoDao.obtenerNombrePorId(reserva.getId_espectaculo());
+        } catch (SQLException e) {
+            nombreEsp="Se produjo un error";
+            e.printStackTrace();
+        }
+        Label espectaculoLabel = new Label("Espectáculo: " + nombreEsp);
         Label butacaLabel = new Label("Butaca: " + reserva.getId_butaca());
         Label precioLabel = new Label(String.format("Precio: %.2f €", reserva.getPrecio()));
         Label estadoLabel = new Label("Estado: "+estadoReserva);
