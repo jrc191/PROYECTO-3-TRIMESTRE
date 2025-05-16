@@ -15,28 +15,19 @@
         <HBox prefHeight="42.0" prefWidth="700.0" spacing="10" style="-fx-padding: 10;">
             <ImageView fx:id="actualizarBtn" fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true" style="-fx-cursor: hand;">
                 <image>
-                    <Image url="@../../resources/images/editar.png" />
+                    <Image url="@../../resources/images/refresh.png" />
                 </image>
-                <HBox.margin>
-                    <Insets top="3.0" />
-                </HBox.margin>
             </ImageView>
-            <ImageView fx:id="eliminarBtn" fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true" style="-fx-cursor: hand;">
-                <image>
-                    <Image url="@../../resources/images/eliminar.png" />
-                </image>
+
+            <Button fx:id="guardarBtn" mnemonicParsing="false" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-cursor: hand;" text="Guardar Cambios">
                 <HBox.margin>
-                    <Insets top="6.0" />
-                </HBox.margin>
-            </ImageView>
-            <Button fx:id="guardarBtn" mnemonicParsing="false" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-cursor: hand;" text="Guardar" visible="false">
-                <HBox.margin>
-                    <Insets left="10.0" top="6.0" />
+                    <Insets left="10.0" />
                 </HBox.margin>
             </Button>
-            <Button fx:id="cancelarBtn" mnemonicParsing="false" style="-fx-background-color: #f44336; -fx-text-fill: white; -fx-cursor: hand;" text="Cancelar" visible="false">
+
+            <Button fx:id="cancelarBtn" mnemonicParsing="false" style="-fx-background-color: #f44336; -fx-text-fill: white; -fx-cursor: hand;" text="Cancelar Cambios">
                 <HBox.margin>
-                    <Insets left="5.0" top="6.0" />
+                    <Insets left="5.0" />
                 </HBox.margin>
             </Button>
         </HBox>

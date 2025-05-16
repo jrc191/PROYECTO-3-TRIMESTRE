@@ -15,6 +15,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ListarMensajesController {
     @FXML public ImageView actualizarBtn;
@@ -27,11 +29,16 @@ public class ListarMensajesController {
     private MensajesDaoI mensajeDao;
     private List<Mensajes> mensajesOriginal;
     private List<CheckBox> checkBoxes = new ArrayList<>();
+    private Map<Integer, Character> cambiosPendientes = new HashMap<>();
+    private Map<Integer, Character> estadosOriginales = new HashMap<>();
 
     @FXML
     public void initialize() {
-        guardarBtn.setOnAction(e -> actualizarEstadoMensaje());
-        cancelarBtn.setOnAction(e -> borrarNuevoMensaje());
+        guardarBtn.setDisable(true);
+        cancelarBtn.setDisable(true);
+
+        guardarBtn.setOnAction(e -> confirmarCambios());
+        cancelarBtn.setOnAction(e -> cancelarCambios());
         actualizarBtn.setOnMouseClicked(e -> cargarMensajes());
 
         try {
@@ -48,6 +55,7 @@ public class ListarMensajesController {
         try {
             List<Mensajes> mensajes = mensajeDao.mostrarMensajes();
             mostrarMensajes(mensajes);
+            cambiosPendientes.clear(); // Limpiar cambios pendientes al recargar
         } catch (SQLException e) {
             e.printStackTrace();
             mostrarError("Error al cargar los mensajes");
@@ -58,6 +66,7 @@ public class ListarMensajesController {
         scrollVBox.getChildren().clear();
         checkBoxes.clear();
         mensajesOriginal = mensajes;
+        estadosOriginales.clear(); // Limpiar estados originales
 
         // Mantener el encabezado
         if (scrollVBox.getChildren().isEmpty()) {
@@ -80,8 +89,8 @@ public class ListarMensajesController {
             reservaHeader.setPrefWidth(120);
             fechaHeader.setPrefWidth(150);
             tipoHeader.setPrefWidth(100);
-            estadoHeader.setPrefWidth(80);
-            accionesHeader.setPrefWidth(100);
+            estadoHeader.setPrefWidth(100);
+            accionesHeader.setPrefWidth(80);
 
             // Estilo del encabezado
             String headerStyle = "-fx-text-fill: #6c757d; -fx-font-weight: bold;";
@@ -115,23 +124,45 @@ public class ListarMensajesController {
             Label fecha = new Label(mensaje.getFecha().toString());
             Label tipo = new Label(mensaje.getTipo_solicitud());
 
+            // Guardar estado original
+            estadosOriginales.put(mensaje.getId_solicitud(), mensaje.getEstado_solicitud());
+
             // ComboBox para estado
             ComboBox<String> estadoCombo = new ComboBox<>();
             estadoCombo.getItems().addAll("P - Pendiente", "A - Aprobada", "R - Rechazada");
 
             // Establecer valor actual
-            switch (mensaje.getEstado_solicitud()) {
+            char estadoActual = mensaje.getEstado_solicitud();
+            switch (estadoActual) {
                 case 'P': estadoCombo.setValue("P - Pendiente"); break;
                 case 'A': estadoCombo.setValue("A - Aprobada"); break;
                 case 'R': estadoCombo.setValue("R - Rechazada"); break;
                 default: estadoCombo.setValue("P - Pendiente");
             }
 
-            estadoCombo.setPrefWidth(80);
+            // Listener para cambios en el ComboBox
+            estadoCombo.valueProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal != null) {
+                    char nuevoEstado = newVal.charAt(0);
+                    char estadoOriginal = estadosOriginales.get(mensaje.getId_solicitud());
+
+                    if (nuevoEstado != estadoOriginal) {
+                        cambiosPendientes.put(mensaje.getId_solicitud(), nuevoEstado);
+                    } else {
+                        cambiosPendientes.remove(mensaje.getId_solicitud());
+                    }
+
+                    // Actualizar visibilidad de botones
+                    guardarBtn.setDisable(cambiosPendientes.isEmpty());
+                    cancelarBtn.setDisable(cambiosPendientes.isEmpty());
+                }
+            });
+
+            estadoCombo.setPrefWidth(100);
 
             // Botones de acción
-            ImageView editarIcon = new ImageView(new Image(getClass().getResourceAsStream("/resources/images/editar.png")));
-            ImageView eliminarIcon = new ImageView(new Image(getClass().getResourceAsStream("/resources/images/eliminar.png")));
+            ImageView editarIcon = new ImageView(new Image(getClass().getResourceAsStream("/resources/images/tick.png")));
+            ImageView eliminarIcon = new ImageView(new Image(getClass().getResourceAsStream("/resources/images/cancel.png")));
 
             editarIcon.setFitHeight(16);
             editarIcon.setFitWidth(16);
@@ -144,14 +175,14 @@ public class ListarMensajesController {
             eliminarIcon.setOnMouseClicked(e -> eliminarMensaje(mensaje));
 
             HBox accionesBox = new HBox(5, editarIcon, eliminarIcon);
-            accionesBox.setPrefWidth(100);
+            accionesBox.setPrefWidth(80);
 
             id.setPrefWidth(50);
             usuario.setPrefWidth(100);
             reserva.setPrefWidth(120);
             fecha.setPrefWidth(150);
             tipo.setPrefWidth(100);
-            accionesBox.setPrefWidth(100);
+            accionesBox.setPrefWidth(80);
 
             String cellStyle = "-fx-text-fill: #495057;";
             id.setStyle(cellStyle);
@@ -163,6 +194,70 @@ public class ListarMensajesController {
             row.getChildren().addAll(checkBox, id, usuario, reserva, fecha, tipo, estadoCombo, accionesBox);
             scrollVBox.getChildren().add(row);
         }
+    }
+
+    private void confirmarCambios() {
+        if (cambiosPendientes.isEmpty()) {
+            mostrarAlerta("Información", "No hay cambios pendientes para guardar", Alert.AlertType.INFORMATION);
+            return;
+        }
+
+        Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmacion.setTitle("Confirmar cambios");
+        confirmacion.setHeaderText("¿Está seguro que desea guardar los cambios?");
+        confirmacion.setContentText("Se actualizarán " + cambiosPendientes.size() + " mensajes.");
+
+        confirmacion.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                try {
+                    for (Map.Entry<Integer, Character> entry : cambiosPendientes.entrySet()) {
+                        int id = entry.getKey();
+                        char nuevoEstado = entry.getValue();
+
+                        // Actualizar en base de datos
+                        boolean exito = mensajeDao.actualizarEstadoMensaje(id, nuevoEstado);
+
+                        if (exito) {
+                            // Actualizar estado original si la operación fue exitosa
+                            estadosOriginales.put(id, nuevoEstado);
+                        } else {
+                            mostrarError("No se pudo actualizar el mensaje con ID: " + id);
+                        }
+                    }
+
+                    cambiosPendientes.clear();
+                    guardarBtn.setDisable(true);
+                    cancelarBtn.setDisable(true);
+
+                    mostrarAlerta("Éxito", "Cambios guardados correctamente", Alert.AlertType.INFORMATION);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    mostrarError("Error al guardar los cambios: " + e.getMessage());
+                }
+            }
+        });
+    }
+
+    private void cancelarCambios() {
+        if (cambiosPendientes.isEmpty()) {
+            mostrarAlerta("Información", "No hay cambios pendientes para cancelar", Alert.AlertType.INFORMATION);
+            return;
+        }
+
+        Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmacion.setTitle("Cancelar cambios");
+        confirmacion.setHeaderText("¿Está seguro que desea descartar los cambios?");
+        confirmacion.setContentText("Se perderán " + cambiosPendientes.size() + " cambios pendientes.");
+
+        confirmacion.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                cambiosPendientes.clear();
+                cargarMensajes(); // Recargar para restaurar los estados originales
+                guardarBtn.setDisable(true);
+                cancelarBtn.setDisable(true);
+                mostrarAlerta("Información", "Cambios cancelados", Alert.AlertType.INFORMATION);
+            }
+        });
     }
 
     private void editarMensaje(Mensajes mensaje) {
@@ -183,33 +278,6 @@ public class ListarMensajesController {
             e.printStackTrace();
             mostrarError("Error al eliminar el mensaje");
         }
-    }
-
-    private void actualizarEstadoMensaje() {
-        try {
-            for (int i = 0; i < scrollVBox.getChildren().size(); i++) {
-                if (i == 0) continue; // Saltar el encabezado
-
-                HBox row = (HBox) scrollVBox.getChildren().get(i);
-                ComboBox<String> estadoCombo = (ComboBox<String>) row.getChildren().get(6);
-                String estadoSeleccionado = estadoCombo.getValue();
-                char nuevoEstado = estadoSeleccionado.charAt(0);
-
-                Mensajes mensaje = mensajesOriginal.get(i-1);
-                if (mensaje.getEstado_solicitud() != nuevoEstado) {
-                    mensaje.setEstado_solicitud(nuevoEstado);
-                    mensajeDao.actualizarEstadoMensaje(mensaje.getId_solicitud(), nuevoEstado);
-                }
-            }
-            mostrarAlerta("Éxito", "Estados actualizados correctamente", Alert.AlertType.INFORMATION);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            mostrarError("Error al actualizar los estados");
-        }
-    }
-
-    private void borrarNuevoMensaje() {
-        // Implementar lógica de cancelación si es necesario
     }
 
     private void mostrarError(String mensaje) {

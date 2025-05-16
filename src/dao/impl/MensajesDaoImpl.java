@@ -56,7 +56,7 @@ public class MensajesDaoImpl implements MensajesDaoI {
 
     @Override
     public boolean actualizarEstadoMensaje(int idSolicitud, char nuevoEstado) throws SQLException {
-        String query = "UPDATE SOLICITUDES SET ESTADO_SOLICITUD = ? WHERE ID_SOLICITUD = ?";
+        String query = "UPDATE SOLICITUDES SET ESTADO_SOLICITUD = ?, FECHA = CURRENT_TIMESTAMP WHERE ID_SOLICITUD = ?";
         try (PreparedStatement pstmt = conn.prepareStatement(query)) {
             pstmt.setString(1, String.valueOf(nuevoEstado));
             pstmt.setInt(2, idSolicitud);
