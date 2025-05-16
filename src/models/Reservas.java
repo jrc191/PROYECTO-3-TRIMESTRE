@@ -1,5 +1,7 @@
 package models;
 
+import java.sql.Timestamp;
+
 public class Reservas {
     private String id_reserva;
     private String id_espectaculo;
@@ -7,18 +9,31 @@ public class Reservas {
     private String id_usuario;
     private char estado;
     private double precio;
+    private Timestamp fecha;
+    private Timestamp fechaCancelacion; // Solo para historial
 
-    public Reservas(String id_reserva, String id_espectaculo, String id_butaca, String id_usuario, double precio, char estado) {
+    public Reservas(String id_reserva, String id_espectaculo, String id_butaca,
+                    String id_usuario, double precio, char estado, Timestamp fecha) {
         this.id_reserva = id_reserva;
         this.id_espectaculo = id_espectaculo;
         this.id_butaca = id_butaca;
         this.id_usuario = id_usuario;
         this.precio = precio;
         this.estado = estado;
+        this.fecha = fecha;
     }
 
     public Reservas() {
+    }
 
+
+
+    public Timestamp getFecha() { return fecha; }
+    public void setFecha(Timestamp fecha) { this.fecha = fecha; }
+
+    public Timestamp getFechaCancelacion() { return fechaCancelacion; }
+    public void setFechaCancelacion(Timestamp fechaCancelacion) {
+        this.fechaCancelacion = fechaCancelacion;
     }
 
     public String getId_reserva() { return id_reserva; }

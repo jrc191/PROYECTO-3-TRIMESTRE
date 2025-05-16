@@ -9,7 +9,8 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.admin.ListarMensajesController">
+<?import javafx.scene.control.Label?>
+<AnchorPane xmlns="http://javafx.com/javafx/21.0.6" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.admin.ListarMensajesController">
     <VBox spacing="10" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <HBox prefHeight="42.0" prefWidth="700.0" spacing="10" style="-fx-padding: 10;">
             <ImageView fx:id="actualizarBtn" fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true" style="-fx-cursor: hand;">
@@ -42,6 +43,17 @@
         <ScrollPane fx:id="scrollMensajes" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" prefHeight="500.0" prefWidth="700.0" style="-fx-background: white; -fx-border-color: #e0e0e0; -fx-border-width: 1; -fx-border-radius: 5;" vbarPolicy="AS_NEEDED">
             <content>
                 <VBox fx:id="scrollVBox" prefHeight="25.0" prefWidth="680.0" spacing="0" style="-fx-background-color: white;">
+                    <!-- Encabezados de la tabla -->
+                    <HBox style="-fx-background-color: #f8f9fa; -fx-padding: 10px; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0;">
+                        <Label text=" V" style="-fx-text-fill: #6c757d; -fx-font-weight: bold;" prefWidth="80"/>
+                        <Label text="ID" style="-fx-text-fill: #6c757d; -fx-font-weight: bold;" prefWidth="50"/>
+                        <Label text="Usuario" style="-fx-text-fill: #6c757d; -fx-font-weight: bold;" prefWidth="100"/>
+                        <Label text="Reserva" style="-fx-text-fill: #6c757d; -fx-font-weight: bold;" prefWidth="120"/>
+                        <Label text="Fecha" style="-fx-text-fill: #6c757d; -fx-font-weight: bold;" prefWidth="150"/>
+                        <Label text="Tipo" style="-fx-text-fill: #6c757d; -fx-font-weight: bold;" prefWidth="100"/>
+                        <Label text="Estado" style="-fx-text-fill: #6c757d; -fx-font-weight: bold;" prefWidth="80"/>
+                        <Label text="Acciones" style="-fx-text-fill: #6c757d; -fx-font-weight: bold;" prefWidth="100"/>
+                    </HBox>
                     <!-- Aquí se añaden los mensajes dinámicamente -->
                 </VBox>
             </content>

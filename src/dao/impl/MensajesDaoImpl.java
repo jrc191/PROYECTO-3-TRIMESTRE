@@ -44,6 +44,40 @@ public class MensajesDaoImpl implements MensajesDaoI {
         return mensajesList;
 
     }
+
+    @Override
+    public boolean eliminarMensaje(int idSolicitud) throws SQLException {
+        String query = "DELETE FROM SOLICITUDES WHERE ID_SOLICITUD = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setInt(1, idSolicitud);
+            return pstmt.executeUpdate() > 0;
+        }
+    }
+
+    @Override
+    public boolean actualizarEstadoMensaje(int idSolicitud, char nuevoEstado) throws SQLException {
+        String query = "UPDATE SOLICITUDES SET ESTADO_SOLICITUD = ? WHERE ID_SOLICITUD = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, String.valueOf(nuevoEstado));
+            pstmt.setInt(2, idSolicitud);
+            return pstmt.executeUpdate() > 0;
+        }
+    }
+
+    @Override
+    public boolean crearSolicitud(Mensajes solicitud) throws SQLException {
+        String query = "INSERT INTO SOLICITUDES (ID_USUARIO, ID_RESERVA, TIPO_SOLICITUD, ESTADO_SOLICITUD) " +
+                "VALUES (?, ?, ?, ?)";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, solicitud.getId_usuario());
+            pstmt.setString(2, solicitud.getId_reserva());
+            pstmt.setString(3, solicitud.getTipo_solicitud());
+            pstmt.setString(4, String.valueOf(solicitud.getEstado_solicitud()));
+
+            return pstmt.executeUpdate() > 0;
+        }
+    }
 }
 
 

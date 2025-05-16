@@ -1,10 +1,12 @@
 package controllers;
 
+import dao.impl.MensajesDaoImpl;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import models.Mensajes;
 import utils.DatabaseConnection;
 import dao.impl.ReservaDaoImpl;
 import dao.impl.UsuarioDaoImpl;
@@ -49,29 +51,32 @@ public class ReservasUsuarioController {
             ReservaDaoImpl reservaDao = new ReservaDaoImpl(conn);
             UsuarioDaoImpl usuarioDao = new UsuarioDaoImpl(conn);
 
-
             this.idUsuario = usuarioDao.getIDUsuarioByEmail(emailUsuarioLogueado);
-            System.out.println("ID -> "+idUsuario);
 
-            //para mostrar el email del usuario logueado al lado del botón de cerrar sesión
             if (emailUsuarioLogueado != null) {
                 usuarioLabel.setText("Email: " + emailUsuarioLogueado);
             }
 
-            List<Reservas> reservas = reservaDao.consultarReservasByUsuario(idUsuario);
+            // Obtener reservas activas
+            List<Reservas> reservasActivas = reservaDao.consultarReservasByUsuario(idUsuario);
 
-            for (Reservas reserva1: reservas){
-                System.out.println(reserva1.getId_reserva()+"\n");
-            }
+            // Obtener reservas canceladas del historial
+            List<Reservas> reservasCanceladas = reservaDao.consultarHistorialByUsuario(idUsuario);
 
-            if (reservas.isEmpty()) {
+            if (reservasActivas.isEmpty() && reservasCanceladas.isEmpty()) {
                 Label mensaje = new Label("No tienes reservas.");
                 mensaje.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
                 contenedorReservas.getChildren().add(mensaje);
                 return;
             }
 
-            for (Reservas reserva : reservas) {
+            // Mostrar primero las activas
+            for (Reservas reserva : reservasActivas) {
+                contenedorReservas.getChildren().add(crearTarjetaReserva(reserva));
+            }
+
+            // Mostrar las canceladas después
+            for (Reservas reserva : reservasCanceladas) {
                 contenedorReservas.getChildren().add(crearTarjetaReserva(reserva));
             }
 
@@ -130,14 +135,8 @@ public class ReservasUsuarioController {
         cancelarBtn.setStyle("-fx-background-color: #ff4444; -fx-text-fill: white; -fx-font-weight: bold;");
         cancelarBtn.setOnAction(e -> cancelarReserva(reserva));
 
-        Button solicitarBtn = new Button("Solicitar re-reserva");
-        solicitarBtn.setStyle("-fx-background-color: #4e3a74; -fx-text-fill: white; -fx-font-weight: bold;");
-        solicitarBtn.setDisable(true); // Deshabilitado hasta implementar la funcionalidad
-        solicitarBtn.setOnAction(e->{
-            solicitarReserva(reserva);
-        });
 
-        HBox botonesBox = new HBox(10, cancelarBtn, solicitarBtn);
+        HBox botonesBox = new HBox(10, cancelarBtn);
         botonesBox.setAlignment(Pos.CENTER_RIGHT);
 
         Region spacer = new Region();
@@ -145,7 +144,6 @@ public class ReservasUsuarioController {
 
         if (reserva.getEstado()=='C'){
             cancelarBtn.setDisable(true);
-            solicitarBtn.setDisable(false);
         }
 
         contentBox.getChildren().addAll(infoBox, spacer, botonesBox);
@@ -154,67 +152,51 @@ public class ReservasUsuarioController {
         return tarjeta;
     }
 
-    private void solicitarReserva(Reservas reserva) {
-
-    Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmAlert.setTitle("Solicitar Re-Reserva");
-        confirmAlert.setHeaderText("Solicitar Re-Reserva");
-        confirmAlert.setContentText("¿Estás seguro de que quieres volver a solicitar esta reserva?");
-
-        confirmAlert.showAndWait().ifPresent(response -> {
-            if (response == ButtonType.OK) {
-
-                try {
-                    Connection conn = DatabaseConnection.getConnection();
-                    ReservaDaoImpl reservaDao = new ReservaDaoImpl(conn);
-
-                    int canceladas= reservaDao.cancelarReserva(reserva.getId_reserva());
-
-                    if (canceladas>0){
-                        mostrarInfo("Reserva cancelada con éxito");
-                        cargarReservas();
-                    }else{
-                        mostrarError("Error al cancelar las reservas");
-                    }
-                } catch (SQLException e){
-                    e.printStackTrace();
-                }
-
-                mostrarInfo("Se envió un mensaje al administrador con su solcitud de reserva.");
-            }
-        });
-
-    }
 
     private void cancelarReserva(Reservas reserva) {
-        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmAlert.setTitle("Confirmar cancelación");
-        confirmAlert.setHeaderText("Cancelar reserva");
-        confirmAlert.setContentText("¿Estás seguro de que quieres cancelar esta reserva?");
+        try {
+            Connection conn = DatabaseConnection.getConnection();
+            ReservaDaoImpl reservaDao = new ReservaDaoImpl(conn);
 
-        confirmAlert.showAndWait().ifPresent(response -> {
-            if (response == ButtonType.OK) {
-                try {
-                    Connection conn = DatabaseConnection.getConnection();
-                    ReservaDaoImpl reservaDao = new ReservaDaoImpl(conn);
+            // Verificar si han pasado menos de 24 horas
+            boolean dentroPlazo = reservaDao.estaDentroPlazoCancelacion(reserva.getId_reserva());
 
-                    int canceladas= reservaDao.cancelarReserva(reserva.getId_reserva());
+            if (dentroPlazo) {
+                // Cancelación directa
+                int canceladas = reservaDao.cancelarReserva(reserva.getId_reserva());
 
-                    if (canceladas>0){
-                        mostrarInfo("Reserva cancelada con éxito");
-                        cargarReservas();
-                    }else{
-                        mostrarError("Error al cancelar las reservas");
-                    }
-
-
-                } catch (SQLException e) {
-                    e.printStackTrace();
+                if (canceladas > 0) {
+                    // Mover a historial
+                    reservaDao.moverAHistorial(reserva.getId_reserva(), 'C'); // 'C' para Cancelada
+                    mostrarInfo("Reserva cancelada con éxito");
+                    cargarReservas();
+                } else {
                     mostrarError("Error al cancelar la reserva");
                 }
+            } else {
+                // Crear solicitud de cancelación
+                Mensajes solicitud = new Mensajes();
+                solicitud.setId_usuario(idUsuario);
+                solicitud.setId_reserva(reserva.getId_reserva());
+                solicitud.setTipo_solicitud("Cancelacion");
+                solicitud.setEstado_solicitud('P'); // Pendiente
+
+                MensajesDaoImpl mensajesDao = new MensajesDaoImpl(conn);
+                boolean exito = mensajesDao.crearSolicitud(solicitud);
+
+                if (exito) {
+                    mostrarInfo("Solicitud de cancelación enviada al administrador");
+                } else {
+                    mostrarError("Error al enviar la solicitud de cancelación");
+                }
             }
-        });
+        } catch (SQLException e) {
+            e.printStackTrace();
+            mostrarError("Error al procesar la cancelación");
+        }
     }
+
+// Eliminar el método solicitarReserva() ya que no lo necesitamos más
 
     private void mostrarError(String mensaje) {
         Alert alert = new Alert(Alert.AlertType.ERROR);

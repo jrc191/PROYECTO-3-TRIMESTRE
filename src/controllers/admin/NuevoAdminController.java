@@ -164,32 +164,25 @@ public class NuevoAdminController {
 
 
     public void mostrarMensajes(MouseEvent mouseEvent) {
-
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/admin/listarUsuarios.fxml"));
-            Parent listarUsuariosView = loader.load();
-            ListarUsuariosController controller = loader.getController();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/admin/listarMensajes.fxml"));
+            Parent listarMensajesView = loader.load();
+            ListarMensajesController controller = loader.getController();
 
-            // Obtener usuarios
-            Connection conn = utils.DatabaseConnection.getConnection();
-            dao.UsuarioDaoI usuarioDao = new dao.impl.UsuarioDaoImpl(conn);
-            java.util.List<models.Usuario> usuarios = usuarioDao.listUsuariosAdmin();
-            controller.mostrarUsuarios(usuarios);
             contenidoArea.getChildren().clear();
-            contenidoArea.getChildren().add(listarUsuariosView);
+            contenidoArea.getChildren().add(listarMensajesView);
             rutaLabel.setText("MENSAJES");
             mensajesLabel.setOpacity(0.5);
             usuariosLabel.setOpacity(1);
             reservasLabel.setOpacity(1);
             espectaculosLabel.setOpacity(1);
 
-        } catch (IOException | SQLException e) {
+        } catch (IOException e) {
             e.printStackTrace();
-            Label errorLabel = new Label("Error al cargar el formulario de listado de usuarios");
+            Label errorLabel = new Label("Error al cargar el formulario de listado de mensajes");
             errorLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
             contenidoArea.getChildren().clear();
             contenidoArea.getChildren().add(errorLabel);
         }
-
     }
 }

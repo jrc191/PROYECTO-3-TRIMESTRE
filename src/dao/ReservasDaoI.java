@@ -20,4 +20,6 @@ public interface ReservasDaoI {
     int cancelarReserva(String idReserva) throws SQLException;
     int reactivarReserva(String idReserva) throws SQLException;
     List<Reservas> consultarReservasByUsuario(String id_usuario) throws SQLException;
+    List<Reservas> listarHistorialReservas() throws SQLException;
+    List<Reservas> consultarHistorialByUsuario(String idUsuario) throws SQLException;
 }
