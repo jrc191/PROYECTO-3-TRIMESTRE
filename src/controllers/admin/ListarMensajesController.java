@@ -89,8 +89,8 @@ public class ListarMensajesController {
             reservaHeader.setPrefWidth(120);
             fechaHeader.setPrefWidth(150);
             tipoHeader.setPrefWidth(100);
-            estadoHeader.setPrefWidth(100);
-            accionesHeader.setPrefWidth(80);
+            estadoHeader.setPrefWidth(80);
+            accionesHeader.setPrefWidth(90);
 
             // Estilo del encabezado
             String headerStyle = "-fx-text-fill: #6c757d; -fx-font-weight: bold;";
@@ -158,31 +158,24 @@ public class ListarMensajesController {
                 }
             });
 
-            estadoCombo.setPrefWidth(100);
+            estadoCombo.setPrefWidth(80);
 
-            // Botones de acción
-            ImageView editarIcon = new ImageView(new Image(getClass().getResourceAsStream("/resources/images/tick.png")));
             ImageView eliminarIcon = new ImageView(new Image(getClass().getResourceAsStream("/resources/images/cancel.png")));
-
-            editarIcon.setFitHeight(16);
-            editarIcon.setFitWidth(16);
-            editarIcon.setStyle("-fx-cursor: hand;");
-            editarIcon.setOnMouseClicked(e -> editarMensaje(mensaje));
 
             eliminarIcon.setFitHeight(16);
             eliminarIcon.setFitWidth(16);
             eliminarIcon.setStyle("-fx-cursor: hand;");
             eliminarIcon.setOnMouseClicked(e -> eliminarMensaje(mensaje));
 
-            HBox accionesBox = new HBox(5, editarIcon, eliminarIcon);
-            accionesBox.setPrefWidth(80);
+            HBox accionesBox = new HBox(5, eliminarIcon);
+            accionesBox.setPrefWidth(90);
 
             id.setPrefWidth(50);
             usuario.setPrefWidth(100);
             reserva.setPrefWidth(120);
             fecha.setPrefWidth(150);
-            tipo.setPrefWidth(100);
-            accionesBox.setPrefWidth(80);
+            tipo.setPrefWidth(90);
+            accionesBox.setPrefWidth(90);
 
             String cellStyle = "-fx-text-fill: #495057;";
             id.setStyle(cellStyle);
