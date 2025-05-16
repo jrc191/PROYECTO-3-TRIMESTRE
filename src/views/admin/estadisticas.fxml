@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="382.0" prefWidth="468.0" style="-fx-background-color: transparent;" xmlns="http://javafx.com/javafx/21.0.6" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.admin.EstadisticasController">
+<AnchorPane prefHeight="382.0" prefWidth="468.0" style="-fx-background-color: transparent;" xmlns="http://javafx.com/javafx/21.0.7" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.admin.EstadisticasController">
     <VBox fx:id="leftPane" alignment="CENTER" layoutX="25.0" prefHeight="400" prefWidth="500.0" spacing="15" style="-fx-background-color: transparent;">
       <Label alignment="CENTER" prefHeight="42.0" prefWidth="229.0" style="-fx-font-weight: bold; -fx-text-fill: #FFC107; -fx-effect: dropshadow(gaussian, black, 3, 0.5, 0, 0);" text="ESTADÍSTICAS" textAlignment="CENTER">
          <font>

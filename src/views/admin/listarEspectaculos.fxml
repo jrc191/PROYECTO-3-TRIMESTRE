@@ -7,7 +7,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane xmlns="http://javafx.com/javafx/21.0.6" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.admin.ListarEspectaculosController">
+<AnchorPane xmlns="http://javafx.com/javafx/21.0.7" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.admin.ListarEspectaculosController">
     <ScrollPane fx:id="scrollEspectaculos" fitToWidth="true" hbarPolicy="NEVER" layoutX="14.0" layoutY="14.0" prefHeight="400.0" prefWidth="500.0" style="-fx-background: #1c2242; -fx-border-color: #232a4d; -fx-border-width: 2;">
 
         <Label fx:id="mensajeLabel"></Label>

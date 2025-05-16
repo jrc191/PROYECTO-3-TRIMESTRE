@@ -142,10 +142,10 @@ public class UsuarioDaoImpl implements UsuarioDaoI {
             pstmt.setString(2, usuario.getEmail());
 
             if (usuario.getPassword() != null && !usuario.getPassword().isEmpty()) {
-                pstmt.setString(3, usuario.getPassword());
-                pstmt.setString(4, usuario.getDni()); // DNI como condición WHERE
+                pstmt.setString(3, usuario.getPassword()); //PARA ACTUALIZAR PASSWORD
+                pstmt.setString(4, usuario.getDni()); //DNI PASA A SER EL 4 PARÁMETRO
             } else {
-                pstmt.setString(3, usuario.getDni()); // DNI como condición WHERE
+                pstmt.setString(3, usuario.getDni()); // SIN PASSWORD. DNI PASA A SER EL 3 PARÁMETRO
             }
 
             int rowsAffected = pstmt.executeUpdate();

@@ -11,6 +11,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import utils.CerrarSesion;
@@ -31,6 +32,7 @@ public class NuevoAdminController {
     @FXML public Label espectaculosLabel;
     @FXML public Label reservasLabel;
     @FXML public Button volverBtn;
+    @FXML public Label mensajesLabel;
     @FXML private Label usuarioLabel;
     @FXML public Label rutaLabel;
     @FXML private Label arribaBtn, abajoBtn;
@@ -86,6 +88,7 @@ public class NuevoAdminController {
             contenidoArea.getChildren().add(listarUsuariosView);
             //rutaLabel.setText("USUARIOS"); //MIRAR PARA OBTENER EL LABEL SEGÚN EL BOTÓN Y NO HACERLO MANUAL
             rutaLabel.setText("USUARIOS");
+            mensajesLabel.setOpacity(1);
             usuariosLabel.setOpacity(0.5);
             reservasLabel.setOpacity(1);
             espectaculosLabel.setOpacity(1);
@@ -115,6 +118,7 @@ public class NuevoAdminController {
             contenidoArea.getChildren().clear();
             contenidoArea.getChildren().add(listarEspectaculosView);
             rutaLabel.setText("ESPECTÁCULOS");
+            mensajesLabel.setOpacity(1);
             usuariosLabel.setOpacity(1);
             reservasLabel.setOpacity(1);
             espectaculosLabel.setOpacity(0.5);
@@ -143,6 +147,7 @@ public class NuevoAdminController {
             contenidoArea.getChildren().clear();
             contenidoArea.getChildren().add(listarReservasView);
             rutaLabel.setText("RESERVAS");
+            mensajesLabel.setOpacity(1);
             usuariosLabel.setOpacity(1);
             reservasLabel.setOpacity(0.5);
             espectaculosLabel.setOpacity(1);
@@ -158,4 +163,33 @@ public class NuevoAdminController {
     }
 
 
+    public void mostrarMensajes(MouseEvent mouseEvent) {
+
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/admin/listarUsuarios.fxml"));
+            Parent listarUsuariosView = loader.load();
+            ListarUsuariosController controller = loader.getController();
+
+            // Obtener usuarios
+            Connection conn = utils.DatabaseConnection.getConnection();
+            dao.UsuarioDaoI usuarioDao = new dao.impl.UsuarioDaoImpl(conn);
+            java.util.List<models.Usuario> usuarios = usuarioDao.listUsuariosAdmin();
+            controller.mostrarUsuarios(usuarios);
+            contenidoArea.getChildren().clear();
+            contenidoArea.getChildren().add(listarUsuariosView);
+            rutaLabel.setText("MENSAJES");
+            mensajesLabel.setOpacity(0.5);
+            usuariosLabel.setOpacity(1);
+            reservasLabel.setOpacity(1);
+            espectaculosLabel.setOpacity(1);
+
+        } catch (IOException | SQLException e) {
+            e.printStackTrace();
+            Label errorLabel = new Label("Error al cargar el formulario de listado de usuarios");
+            errorLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
+            contenidoArea.getChildren().clear();
+            contenidoArea.getChildren().add(errorLabel);
+        }
+
+    }
 }

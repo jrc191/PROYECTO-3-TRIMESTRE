@@ -132,6 +132,9 @@ public class ReservasUsuarioController {
         Button solicitarBtn = new Button("Solicitar re-reserva");
         solicitarBtn.setStyle("-fx-background-color: #4e3a74; -fx-text-fill: white; -fx-font-weight: bold;");
         solicitarBtn.setDisable(true); // Deshabilitado hasta implementar la funcionalidad
+        solicitarBtn.setOnAction(e->{
+            solicitarReserva(reserva);
+        });
 
         HBox botonesBox = new HBox(10, cancelarBtn, solicitarBtn);
         botonesBox.setAlignment(Pos.CENTER_RIGHT);
@@ -148,6 +151,21 @@ public class ReservasUsuarioController {
         tarjeta.getChildren().add(contentBox);
 
         return tarjeta;
+    }
+
+    private void solicitarReserva(Reservas reserva) {
+
+    Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmAlert.setTitle("Solicitar Re-Reserva");
+        confirmAlert.setHeaderText("Solicitar Re-Reserva");
+        confirmAlert.setContentText("¿Estás seguro de que quieres volver a solicitar esta reserva?");
+
+        confirmAlert.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                mostrarInfo("Se envió un mensaje al administrador con su solcitud de reserva.");
+            }
+        });
+
     }
 
     private void cancelarReserva(Reservas reserva) {

@@ -1,6 +1,8 @@
 package controllers;
 
 import javafx.scene.effect.DropShadow;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -123,6 +125,18 @@ public class CarteleraController {
             scrollEspectaculos.setVvalue(0);
         });
 
+        scrollEspectaculos.setOnMouseDragOver(e->{
+            scrollEspectaculos.setVvalue(0);
+        });
+
+        scrollEspectaculos.setOnMouseEntered(e->{
+            scrollEspectaculos.setVvalue(0);
+        });
+
+        scrollEspectaculos.setOnDragDetected(e->{
+            scrollEspectaculos.setVvalue(0);
+        });
+
         scrollEspectaculos.setOnMouseDragEntered(e->{
             scrollEspectaculos.setVvalue(0);
         });
@@ -130,6 +144,13 @@ public class CarteleraController {
         scrollEspectaculos.setOnMouseDragExited(e->{
             scrollEspectaculos.setVvalue(0);
         });
+
+        scrollEspectaculos.addEventFilter(ScrollEvent.SCROLL, event -> {
+            if (event.getDeltaY() != 0) {
+                event.consume();  // Consume vertical scroll events
+            }
+        });
+        
     }
 
     //Para habilitar el carrusel cuando es necesario (cuando hay resultados). Cuando no los hay, deshabilitarlo
@@ -141,6 +162,7 @@ public class CarteleraController {
         // true : habilita el arrastrar con ratón, false : deshabilita el arrastrar con ratón.
         // False cuando no hay resultados, true cuando los hay.
         scrollEspectaculos.setPannable(habilitar);
+
 
         scrollEspectaculos.setFitToHeight(true);
 
@@ -266,7 +288,6 @@ public class CarteleraController {
             String imagePath = "/resources/images/espectaculos/" + esp.getId()+ ".png";
             Image image = new Image(getClass().getResourceAsStream(imagePath));
 
-            // Configurar ImageView
             imageView.setImage(image);
             imageView.setPreserveRatio(true);
             imageView.setSmooth(true);
