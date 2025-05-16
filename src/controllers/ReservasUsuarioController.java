@@ -13,6 +13,7 @@ import models.Reservas;
 import utils.Transitions;
 import utils.CerrarSesion;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
@@ -162,6 +163,23 @@ public class ReservasUsuarioController {
 
         confirmAlert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
+
+                try {
+                    Connection conn = DatabaseConnection.getConnection();
+                    ReservaDaoImpl reservaDao = new ReservaDaoImpl(conn);
+
+                    int canceladas= reservaDao.cancelarReserva(reserva.getId_reserva());
+
+                    if (canceladas>0){
+                        mostrarInfo("Reserva cancelada con éxito");
+                        cargarReservas();
+                    }else{
+                        mostrarError("Error al cancelar las reservas");
+                    }
+                } catch (SQLException e){
+                    e.printStackTrace();
+                }
+
                 mostrarInfo("Se envió un mensaje al administrador con su solcitud de reserva.");
             }
         });
