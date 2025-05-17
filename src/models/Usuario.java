@@ -1,10 +1,14 @@
 package models;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+
 public class Usuario {
     private String dni;
     private String nombre;
     private String email;
     private String password;
+    private final SimpleBooleanProperty seleccionado = new SimpleBooleanProperty(false);
 
     public Usuario(){
         
@@ -16,6 +20,21 @@ public class Usuario {
         this.email = email;
         this.password = password;
     }
+
+
+    public boolean isSeleccionado() {
+        return seleccionado.get();
+    }
+
+    public void setSeleccionado(boolean seleccionado) {
+        this.seleccionado.set(seleccionado);
+    }
+
+    public SimpleBooleanProperty seleccionadoProperty() {
+        return seleccionado;
+    }
+
+
 
     public String getDni() { return dni; }
     public String getNombre() { return nombre; }

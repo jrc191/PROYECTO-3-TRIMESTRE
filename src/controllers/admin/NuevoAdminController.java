@@ -83,7 +83,7 @@ public class NuevoAdminController {
             Connection conn = utils.DatabaseConnection.getConnection();
             dao.UsuarioDaoI usuarioDao = new dao.impl.UsuarioDaoImpl(conn);
             java.util.List<models.Usuario> usuarios = usuarioDao.listUsuariosAdmin();
-            controller.mostrarUsuarios(usuarios);
+            controller.initialize();
             contenidoArea.getChildren().clear();
             contenidoArea.getChildren().add(listarUsuariosView);
             //rutaLabel.setText("USUARIOS"); //MIRAR PARA OBTENER EL LABEL SEGÚN EL BOTÓN Y NO HACERLO MANUAL

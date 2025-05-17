@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane xmlns="http://javafx.com/javafx/21.0.7" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.admin.ListarUsuariosController">
+<AnchorPane xmlns="http://javafx.com/javafx/21.0.6" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.admin.ListarUsuariosController">
     <VBox spacing="10" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <HBox prefHeight="42.0" prefWidth="700.0" spacing="10" style="-fx-padding: 10;">
             <ImageView fx:id="addBtn" fitHeight="30.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true" style="-fx-cursor: hand;">
@@ -47,10 +47,10 @@
                 </HBox.margin>
             </Button>
         </HBox>
-        <ScrollPane fx:id="scrollUsuarios" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" prefHeight="500.0" prefWidth="700.0" style="-fx-background: white; -fx-border-color: #e0e0e0; -fx-border-width: 1; -fx-border-radius: 5;" vbarPolicy="AS_NEEDED">
+        <ScrollPane fx:id="scrollUsuarios" prefHeight="700" hbarPolicy="AS_NEEDED" style="-fx-background: white; -fx-border-color: #e0e0e0; -fx-border-width: 1; -fx-border-radius: 5;" vbarPolicy="AS_NEEDED">
             <content>
-                <VBox fx:id="usuariosVBox" prefHeight="25.0" prefWidth="680.0" spacing="0" style="-fx-background-color: white;">
-                    <!-- Aquí se añaden los usuarios dinámicamente -->
+                <VBox fx:id="usuariosVBox" spacing="2" style="-fx-background-color: #fff;">
+                    <!-- Las filas se generarán dinámicamente desde el controlador -->
                 </VBox>
             </content>
         </ScrollPane>

@@ -40,6 +40,16 @@ public class ListarUsuariosController {
         addBtn.setOnMouseClicked(e -> agregarNuevoUsuario());
         guardarBtn.setOnAction(e -> guardarNuevoUsuario());
         cancelarBtn.setOnAction(e->cancelarNuevoUsuario());
+
+
+
+        try {
+            Connection conn = DatabaseConnection.getConnection();
+            usuarioDao = new UsuarioDaoImpl(conn);
+            mostrarUsuarios(usuarioDao.listUsuariosAdmin());
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void agregarNuevoUsuario() {
@@ -222,6 +232,10 @@ public class ListarUsuariosController {
         usuariosVBox.getChildren().clear();
         checkBoxes.clear();
         usuariosOriginal = usuarios;
+
+        if (modoEdicion){
+            scrollUsuarios.setPrefHeight(scrollUsuarios.getHeight()+100);
+        }
 
         // Encabezado de la tabla
         HBox header = new HBox();

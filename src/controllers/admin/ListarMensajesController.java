@@ -4,20 +4,15 @@ import dao.MensajesDaoI;
 import dao.impl.MensajesDaoImpl;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import models.Mensajes;
 import utils.DatabaseConnection;
-
-import javafx.scene.control.cell.CheckBoxTableCell;
-import javafx.scene.control.cell.ComboBoxTableCell;
-import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -26,21 +21,16 @@ import java.util.*;
 public class ListarMensajesController {
     @FXML public Button guardarBtn;
     @FXML public Button cancelarBtn;
-    @FXML public TableView<Mensajes> tablaMensajes;
-    @FXML public TableColumn<Mensajes, Boolean> colSeleccionar;
-    @FXML public TableColumn<Mensajes, Integer> colId;
-    @FXML public TableColumn<Mensajes, String> colUsuario;
-    @FXML public TableColumn<Mensajes, String> colReserva;
-    @FXML public TableColumn<Mensajes, String> colFecha;
-    @FXML public TableColumn<Mensajes, String> colTipo;
-    @FXML public TableColumn<Mensajes, String> colEstado;
-    @FXML public TableColumn<Mensajes, Void> colAcciones;
-
+    @FXML public ImageView eliminarBtn;
+    @FXML public ScrollPane scrollMensajes;
+    @FXML public VBox mensajesVBox;
 
     private MensajesDaoI mensajeDao;
     private final Map<Integer, Character> cambiosPendientes = new HashMap<>();
     private final Map<Integer, Character> estadosOriginales = new HashMap<>();
-    private final ObservableList<Mensajes> mensajesData = javafx.collections.FXCollections.observableArrayList();
+    private List<Mensajes> mensajesList = new ArrayList<>();
+    private Map<Integer, ComboBox<String>> estadosComboBoxes = new HashMap<>();
+    private Map<Integer, HBox> filasMap = new HashMap<>();
 
     @FXML
     public void initialize() {
@@ -49,102 +39,178 @@ public class ListarMensajesController {
 
         guardarBtn.setOnAction(e -> confirmarCambios());
         cancelarBtn.setOnAction(e -> cancelarCambios());
+        eliminarBtn.setOnMouseClicked(e -> eliminarSeleccionados());
 
         try {
             Connection conn = DatabaseConnection.getConnection();
             this.mensajeDao = new MensajesDaoImpl(conn);
-            inicializarTabla();
-
             cargarMensajes();
         } catch (SQLException e) {
             e.printStackTrace();
             mostrarError("Error al conectar con la base de datos");
+
+            // Mostrar mensaje de error en la interfaz
+            mostrarMensajesError("Error al conectar con la base de datos");
         }
     }
 
-    private void inicializarTabla() {
+    private void mostrarMensajesError(String mensaje) {
+        mensajesVBox.getChildren().clear();
 
+        Label errorLabel = new Label(mensaje);
+        errorLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #d32f2f; -fx-padding: 20px;");
 
+        VBox contenedorError = new VBox(errorLabel);
+        contenedorError.setAlignment(Pos.CENTER);
+        contenedorError.setPrefHeight(100);
+        mensajesVBox.getChildren().add(contenedorError);
 
-        colSeleccionar.setCellValueFactory(param -> param.getValue().seleccionadoProperty());
-        colSeleccionar.setCellFactory(CheckBoxTableCell.forTableColumn(colSeleccionar));
-
-        colId.setCellValueFactory(new PropertyValueFactory<>("id_solicitud"));
-        colUsuario.setCellValueFactory(new PropertyValueFactory<>("id_usuario"));
-        colReserva.setCellValueFactory(new PropertyValueFactory<>("id_reserva"));
-        colFecha.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getFecha().toString()));
-        colTipo.setCellValueFactory(new PropertyValueFactory<>("tipo_solicitud"));
-
-        colEstado.setCellFactory(ComboBoxTableCell.forTableColumn("P - Pendiente", "A - Aprobada", "R - Rechazada"));
-        colEstado.setCellValueFactory(param -> {
-            String estado = switch (param.getValue().getEstado_solicitud()) {
-                case 'A' -> "A - Aprobada";
-                case 'R' -> "R - Rechazada";
-                default -> "P - Pendiente";
-            };
-            return new SimpleStringProperty(estado);
-        });
-
-        colEstado.setOnEditCommit(event -> {
-            Mensajes mensaje = event.getRowValue();
-            char nuevoEstado = event.getNewValue().charAt(0);
-            mensaje.setEstado_solicitud(nuevoEstado);
-            cambiosPendientes.put(mensaje.getId_solicitud(), nuevoEstado);
-            guardarBtn.setDisable(cambiosPendientes.isEmpty());
-            cancelarBtn.setDisable(cambiosPendientes.isEmpty());
-        });
-
-        colAcciones.setCellFactory(param -> new TableCell<>() {
-            private final Button eliminarBtn = new Button("X");
-
-            {
-                eliminarBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #f44336; -fx-font-weight: bold; -fx-cursor: hand;");
-                eliminarBtn.setOnAction(e -> {
-                    Mensajes mensaje = getTableView().getItems().get(getIndex());
-                    eliminarMensaje(mensaje);
-                });
-            }
-
-            @Override
-            protected void updateItem(Void item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty) {
-                    setGraphic(null);
-                } else {
-                    setGraphic(eliminarBtn);
-                }
-            }
-        });
-
-        tablaMensajes.setItems(mensajesData);
-        tablaMensajes.setEditable(true);
+        eliminarBtn.setDisable(true);
+        guardarBtn.setDisable(true);
+        cancelarBtn.setDisable(true);
     }
 
     private void cargarMensajes() {
         try {
-            List<Mensajes> mensajes = mensajeDao.mostrarMensajes();
-            mostrarMensajes(mensajes);
+            mensajesList = mensajeDao.mostrarMensajes();
+            mostrarMensajes();
             cambiosPendientes.clear();
             guardarBtn.setDisable(true);
             cancelarBtn.setDisable(true);
         } catch (SQLException e) {
             e.printStackTrace();
             mostrarError("Error al cargar los mensajes");
+            mostrarMensajesError("Error al cargar los mensajes: " + e.getMessage());
         }
     }
 
-    private void mostrarMensajes(List<Mensajes> mensajes) {
-        mensajesData.clear();
+    private void mostrarMensajes() {
+        mensajesVBox.getChildren().clear();
         estadosOriginales.clear();
+        estadosComboBoxes.clear();
+        filasMap.clear();
 
-        for (Mensajes m : mensajes) {
-            if (m.seleccionadoProperty() == null) {
-                m.setSeleccionado(new SimpleBooleanProperty(false));
+        // Cabecera
+        HBox cabecera = crearCabeceraTabla();
+        mensajesVBox.getChildren().add(cabecera);
+
+        if (mensajesList.isEmpty()) {
+            // Mostrar mensaje cuando no hay mensajes
+            Label noMensajesLabel = new Label("No existen mensajes actualmente");
+            noMensajesLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #757575; -fx-padding: 20px;");
+
+            VBox contenedorMensaje = new VBox(noMensajesLabel);
+            contenedorMensaje.setAlignment(Pos.CENTER);
+            contenedorMensaje.setPrefHeight(100);
+            mensajesVBox.getChildren().add(contenedorMensaje);
+
+            // Deshabilitar el botón de eliminar ya que no hay mensajes
+            eliminarBtn.setDisable(true);
+        } else {
+            // Habilitar el botón de eliminar
+            eliminarBtn.setDisable(false);
+
+            // Filas de datos
+            for (Mensajes mensaje : mensajesList) {
+                HBox fila = crearFilaMensaje(mensaje);
+                mensajesVBox.getChildren().add(fila);
+                filasMap.put(mensaje.getId_solicitud(), fila);
+                estadosOriginales.put(mensaje.getId_solicitud(), mensaje.getEstado_solicitud());
             }
-            estadosOriginales.put(m.getId_solicitud(), m.getEstado_solicitud());
         }
+    }
 
-        mensajesData.addAll(mensajes);
+    private HBox crearCabeceraTabla() {
+        HBox cabecera = new HBox();
+        cabecera.setStyle("-fx-background-color: #f5f5f5; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0;");
+        cabecera.setPadding(new Insets(10));
+        cabecera.setAlignment(Pos.CENTER_LEFT);
+
+        // Definir los encabezados con el mismo ancho que las columnas de datos
+        Label seleccionar = crearLabelCabecera("", 50);
+        Label id = crearLabelCabecera("ID", 50);
+        Label usuario = crearLabelCabecera("Usuario", 120);
+        Label reserva = crearLabelCabecera("Reserva", 100);
+        Label fecha = crearLabelCabecera("Fecha", 120);
+        Label tipo = crearLabelCabecera("Tipo", 100);
+        Label estado = crearLabelCabecera("Estado", 100);
+        Label acciones = crearLabelCabecera("Acciones", 80);
+
+        cabecera.getChildren().addAll(seleccionar, id, usuario, reserva, fecha, tipo, estado, acciones);
+        return cabecera;
+    }
+
+    private Label crearLabelCabecera(String texto, double ancho) {
+        Label label = new Label(texto);
+        label.setStyle("-fx-font-weight: bold;");
+        HBox.setHgrow(label, Priority.SOMETIMES);
+        label.setPrefWidth(ancho);
+        return label;
+    }
+
+    private HBox crearFilaMensaje(Mensajes mensaje) {
+        HBox fila = new HBox();
+        fila.setStyle("-fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0;");
+        fila.setPadding(new Insets(8));
+        fila.setAlignment(Pos.CENTER_LEFT);
+
+        CheckBox seleccion = new CheckBox();
+        seleccion.setSelected(false);
+        HBox seleccionBox = new HBox(seleccion);
+        seleccionBox.setAlignment(Pos.CENTER);
+        seleccionBox.setPrefWidth(50);
+
+        Label id = new Label(String.valueOf(mensaje.getId_solicitud()));
+        id.setPrefWidth(50);
+
+        Label usuario = new Label(mensaje.getId_usuario());
+        usuario.setPrefWidth(120);
+
+        Label reserva = new Label(mensaje.getId_reserva());
+        reserva.setPrefWidth(100);
+
+        Label fecha = new Label(mensaje.getFecha().toString());
+        fecha.setPrefWidth(120);
+
+        Label tipo = new Label(mensaje.getTipo_solicitud());
+        tipo.setPrefWidth(100);
+
+        ComboBox<String> estadoCombo = new ComboBox<>();
+        estadoCombo.getItems().addAll("P - Pendiente", "A - Aprobada", "R - Rechazada");
+        estadoCombo.setPrefWidth(100);
+
+        // Establecer valor inicial del combo
+        String valorInicial = switch (mensaje.getEstado_solicitud()) {
+            case 'A' -> "A - Aprobada";
+            case 'R' -> "R - Rechazada";
+            default -> "P - Pendiente";
+        };
+        estadoCombo.setValue(valorInicial);
+
+        estadoCombo.setOnAction(e -> {
+            String seleccionado = estadoCombo.getValue();
+            char nuevoEstado = seleccionado.charAt(0);
+            if (mensaje.getEstado_solicitud() != nuevoEstado) {
+                cambiosPendientes.put(mensaje.getId_solicitud(), nuevoEstado);
+                guardarBtn.setDisable(cambiosPendientes.isEmpty());
+                cancelarBtn.setDisable(cambiosPendientes.isEmpty());
+            } else {
+                cambiosPendientes.remove(mensaje.getId_solicitud());
+                guardarBtn.setDisable(cambiosPendientes.isEmpty());
+                cancelarBtn.setDisable(cambiosPendientes.isEmpty());
+            }
+        });
+        estadosComboBoxes.put(mensaje.getId_solicitud(), estadoCombo);
+
+        Button eliminarBtn = new Button("X");
+        eliminarBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #f44336; -fx-font-weight: bold; -fx-cursor: hand;");
+        eliminarBtn.setOnAction(e -> eliminarMensaje(mensaje));
+        HBox accionesBox = new HBox(eliminarBtn);
+        accionesBox.setAlignment(Pos.CENTER);
+        accionesBox.setPrefWidth(80);
+
+        fila.getChildren().addAll(seleccionBox, id, usuario, reserva, fecha, tipo, estadoCombo, accionesBox);
+        return fila;
     }
 
     private void confirmarCambios() {
@@ -169,6 +235,13 @@ public class ListarMensajesController {
 
                         if (exito) {
                             estadosOriginales.put(id, nuevoEstado);
+                            // Actualizar el objeto mensaje en la lista
+                            for (Mensajes m : mensajesList) {
+                                if (m.getId_solicitud() == id) {
+                                    m.setEstado_solicitud(nuevoEstado);
+                                    break;
+                                }
+                            }
                         } else {
                             mostrarError("No se pudo actualizar el mensaje con ID: " + id);
                         }
@@ -200,8 +273,22 @@ public class ListarMensajesController {
 
         confirmacion.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
+                // Restaurar estados originales en los ComboBox
+                for (Map.Entry<Integer, Character> entry : estadosOriginales.entrySet()) {
+                    int id = entry.getKey();
+                    char estadoOriginal = entry.getValue();
+                    ComboBox<String> combo = estadosComboBoxes.get(id);
+                    if (combo != null) {
+                        String valorOriginal = switch (estadoOriginal) {
+                            case 'A' -> "A - Aprobada";
+                            case 'R' -> "R - Rechazada";
+                            default -> "P - Pendiente";
+                        };
+                        combo.setValue(valorOriginal);
+                    }
+                }
+
                 cambiosPendientes.clear();
-                cargarMensajes();
                 guardarBtn.setDisable(true);
                 cancelarBtn.setDisable(true);
                 mostrarAlerta("Información", "Cambios cancelados", Alert.AlertType.INFORMATION);
@@ -210,18 +297,105 @@ public class ListarMensajesController {
     }
 
     private void eliminarMensaje(Mensajes mensaje) {
-        try {
-            boolean exito = mensajeDao.eliminarMensaje(mensaje.getId_solicitud());
-            if (exito) {
-                mensajesData.remove(mensaje);
-                mostrarAlerta("Éxito", "Mensaje eliminado correctamente", Alert.AlertType.INFORMATION);
-            } else {
-                mostrarError("No se pudo eliminar el mensaje");
+        Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmacion.setTitle("Confirmar eliminación");
+        confirmacion.setHeaderText("¿Está seguro que desea eliminar este mensaje?");
+        confirmacion.setContentText("Esta acción no se puede deshacer.");
+
+        confirmacion.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                try {
+                    boolean exito = mensajeDao.eliminarMensaje(mensaje.getId_solicitud());
+                    if (exito) {
+                        HBox fila = filasMap.get(mensaje.getId_solicitud());
+                        if (fila != null) {
+                            mensajesVBox.getChildren().remove(fila);
+                        }
+                        mensajesList.remove(mensaje);
+                        filasMap.remove(mensaje.getId_solicitud());
+                        estadosComboBoxes.remove(mensaje.getId_solicitud());
+                        cambiosPendientes.remove(mensaje.getId_solicitud());
+
+                        guardarBtn.setDisable(cambiosPendientes.isEmpty());
+                        cancelarBtn.setDisable(cambiosPendientes.isEmpty());
+
+                        mostrarAlerta("Éxito", "Mensaje eliminado correctamente", Alert.AlertType.INFORMATION);
+                    } else {
+                        mostrarError("No se pudo eliminar el mensaje");
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    mostrarError("Error al eliminar el mensaje");
+                }
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            mostrarError("Error al eliminar el mensaje");
+        });
+    }
+
+    private void eliminarSeleccionados() {
+        List<Mensajes> seleccionados = new ArrayList<>();
+
+        // Recorrer las filas para encontrar los CheckBox seleccionados
+        for (HBox fila : filasMap.values()) {
+            CheckBox checkBox = (CheckBox) ((HBox) fila.getChildren().get(0)).getChildren().get(0);
+            if (checkBox.isSelected()) {
+                // Buscar el mensaje correspondiente a esta fila
+                int id = Integer.parseInt(((Label) fila.getChildren().get(1)).getText());
+                for (Mensajes m : mensajesList) {
+                    if (m.getId_solicitud() == id) {
+                        seleccionados.add(m);
+                        break;
+                    }
+                }
+            }
         }
+
+        if (seleccionados.isEmpty()) {
+            mostrarAlerta("Información", "No hay mensajes seleccionados para eliminar", Alert.AlertType.INFORMATION);
+            return;
+        }
+
+        Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmacion.setTitle("Confirmar eliminación múltiple");
+        confirmacion.setHeaderText("¿Está seguro que desea eliminar los mensajes seleccionados?");
+        confirmacion.setContentText("Se eliminarán " + seleccionados.size() + " mensajes. Esta acción no se puede deshacer.");
+
+        confirmacion.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                int eliminados = 0;
+                for (Mensajes mensaje : seleccionados) {
+                    try {
+                        boolean exito = mensajeDao.eliminarMensaje(mensaje.getId_solicitud());
+                        if (exito) {
+                            HBox fila = filasMap.get(mensaje.getId_solicitud());
+                            if (fila != null) {
+                                mensajesVBox.getChildren().remove(fila);
+                            }
+                            eliminados++;
+
+                            // Limpiar referencias
+                            filasMap.remove(mensaje.getId_solicitud());
+                            estadosComboBoxes.remove(mensaje.getId_solicitud());
+                            cambiosPendientes.remove(mensaje.getId_solicitud());
+                        }
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                // Actualizar la lista de mensajes
+                mensajesList.removeAll(seleccionados);
+
+                // Actualizar estado de botones
+                guardarBtn.setDisable(cambiosPendientes.isEmpty());
+                cancelarBtn.setDisable(cambiosPendientes.isEmpty());
+
+                if (eliminados > 0) {
+                    mostrarAlerta("Éxito", "Se han eliminado " + eliminados + " mensajes", Alert.AlertType.INFORMATION);
+                } else {
+                    mostrarError("No se pudo eliminar ningún mensaje");
+                }
+            }
+        });
     }
 
     private void mostrarError(String mensaje) {
