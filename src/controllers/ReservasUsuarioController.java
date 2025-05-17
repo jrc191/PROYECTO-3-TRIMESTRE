@@ -127,7 +127,13 @@ public class ReservasUsuarioController {
         espectaculoLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: white;");
         butacaLabel.setStyle("-fx-text-fill: #e0e0e0;");
         precioLabel.setStyle("-fx-text-fill: #e0e0e0;");
-        estadoLabel.setStyle("-fx-text-fill: #e0e0e0;");
+
+        if (estadoReserva.equals("CONFIRMADA")){
+            estadoLabel.setStyle("-fx-text-fill: #4CAF50;");
+        }else{
+            estadoLabel.setStyle("-fx-text-fill: #f44336; ");
+        }
+
 
         infoBox.getChildren().addAll(espectaculoLabel, butacaLabel, precioLabel, estadoLabel);
 

@@ -42,6 +42,8 @@ public class NuevoAdminController {
     private UsuarioDaoI usuarioDao;
     private String rutaPrevia; //USADO PARA BOTÓN DE VOLVER
     private MouseEvent mouseEvent;
+    private ListarReservasController reservasController;
+    private ListarMensajesController mensajesController;
 
     @FXML
     public void initialize() {
@@ -137,13 +139,12 @@ public class NuevoAdminController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/admin/listarReservas.fxml"));
             Parent listarReservasView = loader.load();
-            ListarReservasController controller = loader.getController();
+            this.reservasController = loader.getController();
 
-            // Obtener usuarios
             Connection conn = utils.DatabaseConnection.getConnection();
             dao.ReservasDaoI reservasDao = new dao.impl.ReservaDaoImpl(conn);
             java.util.List<models.Reservas> reservas = reservasDao.listarTodasReservas();
-            controller.cargarReservas();
+            reservasController.cargarReservas();
             contenidoArea.getChildren().clear();
             contenidoArea.getChildren().add(listarReservasView);
             rutaLabel.setText("RESERVAS");
@@ -154,20 +155,21 @@ public class NuevoAdminController {
 
         } catch (IOException | SQLException e) {
             e.printStackTrace();
-            Label errorLabel = new Label("Error al cargar el formulario de listado de reservas.");
-            errorLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
-            contenidoArea.getChildren().clear();
-            contenidoArea.getChildren().add(errorLabel);
+            // Manejo de error...
         }
-
     }
 
-
+    // Modifica el método mostrarMensajes
     public void mostrarMensajes(MouseEvent mouseEvent) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/admin/listarMensajes.fxml"));
             Parent listarMensajesView = loader.load();
-            ListarMensajesController controller = loader.getController();
+            this.mensajesController = loader.getController();
+
+            // Pasar la referencia del controlador de reservas al de mensajes
+            if (this.reservasController != null) {
+                this.mensajesController.setReservasController(this.reservasController);
+            }
 
             contenidoArea.getChildren().clear();
             contenidoArea.getChildren().add(listarMensajesView);
@@ -179,10 +181,7 @@ public class NuevoAdminController {
 
         } catch (IOException e) {
             e.printStackTrace();
-            Label errorLabel = new Label("Error al cargar el formulario de listado de mensajes");
-            errorLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
-            contenidoArea.getChildren().clear();
-            contenidoArea.getChildren().add(errorLabel);
+            // Manejo de error...
         }
     }
 }

@@ -2,6 +2,8 @@ package controllers.admin;
 
 import dao.MensajesDaoI;
 import dao.impl.MensajesDaoImpl;
+import dao.impl.ReservaDaoImpl;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
@@ -31,6 +33,7 @@ public class ListarMensajesController {
     private List<Mensajes> mensajesList = new ArrayList<>();
     private Map<Integer, ComboBox<String>> estadosComboBoxes = new HashMap<>();
     private Map<Integer, HBox> filasMap = new HashMap<>();
+    private ListarReservasController reservasController;
 
     @FXML
     public void initialize() {
@@ -89,6 +92,9 @@ public class ListarMensajesController {
         estadosOriginales.clear();
         estadosComboBoxes.clear();
         filasMap.clear();
+
+        guardarBtn.setVisible(false);
+        cancelarBtn.setVisible(false);
 
         // Cabecera
         HBox cabecera = crearCabeceraTabla();
@@ -190,15 +196,27 @@ public class ListarMensajesController {
         estadoCombo.setOnAction(e -> {
             String seleccionado = estadoCombo.getValue();
             char nuevoEstado = seleccionado.charAt(0);
+
+            if (seleccionado==valorInicial){
+                guardarBtn.setVisible(false);
+                cancelarBtn.setVisible(false);
+            }
+
             if (mensaje.getEstado_solicitud() != nuevoEstado) {
                 cambiosPendientes.put(mensaje.getId_solicitud(), nuevoEstado);
                 guardarBtn.setDisable(cambiosPendientes.isEmpty());
                 cancelarBtn.setDisable(cambiosPendientes.isEmpty());
+                guardarBtn.setVisible(true);
+                cancelarBtn.setVisible(true);
+
             } else {
                 cambiosPendientes.remove(mensaje.getId_solicitud());
                 guardarBtn.setDisable(cambiosPendientes.isEmpty());
                 cancelarBtn.setDisable(cambiosPendientes.isEmpty());
+
             }
+
+
         });
         estadosComboBoxes.put(mensaje.getId_solicitud(), estadoCombo);
 
@@ -224,40 +242,93 @@ public class ListarMensajesController {
         confirmacion.setHeaderText("¿Está seguro que desea guardar los cambios?");
         confirmacion.setContentText("Se actualizarán " + cambiosPendientes.size() + " mensajes.");
 
-        confirmacion.showAndWait().ifPresent(response -> {
-            if (response == ButtonType.OK) {
-                try {
-                    for (Map.Entry<Integer, Character> entry : cambiosPendientes.entrySet()) {
-                        int id = entry.getKey();
-                        char nuevoEstado = entry.getValue();
+        Optional<ButtonType> resultadoConfirmacion = confirmacion.showAndWait();
 
+        if (resultadoConfirmacion.isPresent() && resultadoConfirmacion.get() == ButtonType.OK) {
+            Connection conn = null;
+            try {
+                conn = DatabaseConnection.getConnection();
+                conn.setAutoCommit(false);
+
+                MensajesDaoImpl mensajeDao = new MensajesDaoImpl(conn);
+                List<String> reservasParaCancelar = new ArrayList<>();
+
+                for (Map.Entry<Integer, Character> entry : cambiosPendientes.entrySet()) {
+                    int id = entry.getKey();
+                    char nuevoEstado = entry.getValue();
+
+                    Mensajes mensaje = mensajesList.stream()
+                            .filter(m -> m.getId_solicitud() == id)
+                            .findFirst()
+                            .orElse(null);
+
+                    if (mensaje != null) {
+                        // Si se aprueba un mensaje de cancelación, registrar la reserva
+                        if (nuevoEstado == 'A' && "Cancelación".equalsIgnoreCase(mensaje.getTipo_solicitud())) {
+                            reservasParaCancelar.add(mensaje.getId_reserva());
+                        }
+
+                        // Actualizar el estado del mensaje
                         boolean exito = mensajeDao.actualizarEstadoMensaje(id, nuevoEstado);
 
-                        if (exito) {
-                            estadosOriginales.put(id, nuevoEstado);
-                            // Actualizar el objeto mensaje en la lista
-                            for (Mensajes m : mensajesList) {
-                                if (m.getId_solicitud() == id) {
-                                    m.setEstado_solicitud(nuevoEstado);
-                                    break;
-                                }
-                            }
-                        } else {
+                        if (!exito) {
+                            conn.rollback();
                             mostrarError("No se pudo actualizar el mensaje con ID: " + id);
+                            return;
                         }
+
+                        // Actualizar el objeto en memoria
+                        mensaje.setEstado_solicitud(nuevoEstado);
+                        estadosOriginales.put(id, nuevoEstado);
+                    }
+                }
+
+                conn.commit();
+
+                // Mostrar alerta simple con IDs de reservas a cancelar
+                if (!reservasParaCancelar.isEmpty()) {
+                    StringBuilder mensaje = new StringBuilder("Debe eliminar las siguientes reservas:\n\n");
+                    for (String idReserva : reservasParaCancelar) {
+                        mensaje.append("ID_RESERVA: ").append(idReserva).append("\n");
                     }
 
-                    cambiosPendientes.clear();
-                    guardarBtn.setDisable(true);
-                    cancelarBtn.setDisable(true);
+                    Alert alertaReservas = new Alert(Alert.AlertType.WARNING);
+                    alertaReservas.setTitle("Reservas para eliminar");
+                    alertaReservas.setHeaderText("Atención Administrador");
+                    alertaReservas.setContentText(mensaje.toString());
+                    alertaReservas.showAndWait();
+                }
 
-                    mostrarAlerta("Éxito", "Cambios guardados correctamente", Alert.AlertType.INFORMATION);
+                mostrarAlerta("Éxito", "Cambios guardados correctamente", Alert.AlertType.INFORMATION);
+                cargarMensajes();
+
+                // Actualizar vista de reservas si está disponible
+                if (reservasController != null) {
+                    reservasController.cargarReservas();
+                }
+
+            } catch (SQLException e) {
+                try {
+                    if (conn != null) conn.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+                e.printStackTrace();
+                mostrarError("Error al guardar los cambios: " + e.getMessage());
+            } finally {
+                try {
+                    if (conn != null) conn.setAutoCommit(true);
                 } catch (SQLException e) {
                     e.printStackTrace();
-                    mostrarError("Error al guardar los cambios: " + e.getMessage());
                 }
+
+                cambiosPendientes.clear();
+                guardarBtn.setDisable(true);
+                cancelarBtn.setDisable(true);
+                guardarBtn.setVisible(false);
+                cancelarBtn.setVisible(false);
             }
-        });
+        }
     }
 
     private void cancelarCambios() {
@@ -291,6 +362,8 @@ public class ListarMensajesController {
                 cambiosPendientes.clear();
                 guardarBtn.setDisable(true);
                 cancelarBtn.setDisable(true);
+                guardarBtn.setVisible(false);
+                cancelarBtn.setVisible(false);
                 mostrarAlerta("Información", "Cambios cancelados", Alert.AlertType.INFORMATION);
             }
         });
@@ -312,6 +385,20 @@ public class ListarMensajesController {
                             mensajesVBox.getChildren().remove(fila);
                         }
                         mensajesList.remove(mensaje);
+
+                        if (mensajesList.isEmpty()){
+                            Label noMensajesLabel = new Label("No existen mensajes actualmente");
+                            noMensajesLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #757575; -fx-padding: 20px;");
+                            VBox contenedorMensaje = new VBox(noMensajesLabel);
+                            contenedorMensaje.setAlignment(Pos.CENTER);
+                            contenedorMensaje.setPrefHeight(100);
+                            mensajesVBox.getChildren().add(contenedorMensaje);
+
+                            eliminarBtn.setDisable(true);
+                        } else {
+                            eliminarBtn.setDisable(false);
+                        }
+
                         filasMap.remove(mensaje.getId_solicitud());
                         estadosComboBoxes.remove(mensaje.getId_solicitud());
                         cambiosPendientes.remove(mensaje.getId_solicitud());
@@ -410,5 +497,19 @@ public class ListarMensajesController {
         alert.setTitle(titulo);
         alert.setContentText(mensaje);
         alert.show();
+    }
+
+    public void setReservasController(ListarReservasController controller) {
+        this.reservasController = controller;
+        // Verificar que el controlador no sea nulo y tenga conexión
+        if (reservasController != null) {
+            try {
+                Connection conn = DatabaseConnection.getConnection();
+                reservasController.initialize();
+                reservasController.cargarReservas();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

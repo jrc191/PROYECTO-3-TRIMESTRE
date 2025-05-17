@@ -212,56 +212,83 @@ public class ReservaDaoImpl implements ReservasDaoI {
 
     @Override
     public int cancelarReserva(String idReserva) throws SQLException {
-        // 1. Obtener los datos de la reserva
-        String selectQuery = "SELECT * FROM RESERVAS WHERE ID_RESERVA = ?";
-        Reservas reserva = null;
+        boolean autoCommitOriginal = conn.getAutoCommit();
+        conn.setAutoCommit(false);
 
-        try (PreparedStatement pstmt = conn.prepareStatement(selectQuery)) {
-            pstmt.setString(1, idReserva);
-            ResultSet rs = pstmt.executeQuery();
+        try {
+            // 1. Obtener los datos de la reserva
+            String selectQuery = "SELECT * FROM RESERVAS WHERE ID_RESERVA = ?";
+            Reservas reserva = null;
 
-            if (rs.next()) {
-                reserva = new Reservas();
-                reserva.setId_reserva(rs.getString("ID_RESERVA"));
-                reserva.setId_espectaculo(rs.getString("ID_ESPECTACULO"));
-                reserva.setId_butaca(rs.getString("ID_BUTACA"));
-                reserva.setId_usuario(rs.getString("ID_USUARIO"));
-                reserva.setPrecio(rs.getDouble("PRECIO"));
-                reserva.setEstado('C'); // 'C' para Cancelada
-                reserva.setFecha(rs.getTimestamp("FECHA_RESERVA"));
-            }
-        }
+            try (PreparedStatement pstmt = conn.prepareStatement(selectQuery)) {
+                pstmt.setString(1, idReserva);
+                ResultSet rs = pstmt.executeQuery();
 
-        if (reserva == null) {
-            return 0;
-        }
-
-        // 2. Insertar en historial
-        String insertQuery = "INSERT INTO HISTORIAL_RESERVAS (ID_RESERVA, ID_ESPECTACULO, ID_BUTACA, " +
-                "ID_USUARIO, PRECIO, ESTADO, FECHA, FECHA_CANCELACION) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
-
-        try (PreparedStatement pstmt = conn.prepareStatement(insertQuery)) {
-            pstmt.setString(1, reserva.getId_reserva());
-            pstmt.setString(2, reserva.getId_espectaculo());
-            pstmt.setString(3, reserva.getId_butaca());
-            pstmt.setString(4, reserva.getId_usuario());
-            pstmt.setDouble(5, reserva.getPrecio());
-            pstmt.setString(6, String.valueOf(reserva.getEstado()));
-            pstmt.setTimestamp(7, reserva.getFecha());
-
-            int inserted = pstmt.executeUpdate();
-
-            // 3. Eliminar de reservas activas si se insertó correctamente
-            if (inserted > 0) {
-                String deleteQuery = "DELETE FROM RESERVAS WHERE ID_RESERVA = ?";
-                try (PreparedStatement deleteStmt = conn.prepareStatement(deleteQuery)) {
-                    deleteStmt.setString(1, idReserva);
-                    return deleteStmt.executeUpdate();
+                if (rs.next()) {
+                    reserva = new Reservas();
+                    reserva.setId_reserva(rs.getString("ID_RESERVA"));
+                    reserva.setId_espectaculo(rs.getString("ID_ESPECTACULO"));
+                    reserva.setId_butaca(rs.getString("ID_BUTACA"));
+                    reserva.setId_usuario(rs.getString("ID_USUARIO"));
+                    reserva.setPrecio(rs.getDouble("PRECIO"));
+                    reserva.setEstado('C');
+                    reserva.setFecha(rs.getTimestamp("FECHA_RESERVA"));
                 }
             }
+
+            if (reserva == null) {
+                return 0;
+            }
+
+            // 2. Primero eliminar las solicitudes relacionadas
+            String deleteSolicitudes = "DELETE FROM SOLICITUDES WHERE ID_RESERVA = ?";
+            try (PreparedStatement pstmt = conn.prepareStatement(deleteSolicitudes)) {
+                pstmt.setString(1, idReserva);
+                pstmt.executeUpdate();
+            }
+
+            // 3. Insertar en historial
+            String insertQuery = "INSERT INTO HISTORIAL_RESERVAS (ID_RESERVA, ID_ESPECTACULO, ID_BUTACA, " +
+                    "ID_USUARIO, PRECIO, ESTADO, FECHA, FECHA_CANCELACION) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
+
+            try (PreparedStatement pstmt = conn.prepareStatement(insertQuery)) {
+                pstmt.setString(1, reserva.getId_reserva());
+                pstmt.setString(2, reserva.getId_espectaculo());
+                pstmt.setString(3, reserva.getId_butaca());
+                pstmt.setString(4, reserva.getId_usuario());
+                pstmt.setDouble(5, reserva.getPrecio());
+                pstmt.setString(6, String.valueOf(reserva.getEstado()));
+                pstmt.setTimestamp(7, reserva.getFecha());
+
+                int inserted = pstmt.executeUpdate();
+
+                if (inserted <= 0) {
+                    conn.rollback();
+                    return 0;
+                }
+            }
+
+            // 4. Eliminar de reservas activas
+            String deleteQuery = "DELETE FROM RESERVAS WHERE ID_RESERVA = ?";
+            try (PreparedStatement deleteStmt = conn.prepareStatement(deleteQuery)) {
+                deleteStmt.setString(1, idReserva);
+                int deleted = deleteStmt.executeUpdate();
+
+                if (deleted > 0) {
+                    conn.commit();
+                    return deleted;
+                } else {
+                    conn.rollback();
+                    return 0;
+                }
+            }
+        } catch (SQLException e) {
+            conn.rollback();
+            throw e;
+        } finally {
+            conn.setAutoCommit(autoCommitOriginal);
         }
-        return 0;
     }
 
     @Override

@@ -12,9 +12,9 @@
 <AnchorPane xmlns="http://javafx.com/javafx/21.0.6" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.admin.ListarReservasController">
     <VBox spacing="10" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <HBox prefHeight="42.0" prefWidth="700.0" spacing="10" style="-fx-padding: 10;">
-            <ImageView fx:id="editarBtn" fitHeight="30.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true" style="-fx-cursor: hand;">
+            <ImageView fx:id="editarBtn" fitHeight="30.0" fitWidth="21.0" pickOnBounds="true" preserveRatio="true" style="-fx-cursor: hand;">
                 <image>
-                    <Image url="@../../resources/images/edit.png" />
+                    <Image url="@../../resources/images/tick.png" />
                 </image>
                 <HBox.margin>
                     <Insets left="10.0" top="6.0" />
@@ -41,7 +41,7 @@
         </HBox>
         <ScrollPane fx:id="scrollReservas" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" prefHeight="500.0" prefWidth="700.0" style="-fx-background: white; -fx-border-color: #e0e0e0; -fx-border-width: 1; -fx-border-radius: 5;" vbarPolicy="AS_NEEDED">
             <content>
-                <VBox fx:id="reservasVBox"  prefWidth="680.0" spacing="0" style="-fx-background-color: white;">
+                <VBox fx:id="reservasVBox" prefWidth="680.0" spacing="0" style="-fx-background-color: white;">
                     <!-- Aquí se añaden las reservas dinámicamente -->
                 </VBox>
             </content>

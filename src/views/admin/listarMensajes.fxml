@@ -20,12 +20,12 @@
                     <Insets left="10.0" top="7.0" />
                 </HBox.margin>
             </ImageView>
-            <Button fx:id="guardarBtn" mnemonicParsing="false" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-cursor: hand;" text="Guardar Cambios">
+            <Button fx:id="guardarBtn" mnemonicParsing="false" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-cursor: hand;" text="Guardar Cambios" visible="false">
                 <HBox.margin>
                     <Insets left="10.0" top="6.0" />
                 </HBox.margin>
             </Button>
-            <Button fx:id="cancelarBtn" mnemonicParsing="false" style="-fx-background-color: #f44336; -fx-text-fill: white; -fx-cursor: hand;" text="Cancelar Cambios">
+            <Button fx:id="cancelarBtn" mnemonicParsing="false" style="-fx-background-color: #f44336; -fx-text-fill: white; -fx-cursor: hand;" text="Cancelar Cambios" visible="false">
                 <HBox.margin>
                     <Insets left="5.0" top="6.0" />
                 </HBox.margin>
