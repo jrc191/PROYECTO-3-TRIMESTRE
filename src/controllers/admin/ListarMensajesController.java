@@ -248,10 +248,37 @@ public class ListarMensajesController {
             Connection conn = null;
             try {
                 conn = DatabaseConnection.getConnection();
+                boolean autoCommitOriginal = conn.getAutoCommit();
                 conn.setAutoCommit(false);
 
                 MensajesDaoImpl mensajeDao = new MensajesDaoImpl(conn);
                 List<String> reservasParaCancelar = new ArrayList<>();
+
+                // Para depuración: contar cuántos mensajes de cada tipo
+                int contadorCancelaciones = 0;
+                int contadorAprobados = 0;
+
+                // Primero mostrar lo que vamos a procesar
+                StringBuilder debugInfo = new StringBuilder("Cambios a procesar:\n");
+                for (Map.Entry<Integer, Character> entry : cambiosPendientes.entrySet()) {
+                    int id = entry.getKey();
+                    char nuevoEstado = entry.getValue();
+
+                    Mensajes mensaje = mensajesList.stream()
+                            .filter(m -> m.getId_solicitud() == id)
+                            .findFirst()
+                            .orElse(null);
+
+                    if (mensaje != null) {
+                        debugInfo.append("ID: ").append(id)
+                                .append(", Tipo: ").append(mensaje.getTipo_solicitud())
+                                .append(", Estado Nuevo: ").append(nuevoEstado)
+                                .append(", ID Reserva: ").append(mensaje.getId_reserva())
+                                .append("\n");
+                    }
+                }
+
+                System.out.println(debugInfo.toString()); // Imprimir en consola
 
                 for (Map.Entry<Integer, Character> entry : cambiosPendientes.entrySet()) {
                     int id = entry.getKey();
@@ -263,9 +290,17 @@ public class ListarMensajesController {
                             .orElse(null);
 
                     if (mensaje != null) {
+                        if (nuevoEstado == 'A') {
+                            contadorAprobados++;
+                        }
+
                         // Si se aprueba un mensaje de cancelación, registrar la reserva
-                        if (nuevoEstado == 'A' && "Cancelación".equalsIgnoreCase(mensaje.getTipo_solicitud())) {
-                            reservasParaCancelar.add(mensaje.getId_reserva());
+                        if (nuevoEstado == 'A' && mensaje.getTipo_solicitud() != null &&
+                                mensaje.getTipo_solicitud().toLowerCase().contains("cancelac")) {
+                            contadorCancelaciones++;
+                            if (mensaje.getId_reserva() != null && !mensaje.getId_reserva().isEmpty()) {
+                                reservasParaCancelar.add(mensaje.getId_reserva());
+                            }
                         }
 
                         // Actualizar el estado del mensaje
@@ -285,19 +320,48 @@ public class ListarMensajesController {
 
                 conn.commit();
 
-                // Mostrar alerta simple con IDs de reservas a cancelar
-                if (!reservasParaCancelar.isEmpty()) {
-                    StringBuilder mensaje = new StringBuilder("Debe eliminar las siguientes reservas:\n\n");
+                // Mostrar información de depuración en consola
+                StringBuilder debugResultado = new StringBuilder();
+                debugResultado.append("Total aprobados: ").append(contadorAprobados).append("\n");
+                debugResultado.append("Cancelaciones aprobadas: ").append(contadorCancelaciones).append("\n");
+                debugResultado.append("Reservas a cancelar: ").append(reservasParaCancelar.size()).append("\n");
+
+                System.out.println(debugResultado.toString()); // Imprimir en consola
+
+                // Siempre mostrar alerta con IDs de reservas a cancelar, incluso si la lista está vacía
+                StringBuilder mensaje = new StringBuilder();
+                if (reservasParaCancelar.isEmpty()) {
+                    mensaje.append("No hay reservas para eliminar.\n\n");
+                    mensaje.append("Información de depuración:\n");
+                    mensaje.append("- Total cambios procesados: ").append(cambiosPendientes.size()).append("\n");
+                    mensaje.append("- Total solicitudes aprobadas: ").append(contadorAprobados).append("\n");
+                    mensaje.append("- Cancelaciones aprobadas: ").append(contadorCancelaciones);
+                } else {
+                    mensaje.append("Debe eliminar las siguientes reservas:\n\n");
                     for (String idReserva : reservasParaCancelar) {
                         mensaje.append("ID_RESERVA: ").append(idReserva).append("\n");
                     }
-
-                    Alert alertaReservas = new Alert(Alert.AlertType.WARNING);
-                    alertaReservas.setTitle("Reservas para eliminar");
-                    alertaReservas.setHeaderText("Atención Administrador");
-                    alertaReservas.setContentText(mensaje.toString());
-                    alertaReservas.showAndWait();
                 }
+
+                // Usar TextArea para mejor visualización
+                TextArea textArea = new TextArea(mensaje.toString());
+                textArea.setEditable(false);
+                textArea.setWrapText(true);
+                textArea.setPrefHeight(150);
+                textArea.setPrefWidth(300);
+
+                Alert alertaReservas = new Alert(Alert.AlertType.WARNING);
+                alertaReservas.setTitle("Reservas para eliminar");
+                alertaReservas.setHeaderText("Atención Administrador");
+
+                // Usar un contenedor para el TextArea
+                VBox vbox = new VBox();
+                vbox.getChildren().add(textArea);
+                vbox.setPadding(new Insets(10));
+
+                alertaReservas.getDialogPane().setContent(vbox);
+                alertaReservas.setResizable(true);
+                alertaReservas.showAndWait(); // Esperar hasta que el usuario cierre la alerta
 
                 mostrarAlerta("Éxito", "Cambios guardados correctamente", Alert.AlertType.INFORMATION);
                 cargarMensajes();
