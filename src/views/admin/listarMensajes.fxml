@@ -14,10 +14,10 @@
         <HBox prefHeight="42.0" prefWidth="700.0" spacing="10" style="-fx-padding: 10;">
             <ImageView fx:id="eliminarBtn" fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true" style="-fx-cursor: hand;">
                 <image>
-                    <Image url="@../../resources/images/eliminar.png" />
+                    <Image url="@../../resources/images/cancel.png" />
                 </image>
                 <HBox.margin>
-                    <Insets left="10.0" top="6.0" />
+                    <Insets left="10.0" top="7.0" />
                 </HBox.margin>
             </ImageView>
             <Button fx:id="guardarBtn" mnemonicParsing="false" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-cursor: hand;" text="Guardar Cambios">
@@ -31,7 +31,7 @@
                 </HBox.margin>
             </Button>
         </HBox>
-        <ScrollPane fx:id="scrollMensajes" fitToHeight="true" prefHeight="600" hbarPolicy="AS_NEEDED" style="-fx-background: white; -fx-border-color: #e0e0e0; -fx-border-width: 1; -fx-border-radius: 5;" vbarPolicy="AS_NEEDED">
+        <ScrollPane fx:id="scrollMensajes" fitToHeight="true" hbarPolicy="AS_NEEDED" prefHeight="600" style="-fx-background: white; -fx-border-color: #e0e0e0; -fx-border-width: 1; -fx-border-radius: 5;" vbarPolicy="AS_NEEDED">
             <content>
                 <VBox fx:id="mensajesVBox" spacing="2" style="-fx-background-color: #fff;">
                     <!-- Las filas se generarán dinámicamente desde el controlador -->

@@ -108,10 +108,6 @@ public class ReservaDaoImpl implements ReservasDaoI {
     }
 
 
-    /**
-     * Elimina todas las reservas temporales de un usuario (por id_usuario) en RESERVAS_TEMP.
-     */
-
     @Override
     public void eliminarReservasTemporalesUsuario(String idUsuario) throws SQLException {
         String query = "DELETE FROM RESERVAS_TEMP WHERE id_usuario = ?";
@@ -125,12 +121,9 @@ public class ReservaDaoImpl implements ReservasDaoI {
     @Override
     public int contarReservasPorUsuarioYEspectaculo(String idUsuario, String idEspectaculo, String idButaca) throws SQLException {
         String query = """
-        SELECT COUNT(*) as total 
-        FROM RESERVAS 
+        SELECT COUNT(*) as total FROM RESERVAS 
         WHERE id_usuario = ? 
-        AND id_espectaculo = ?
-        AND id_butaca = ?
-        AND estado = 'O'
+        AND id_espectaculo = ? AND id_butaca = ? AND estado = 'O'
         """;
 
         try (PreparedStatement pstmt = conn.prepareStatement(query)) {
@@ -400,7 +393,17 @@ public class ReservaDaoImpl implements ReservasDaoI {
         return historial;
     }
 
-    // También necesitamos actualizar los métodos existentes para incluir la fecha
+    @Override
+    public int eliminarReservasPorEspectaculo(String idEspectaculo) throws SQLException {
+        String query = "DELETE FROM RESERVAS WHERE ID_ESPECTACULO = ?";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, idEspectaculo);
+            return pstmt.executeUpdate();
+        }
+    }
+
+
     @Override
     public List<Reservas> listarTodasReservas() throws SQLException {
         List<Reservas> reservas = new ArrayList<>();
