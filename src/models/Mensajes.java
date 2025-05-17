@@ -1,5 +1,7 @@
 package models;
 
+import javafx.beans.property.SimpleBooleanProperty;
+
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -11,6 +13,16 @@ public class Mensajes {
     private Timestamp fecha;
     private String tipo_solicitud;
     private char estado_solicitud;
+
+    private SimpleBooleanProperty seleccionado = new SimpleBooleanProperty(false);
+
+    public SimpleBooleanProperty seleccionadoProperty() {
+        return seleccionado;
+    }
+
+    public void setSeleccionado(SimpleBooleanProperty seleccionado) {
+        this.seleccionado = seleccionado;
+    }
 
     public Mensajes() {
     }
