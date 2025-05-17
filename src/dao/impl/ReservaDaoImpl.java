@@ -157,7 +157,7 @@ public class ReservaDaoImpl implements ReservasDaoI {
 
     @Override
     public int reactivarReserva(String idReserva) throws SQLException {
-        // 1. Obtener la reserva del historial
+        // 1. Obtener los datos de la reserva del historial
         String selectQuery = "SELECT * FROM HISTORIAL_RESERVAS WHERE ID_RESERVA = ?";
         Reservas reserva = null;
 
@@ -172,7 +172,7 @@ public class ReservaDaoImpl implements ReservasDaoI {
                 reserva.setId_butaca(rs.getString("ID_BUTACA"));
                 reserva.setId_usuario(rs.getString("ID_USUARIO"));
                 reserva.setPrecio(rs.getDouble("PRECIO"));
-                reserva.setEstado('O'); // 'O' para Ocupada
+                reserva.setEstado('O'); // 'O' para Activa
                 reserva.setFecha(rs.getTimestamp("FECHA"));
             }
         }
@@ -181,11 +181,19 @@ public class ReservaDaoImpl implements ReservasDaoI {
             return 0;
         }
 
-        // 2. Insertar en RESERVAS
-        String insertQuery = "INSERT INTO RESERVAS (ID_RESERVA, ID_ESPECTACULO, ID_BUTACA, " +
-                "ID_USUARIO, PRECIO, ESTADO, FECHA_RESERVA) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?)";
+        // 2. Verificar si la butaca ya está ocupada
+        String checkQuery = "SELECT COUNT(*) FROM RESERVAS WHERE ID_ESPECTACULO = ? AND ID_BUTACA = ?";
+        try (PreparedStatement checkStmt = conn.prepareStatement(checkQuery)) {
+            checkStmt.setString(1, reserva.getId_espectaculo());
+            checkStmt.setString(2, reserva.getId_butaca());
+            ResultSet rs = checkStmt.executeQuery();
+            if (rs.next() && rs.getInt(1) > 0) {
+                return -1; // Butaca ya ocupada
+            }
+        }
 
+        // 3. Insertar en RESERVAS
+        String insertQuery = "INSERT INTO RESERVAS (ID_RESERVA, ID_ESPECTACULO, ID_BUTACA, ID_USUARIO, PRECIO, ESTADO, FECHA_RESERVA) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(insertQuery)) {
             pstmt.setString(1, reserva.getId_reserva());
             pstmt.setString(2, reserva.getId_espectaculo());
@@ -197,7 +205,7 @@ public class ReservaDaoImpl implements ReservasDaoI {
 
             int inserted = pstmt.executeUpdate();
 
-            // 3. Eliminar del historial si se insertó correctamente
+            // 4. Eliminar del historial si se insertó correctamente
             if (inserted > 0) {
                 String deleteQuery = "DELETE FROM HISTORIAL_RESERVAS WHERE ID_RESERVA = ?";
                 try (PreparedStatement deleteStmt = conn.prepareStatement(deleteQuery)) {

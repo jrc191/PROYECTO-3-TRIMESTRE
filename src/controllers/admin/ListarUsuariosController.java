@@ -284,6 +284,10 @@ public class ListarUsuariosController {
             ImageView editarIcon = new ImageView(new Image(getClass().getResourceAsStream("/resources/images/editar.png")));
             ImageView eliminarIcon = new ImageView(new Image(getClass().getResourceAsStream("/resources/images/eliminar.png")));
 
+            // Configurar tooltips
+            Tooltip.install(editarIcon, new Tooltip("Editar usuario"));
+            Tooltip.install(eliminarIcon, new Tooltip("Eliminar usuario"));
+
             // Configurar botones según si es admin o no
             if ("admin@admin.com".equals(usuario.getEmail())) {
                 // Deshabilitar acciones para admin

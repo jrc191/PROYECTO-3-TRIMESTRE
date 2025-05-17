@@ -123,39 +123,46 @@ public class ListarReservasController {
                 Label estado = new Label(estadoText);
 
                 // Botones de acción
-                ImageView editarIcon = new ImageView(new Image(getClass().getResourceAsStream("/resources/images/edit.png")));
+                ImageView reactivarIcon = new ImageView(new Image(getClass().getResourceAsStream("/resources/images/tick.png")));
                 ImageView cancelarIcon = new ImageView(new Image(getClass().getResourceAsStream("/resources/images/cancel.png")));
 
+                // Configurar tooltips
+                Tooltip.install(reactivarIcon, new Tooltip("Reactivar reserva"));
+                Tooltip.install(cancelarIcon, new Tooltip("Cancelar reserva"));
+
+                // Configurar estilos y acciones
                 if (reserva.getEstado() == 'C') {
-                    // Para reservas canceladas: permitir reactivación
-                    checkBox.setDisable(true);
-                    checkBox.setOpacity(0.5);
+                    // Para reservas canceladas: habilitar reactivación
+                    reactivarIcon.setFitHeight(16);
+                    reactivarIcon.setFitWidth(16);
+                    reactivarIcon.setStyle("-fx-cursor: hand;");
+                    reactivarIcon.setOnMouseClicked(e -> editarReserva(reserva));
+                    // Añadir efecto de brillo para destacar
+                    reactivarIcon.setEffect(new javafx.scene.effect.ColorAdjust(0, 0.8, 0, 0));
 
-                    editarIcon.setFitHeight(16);
-                    editarIcon.setFitWidth(16);
-                    editarIcon.setStyle("-fx-cursor: hand;");
-                    editarIcon.setOnMouseClicked(e -> editarReserva(reserva));
-
-                    cancelarIcon.setDisable(true);
-                    cancelarIcon.setOpacity(0.5);
+                    // Deshabilitar cancelación
                     cancelarIcon.setFitHeight(16);
                     cancelarIcon.setFitWidth(16);
+                    cancelarIcon.setOpacity(0.2);
+                    cancelarIcon.setEffect(new javafx.scene.effect.ColorAdjust(0, 0, -0.3, 0));
                 } else {
-                    // Para reservas activas: permitir cancelación
-                    checkBox.setDisable(false);
-
-                    editarIcon.setDisable(true);
-                    editarIcon.setOpacity(0.5);
-                    editarIcon.setFitHeight(16);
-                    editarIcon.setFitWidth(16);
-
+                    // Para reservas activas: habilitar cancelación
                     cancelarIcon.setFitHeight(16);
                     cancelarIcon.setFitWidth(16);
                     cancelarIcon.setStyle("-fx-cursor: hand;");
                     cancelarIcon.setOnMouseClicked(e -> cancelarReserva(reserva));
+                    // Añadir efecto de color rojo
+                    cancelarIcon.setEffect(new javafx.scene.effect.ColorAdjust(0, 0.8, 0, 0));
+
+                    // Deshabilitar reactivación
+                    reactivarIcon.setFitHeight(16);
+                    reactivarIcon.setFitWidth(16);
+                    reactivarIcon.setOpacity(0.2);
+                    reactivarIcon.setEffect(new javafx.scene.effect.ColorAdjust(0, 0, -0.3, 0));
                 }
 
-                HBox accionesBox = new HBox(5, editarIcon, cancelarIcon);
+                // Añadir los botones a la fila
+                HBox accionesBox = new HBox(5, reactivarIcon, cancelarIcon);
                 accionesBox.setPrefWidth(100);
 
                 // Establecer anchos y estilos
@@ -191,6 +198,12 @@ public class ListarReservasController {
 
 
     private void editarReserva(Reservas reserva) {
+
+        if (reserva.getEstado() == 'O') {
+            mostrarError("Esta reserva ya está activa");
+            return;
+        }
+
         if (reserva.getEstado() == 'C') {
             Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
             confirmAlert.setTitle("Confirmar reactivación");
@@ -204,17 +217,17 @@ public class ListarReservasController {
                         if (resultado > 0) {
                             mostrarMensaje("Reserva reactivada", "La reserva ha sido reactivada exitosamente");
                             cargarReservas();
+                        } else if (resultado == -1) {
+                            mostrarError("No se puede reactivar la reserva porque la butaca ya está ocupada");
                         } else {
                             mostrarError("No se pudo reactivar la reserva");
                         }
                     } catch (SQLException e) {
                         e.printStackTrace();
-                        mostrarError("Error al reactivar la reserva");
+                        mostrarError("Error al reactivar la reserva: " + e.getMessage());
                     }
                 }
             });
-        } else {
-            mostrarError("Solo se pueden reactivar reservas canceladas");
         }
     }
 
