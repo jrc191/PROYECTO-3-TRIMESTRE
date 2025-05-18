@@ -2,7 +2,7 @@
 
 ## 1. Descripción del Proyecto
 
-CINEMA-JRC es un sistema de gestión de cine que permite a los usuarios reservar entradas para espectáculos, gestionar sus reservas y acceder a información sobre las funciones disponibles. El sistema incluye funcionalidades tanto para usuarios finales como para administradores del cine.
+CINEMA-JRC es un sistema de gestión de cine que permite a los usuarios reservar entradas para espectáculos, gestionar sus reservas y acceder a información sobre las funciones disponibles. El sistema incluye funcionalidades tanto para usuarios finales como para administradores del cine. MÁS INFO EN: https://deepwiki.com/jrc191/COPIA-PROYECTO-3TRIM
 
 ### 1.1 Características Principales
 - Reserva de entradas para espectáculos
