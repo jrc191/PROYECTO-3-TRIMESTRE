@@ -44,7 +44,7 @@
             </VBox.margin>
             <Label prefHeight="18.0" prefWidth="60.0" style="-fx-text-fill: white;" text="Butaca:" />
             <ChoiceBox fx:id="eleccionBox" prefHeight="24.0" prefWidth="89.0" style="-fx-background-color: black; -fx-blend-mode: add;" />
-            <Button alignment="CENTER" onAction="#filtrarPorAsiento" prefHeight="26.0" prefWidth="73.0" style="-fx-background-color: #4e3a74; -fx-text-fill: white; -fx-font-weight: bold;" text="Filtrar">
+            <Button alignment="CENTER" onAction="#filtrarPorAsiento" prefHeight="26.0" prefWidth="73.0" style="-fx-background-color: #2a325c; -fx-text-fill: white;" text="Filtrar">
                 <cursor>
                     <Cursor fx:constant="HAND" />
                 </cursor>

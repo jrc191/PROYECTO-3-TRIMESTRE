@@ -83,12 +83,7 @@ public class CestaController {
         actualizarCesta();
     }
 
-    //A IMPLEMENTAR
-    @FXML
-    private void filtrarPorButaca() {
-        String tipoSeleccionado = eleccionBox.getValue();
 
-    }
 
     public boolean puedeAgregarEntrada(String idEspectaculo, int fila, int col) {
         if (entradas == null) {
@@ -166,85 +161,137 @@ public class CestaController {
         CestaStorage.guardarCesta(emailUsuarioLogueado, entradas);
     }
 
+    // Método para filtrar por asiento/selección del ChoiceBox
+    public void filtrarPorAsiento(ActionEvent actionEvent) {
+        String seleccion = eleccionBox.getValue();
+        if (seleccion == null || seleccion.equals("-") || seleccion.equals("Mostrar todas")) {
+            actualizarCesta(); // Mostrar todas si no hay selección o es el valor por defecto
+            return;
+        }
 
-    //para actualizar la cesta. Crea cada entrada según el fichero {email}.ser.
+        List<EntradaCesta> entradasFiltradas = new ArrayList<>();
+        for (EntradaCesta entrada : entradas) {
+            String entradaInfo = entrada.getNombreEspectaculo() + "-F" + entrada.getFila() + "_C" + entrada.getCol();
+            if (entradaInfo.equals(seleccion)) {
+                entradasFiltradas.add(entrada);
+            }
+        }
+
+        mostrarEntradasFiltradas(entradasFiltradas);
+    }
+
+    // Método para filtrar por nombre o información de la entrada
+    public void filtrarPorNombre(ActionEvent actionEvent) {
+        String textoBusqueda = filtroNombreField.getText().trim().toLowerCase();
+        if (textoBusqueda.isEmpty()) {
+            actualizarCesta(); // Mostrar todas si no hay texto de búsqueda
+            return;
+        }
+
+        List<EntradaCesta> entradasFiltradas = new ArrayList<>();
+        for (EntradaCesta entrada : entradas) {
+            // Buscar en todas las propiedades de la entrada
+            if (entrada.getNombreEspectaculo().toLowerCase().contains(textoBusqueda) ||
+                    ("F" + entrada.getFila() + "-C" + entrada.getCol()).toLowerCase().contains(textoBusqueda) ||
+                    (entrada.isVip() ? "vip" : "estándar").contains(textoBusqueda) ||
+                    String.valueOf(entrada.getPrecio()).contains(textoBusqueda)) {
+                entradasFiltradas.add(entrada);
+            }
+        }
+
+        mostrarEntradasFiltradas(entradasFiltradas);
+    }
+
+    // Método auxiliar para mostrar entradas filtradas
+    private void mostrarEntradasFiltradas(List<EntradaCesta> entradasFiltradas) {
+        contenedorEntradas.getChildren().clear();
+        double subtotal = 0.0;
+
+        if (entradasFiltradas.isEmpty()) {
+            Label mensaje = new Label("No se encontraron entradas que coincidan con el criterio de búsqueda");
+            mensaje.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
+            contenedorEntradas.getChildren().add(mensaje);
+        } else {
+            for (EntradaCesta entrada : entradasFiltradas) {
+                VBox entradaCard = crearTarjetaEntrada(entrada);
+                contenedorEntradas.getChildren().add(entradaCard);
+                subtotal += entrada.getPrecio();
+            }
+        }
+
+        totalLabel.setText(String.format("Subtotal: %.2f €", subtotal));
+    }
+
+    // Método para mostrar todas las entradas (sin filtros)
+    public void mostrarTodas(ActionEvent actionEvent) {
+        filtroNombreField.clear();
+        eleccionBox.setValue("-");
+        actualizarCesta();
+    }
+
+    // Modificar el método actualizarCesta para incluir las opciones en el ChoiceBox
     private void actualizarCesta() {
         contenedorEntradas.getChildren().clear();
         total = 0.0;
+        eleccionBox.getItems().clear();
+        eleccionBox.getItems().add("-"); // Valor por defecto
+        eleccionBox.getItems().add("Mostrar todas");
 
         for (EntradaCesta entrada : entradas) {
-            VBox entradaCard = new VBox(10);
-            entradaCard.setStyle("-fx-background-color: #2a325c; -fx-padding: 15; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 5);");
-            entradaCard.setPrefWidth(680);
-
-            HBox contentBox = new HBox(15);
-            contentBox.setAlignment(Pos.CENTER_LEFT);
-
-            VBox infoBox = new VBox(5);
-
-            Label nombreLabel = new Label(entrada.getNombreEspectaculo());
-            nombreLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: white; -fx-font-size: 16px;");
-
-            Label detalleLabel = new Label("Butaca: " + entrada.getFila() + ", " + entrada.getCol() +
-                    (entrada.isVip() ? " (VIP)" : " (Estándar)"));
-            detalleLabel.setStyle("-fx-text-fill: #e0e0e0; -fx-font-size: 14px;");
-
-            Label precioLabel = new Label(String.format("Precio: %.2f €", entrada.getPrecio()));
-            precioLabel.setStyle("-fx-text-fill: #e0e0e0; -fx-font-size: 14px;");
-
-            infoBox.getChildren().addAll(nombreLabel, detalleLabel, precioLabel);
-
-            eleccionBox.getItems().add(entrada.getNombreEspectaculo()+"-F"+entrada.getFila()+"_C"+entrada.getCol());
-            eleccionBox.setStyle("-fx-background-color: #2a325c; -fx-text-fill: white;");
-            eleccionBox.setValue("-");
-            eleccionBox.setStyle("-fx-font-weight: bold; -fx-text-fill: white;");
-
-            Button eliminarBtn = new Button("Eliminar");
-            eliminarBtn.setStyle("-fx-background-color: #ff4444; -fx-text-fill: white; -fx-font-weight: bold;");
-
-            eliminarBtn.setOnAction(e -> {
-                entradas.remove(entrada);
-                total -= entrada.getPrecio();
-
-                try {
-                    Connection conn = DatabaseConnection.getConnection();
-                    ReservaDaoImpl reservaDao = new ReservaDaoImpl(conn);
-
-                    // Usar el ID de espectáculo de la entrada específica
-                    String idReservaTemp = entrada.getIdEspectaculo() + "_" + idUsuario + "_F" + entrada.getFila() + "-C" + entrada.getCol();
-                    System.out.println("Intentando eliminar reserva temporal con ID: " + idReservaTemp);
-                    eleccionBox.getItems().removeAll(entrada.getNombreEspectaculo()+"-F"+entrada.getFila()+"_C"+entrada.getCol());
-
-                    reservaDao.eliminarReservaTemporal(idReservaTemp);
-                } catch (SQLException ex) {
-                    ex.printStackTrace();
-                    Alert alert = new Alert(AlertType.ERROR);
-                    alert.setTitle("Error");
-                    alert.setContentText("No se pudo eliminar la reserva temporal: " + ex.getMessage());
-                    alert.show();
-                }
-
-                actualizarCesta();
-                CestaStorage.guardarCesta(emailUsuarioLogueado, entradas);
-            });
-
-            Region spacer = new Region();
-            HBox.setHgrow(spacer, Priority.ALWAYS);
-
-            contentBox.getChildren().addAll(infoBox, spacer, eliminarBtn);
-            entradaCard.getChildren().add(contentBox);
-
-
-
+            VBox entradaCard = crearTarjetaEntrada(entrada);
             contenedorEntradas.getChildren().add(entradaCard);
-            // Inicializamos opciones del ChoiceBox
             total += entrada.getPrecio();
+
+            // Añadir opción al ChoiceBox
+            String opcion = entrada.getNombreEspectaculo() + "-F" + entrada.getFila() + "_C" + entrada.getCol();
+            eleccionBox.getItems().add(opcion);
         }
 
+        eleccionBox.setValue("-");
         totalLabel.setText(String.format("Total: %.2f €", total));
     }
 
-    public void mostrarTodas(){}
+    // Método auxiliar para crear tarjetas de entrada (extraído del código existente)
+    private VBox crearTarjetaEntrada(EntradaCesta entrada) {
+        VBox entradaCard = new VBox(10);
+        entradaCard.setStyle("-fx-background-color: #2a325c; -fx-padding: 15; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 5);");
+        entradaCard.setPrefWidth(680);
+
+        HBox contentBox = new HBox(15);
+        contentBox.setAlignment(Pos.CENTER_LEFT);
+
+        VBox infoBox = new VBox(5);
+
+        Label nombreLabel = new Label(entrada.getNombreEspectaculo());
+        nombreLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: white; -fx-font-size: 16px;");
+
+        Label detalleLabel = new Label("Butaca: F" + entrada.getFila() + ", C" + entrada.getCol() +
+                (entrada.isVip() ? " (VIP)" : " (Estándar)"));
+        detalleLabel.setStyle("-fx-text-fill: #e0e0e0; -fx-font-size: 14px;");
+
+        Label precioLabel = new Label(String.format("Precio: %.2f €", entrada.getPrecio()));
+        precioLabel.setStyle("-fx-text-fill: #e0e0e0; -fx-font-size: 14px;");
+
+        infoBox.getChildren().addAll(nombreLabel, detalleLabel, precioLabel);
+
+        Button eliminarBtn = new Button("Eliminar");
+        eliminarBtn.setStyle("-fx-background-color: #ff4444; -fx-text-fill: white; -fx-font-weight: bold;");
+
+        eliminarBtn.setOnAction(e -> {
+            entradas.remove(entrada);
+            total -= entrada.getPrecio();
+            actualizarCesta();
+            CestaStorage.guardarCesta(emailUsuarioLogueado, entradas);
+        });
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        contentBox.getChildren().addAll(infoBox, spacer, eliminarBtn);
+        entradaCard.getChildren().add(contentBox);
+
+        return entradaCard;
+    }
 
 
     public void confirmarCompra(ActionEvent actionEvent) {
@@ -401,14 +448,6 @@ public class CestaController {
     }
 
 
-    public void filtrarPorAsiento(ActionEvent actionEvent) {
-        String eleccion=getValorEleccionBox();
-        actualizarCesta();
-
-    }
-
-    public void filtrarPorNombre(ActionEvent actionEvent) {
-    }
 
     public void setIdUsuario(String idUsuario) {
         this.idUsuario=idUsuario;
