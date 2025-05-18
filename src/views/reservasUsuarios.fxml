@@ -3,8 +3,10 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.Cursor?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -12,7 +14,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="650" prefWidth="800" style="-fx-background-color: linear-gradient(to bottom, #0F1C3F, #1A2A5A);" xmlns="http://javafx.com/javafx/21.0.7" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.ReservasUsuarioController">
+<AnchorPane prefHeight="650" prefWidth="800" style="-fx-background-color: linear-gradient(to bottom, #0F1C3F, #1A2A5A);" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.ReservasUsuarioController">
     <VBox prefHeight="650.0" prefWidth="730.0" spacing="20">
         <HBox alignment="CENTER_LEFT" spacing="20">
             <Label prefHeight="40.0" prefWidth="241.0" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: white;" styleClass="align" text="Mis Reservas" textAlignment="CENTER" textFill="WHITE">
@@ -35,6 +37,39 @@
                     </HBox.margin>
                 </Button>
             </HBox>
+        </HBox>
+
+        <!-- Nuevo: Barra de filtros -->
+        <HBox alignment="CENTER_LEFT" prefHeight="56.0" prefWidth="762.0" spacing="10" style="-fx-background-color: #1c2242; -fx-padding: 15; -fx-background-radius: 10;">
+            <VBox.margin>
+                <Insets left="15.0" right="15.0" />
+            </VBox.margin>
+            <Label prefHeight="18.0" prefWidth="60.0" style="-fx-text-fill: white;" text="Estado:" />
+            <ChoiceBox fx:id="filtroEstadoBox" prefHeight="24.0" prefWidth="67.0" style="-fx-background-color: black; -fx-blend-mode: add;" />
+            <Button alignment="CENTER" onAction="#filtrarPorEstado" prefHeight="24.0" prefWidth="77.0" style="-fx-background-color: #4e3a74; -fx-text-fill: white; -fx-font-weight: bold;" text="Filtrar">
+                <cursor>
+                    <Cursor fx:constant="HAND" />
+                </cursor>
+                <HBox.margin>
+                    <Insets left="15.0" />
+                </HBox.margin>
+            </Button>
+            <Button onAction="#mostrarTodas" prefHeight="24.0" prefWidth="131.0" style="-fx-background-color: #4e3a74; -fx-text-fill: white; -fx-font-weight: bold;" text="Mostrar todas">
+                <cursor>
+                    <Cursor fx:constant="HAND" />
+                </cursor>
+            </Button>
+            <Label prefHeight="18.0" prefWidth="59.0" style="-fx-text-fill: white;" text="Buscar:">
+                <HBox.margin>
+                    <Insets left="20.0" />
+                </HBox.margin>
+            </Label>
+            <TextField fx:id="filtroNombreField" prefHeight="24.0" prefWidth="100.0" promptText="Nombre espectáculo..." />
+            <Button onAction="#filtrarPorNombre" prefHeight="24.0" prefWidth="74.0" style="-fx-background-color: #4e3a74; -fx-text-fill: white; -fx-font-weight: bold;" text="Buscar">
+                <cursor>
+                    <Cursor fx:constant="HAND" />
+                </cursor>
+            </Button>
         </HBox>
 
         <!-- Contenedor principal con scroll vertical -->

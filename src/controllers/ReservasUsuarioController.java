@@ -18,7 +18,9 @@ import utils.CerrarSesion;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static controllers.LoginController.getUsuarioLogueadoEmail;
 
@@ -28,14 +30,23 @@ public class ReservasUsuarioController {
     @FXML private Label usuarioLabel;
     @FXML private ScrollPane scrollReservas;
     @FXML private Label arribaBtn, abajoBtn;
+    @FXML private ChoiceBox<String> filtroEstadoBox;
+    @FXML private TextField filtroNombreField;
 
     private String emailUsuarioLogueado = getUsuarioLogueadoEmail();
     private String idUsuario;
+    private List<Reservas> reservasActivas = new ArrayList<>();
+    private List<Reservas> reservasCanceladas = new ArrayList<>();
 
     @FXML
     public void initialize() {
         scrollReservas.setStyle("-fx-background: #1c2242; -fx-background-color: #1c2242;");
         agregarListenersScroll();
+
+        // Configurar opciones del filtro de estado
+        filtroEstadoBox.getItems().addAll("-", "Confirmadas", "Canceladas", "Mostrar todas");
+        filtroEstadoBox.setValue("-");
+
         cargarReservas();
     }
 
@@ -58,32 +69,109 @@ public class ReservasUsuarioController {
             }
 
             // Obtener reservas activas
-            List<Reservas> reservasActivas = reservaDao.consultarReservasByUsuario(idUsuario);
+            reservasActivas = reservaDao.consultarReservasByUsuario(idUsuario);
 
             // Obtener reservas canceladas del historial
-            List<Reservas> reservasCanceladas = reservaDao.consultarHistorialByUsuario(idUsuario);
+            reservasCanceladas = reservaDao.consultarHistorialByUsuario(idUsuario);
 
-            if (reservasActivas.isEmpty() && reservasCanceladas.isEmpty()) {
-                Label mensaje = new Label("No tienes reservas.");
-                mensaje.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
-                contenedorReservas.getChildren().add(mensaje);
-                return;
-            }
-
-            // Mostrar primero las activas
-            for (Reservas reserva : reservasActivas) {
-                contenedorReservas.getChildren().add(crearTarjetaReserva(reserva));
-            }
-
-            // Mostrar las canceladas después
-            for (Reservas reserva : reservasCanceladas) {
-                contenedorReservas.getChildren().add(crearTarjetaReserva(reserva));
-            }
+            mostrarReservas(reservasActivas, reservasCanceladas);
 
         } catch (SQLException e) {
             e.printStackTrace();
             mostrarError("Error al cargar las reservas");
         }
+    }
+
+    private void mostrarReservas(List<Reservas> activas, List<Reservas> canceladas) {
+        contenedorReservas.getChildren().clear();
+
+        if (activas.isEmpty() && canceladas.isEmpty()) {
+            Label mensaje = new Label("No se encontraron reservas");
+            mensaje.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
+            contenedorReservas.getChildren().add(mensaje);
+            return;
+        }
+
+        // Mostrar primero las activas
+        for (Reservas reserva : activas) {
+            contenedorReservas.getChildren().add(crearTarjetaReserva(reserva));
+        }
+
+        // Mostrar las canceladas después
+        for (Reservas reserva : canceladas) {
+            contenedorReservas.getChildren().add(crearTarjetaReserva(reserva));
+        }
+    }
+
+    @FXML
+    private void filtrarPorEstado() {
+        String estadoSeleccionado = filtroEstadoBox.getValue();
+        if (estadoSeleccionado == null || estadoSeleccionado.equals("-") || estadoSeleccionado.equals("Mostrar todas")) {
+            mostrarReservas(reservasActivas, reservasCanceladas);
+            return;
+        }
+
+        List<Reservas> filtradasActivas = new ArrayList<>();
+        List<Reservas> filtradasCanceladas = new ArrayList<>();
+
+        if (estadoSeleccionado.equals("Confirmadas")) {
+            filtradasActivas = reservasActivas;
+        } else if (estadoSeleccionado.equals("Canceladas")) {
+            filtradasCanceladas = reservasCanceladas;
+        }
+
+        mostrarReservas(filtradasActivas, filtradasCanceladas);
+    }
+
+    @FXML
+    private void filtrarPorNombre() {
+        String textoBusqueda = filtroNombreField.getText().trim().toLowerCase();
+        if (textoBusqueda.isEmpty()) {
+            mostrarReservas(reservasActivas, reservasCanceladas);
+            return;
+        }
+
+        try {
+            Connection conn = DatabaseConnection.getConnection();
+            EspectaculoDaoImpl espectaculoDao = new EspectaculoDaoImpl(conn);
+
+            List<Reservas> filtradasActivas = reservasActivas.stream()
+                    .filter(reserva -> {
+                        try {
+                            String nombreEsp = espectaculoDao.obtenerNombrePorId(reserva.getId_espectaculo());
+                            return nombreEsp.toLowerCase().contains(textoBusqueda);
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                            return false;
+                        }
+                    })
+                    .collect(Collectors.toList());
+
+            List<Reservas> filtradasCanceladas = reservasCanceladas.stream()
+                    .filter(reserva -> {
+                        try {
+                            String nombreEsp = espectaculoDao.obtenerNombrePorId(reserva.getId_espectaculo());
+                            return nombreEsp.toLowerCase().contains(textoBusqueda);
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                            return false;
+                        }
+                    })
+                    .collect(Collectors.toList());
+
+            mostrarReservas(filtradasActivas, filtradasCanceladas);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            mostrarError("Error al filtrar por nombre");
+        }
+    }
+
+    @FXML
+    private void mostrarTodas() {
+        filtroEstadoBox.setValue("-");
+        filtroNombreField.clear();
+        mostrarReservas(reservasActivas, reservasCanceladas);
     }
 
     private VBox crearTarjetaReserva(Reservas reserva) {
