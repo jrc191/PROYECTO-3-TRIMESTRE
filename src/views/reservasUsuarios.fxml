@@ -14,7 +14,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="650" prefWidth="800" style="-fx-background-color: linear-gradient(to bottom, #0F1C3F, #1A2A5A);" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.ReservasUsuarioController">
+<AnchorPane prefHeight="650" prefWidth="800" style="-fx-background-color: linear-gradient(to bottom, #0F1C3F, #1A2A5A);" xmlns="http://javafx.com/javafx/21.0.6" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.ReservasUsuarioController">
     <VBox prefHeight="650.0" prefWidth="730.0" spacing="20">
         <HBox alignment="CENTER_LEFT" spacing="20">
             <Label prefHeight="40.0" prefWidth="241.0" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: white;" styleClass="align" text="Mis Reservas" textAlignment="CENTER" textFill="WHITE">
