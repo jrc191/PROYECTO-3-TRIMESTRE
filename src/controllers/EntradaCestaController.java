@@ -17,11 +17,21 @@ public class EntradaCestaController {
 
     private EntradaCesta entrada;
 
+    @FXML
+    private void initialize() {
+        eliminarBtn.setOnAction(event -> {
+            if (onEliminarCallback != null) {
+                onEliminarCallback.run();
+            }
+        });
+    }
+
     public void setEntrada(EntradaCesta entrada) {
         this.entrada = entrada;
         actualizarVista();
     }
 
+    // Método para actualizar la vista con los datos de la entrada
     private void actualizarVista() {
         if (entrada != null) {
             nombreLabel.setText(entrada.getNombreEspectaculo());
@@ -35,12 +45,6 @@ public class EntradaCestaController {
         this.onEliminarCallback = callback; //para eliminar entradas.
     }
 
-    @FXML
-    private void initialize() {
-        eliminarBtn.setOnAction(event -> {
-            if (onEliminarCallback != null) {
-                onEliminarCallback.run();
-            }
-        });
-    }
+
+
 }

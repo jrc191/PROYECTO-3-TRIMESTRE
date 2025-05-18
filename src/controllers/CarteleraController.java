@@ -74,7 +74,7 @@ public class CarteleraController {
             return;
         }
 
-        //POR FIN, para quitar la puñetera línea blanca de la derecha (2 horas con esto, no es broma)
+        //Establecemos el estilo del scrollpane y de los botones
         scrollEspectaculos.setStyle("-fx-background: #1c2242; -fx-background-color: #1c2242; ");
 
 
@@ -121,35 +121,6 @@ public class CarteleraController {
         izquierdaBtn.setOnMouseClicked(e -> scrollEspectaculos.setHvalue(scrollEspectaculos.getHvalue() - 0.2));
         derechaBtn.setOnMouseClicked(e -> scrollEspectaculos.setHvalue(scrollEspectaculos.getHvalue() + 0.2));
 
-        scrollEspectaculos.setOnMouseDragged(e->{
-            scrollEspectaculos.setVvalue(0);
-        });
-
-        scrollEspectaculos.setOnMouseDragOver(e->{
-            scrollEspectaculos.setVvalue(0);
-        });
-
-        scrollEspectaculos.setOnMouseEntered(e->{
-            scrollEspectaculos.setVvalue(0);
-        });
-
-        scrollEspectaculos.setOnDragDetected(e->{
-            scrollEspectaculos.setVvalue(0);
-        });
-
-        scrollEspectaculos.setOnMouseDragEntered(e->{
-            scrollEspectaculos.setVvalue(0);
-        });
-
-        scrollEspectaculos.setOnMouseDragExited(e->{
-            scrollEspectaculos.setVvalue(0);
-        });
-
-        scrollEspectaculos.addEventFilter(ScrollEvent.SCROLL, event -> {
-            if (event.getDeltaY() != 0) {
-                event.consume();  // Consume vertical scroll events
-            }
-        });
         
     }
 
@@ -190,11 +161,12 @@ public class CarteleraController {
     }
 
 
+    //Sobrecarga del método cargarEspectaculos para cargar todos los espectáculos sin filtros
     private void cargarEspectaculos() {
         cargarEspectaculos(null, null); // Cargamos por defecto
     }
 
-    //Bendita sobrecarga de métodos
+    // Sobrecarga del método cargarEspectaculos para cargar espectáculos con filtros. BENDITA SOBRECARGA DE MÉTODOS
     private void cargarEspectaculos(String nombreFiltro, LocalDate date) {
         contenedorEspectaculos.getChildren().clear(); // Borramos el contenido para filtrar en caso de que haya filtros previos
 
@@ -271,7 +243,8 @@ public class CarteleraController {
     // Método para ir añadiendo espectáculos en forma de tarjeta a partir de un objeto espectáculo creado
     // con los resultados de la BBDD. Yo no sé ni cuanto tiempo me ha llevado esto ya, pero funciona :)
     // Para mi yo del futuro: no te metas en más fregaos por mejorar la estética, que mejoras una cosa
-    // y te acabas cargando 10. AL FINAL LO HE TOCADO MÁS AÚN PA METER LO DE LAS IMAGENES :(
+    // y te acabas cargando 10. AL FINAL LO HE TOCADO MÁS AÚN PA METER LO DE LAS IMAGENES :(. PD-2: DA GRACIAS
+    // A QUE NO TE HAS METIDO EN EL FREGADO DE LAS IMAGENES EN LA BBDD
 
     private Node crearTarjetaEspectaculo(Espectaculo esp) {
         VBox tarjeta = new VBox(10);
@@ -282,46 +255,7 @@ public class CarteleraController {
         StackPane stackPane = new StackPane();
         stackPane.setPrefSize(300, 400);
 
-        //Creamos la imagen
-        ImageView imageView = new ImageView();
-        try {
-            String imagePath = "/resources/images/espectaculos/" + esp.getId()+ ".png";
-            Image image = new Image(getClass().getResourceAsStream(imagePath));
-
-            imageView.setImage(image);
-            imageView.setPreserveRatio(true);
-            imageView.setSmooth(true);
-
-            // Ajustar tamaño manteniendo relación de aspecto
-            if (image.getWidth() / image.getHeight() > 300.0/400.0) {
-                imageView.setFitWidth(300);
-            } else {
-                imageView.setFitHeight(400);
-            }
-
-            // Crear un rectángulo con bordes redondeados
-            Rectangle clip = new Rectangle(300, 400);
-            clip.setArcWidth(15);
-            clip.setArcHeight(15);
-            imageView.setClip(clip);
-
-            // Fondo para áreas transparentes (opcional)
-            Rectangle bg = new Rectangle(300, 400);
-            bg.setFill(Color.TRANSPARENT);
-            bg.setArcWidth(15);
-            bg.setArcHeight(15);
-
-            StackPane imageContainer = new StackPane(bg, imageView);
-            imageContainer.setEffect(new DropShadow(10, Color.rgb(0, 0, 0, 0.3)));
-            imageContainer.setAlignment(Pos.CENTER);
-        } catch (Exception e) {
-            // Imagen por defecto
-            Image defaultImage = new Image(getClass().getResourceAsStream("/resources/images/espectaculos/default-show.png"));
-            imageView.setImage(defaultImage);
-            imageView.setFitWidth(300);
-            imageView.setFitHeight(400);
-            imageView.setPreserveRatio(false);
-        }
+        ImageView imageView = crearImagenTarjeta(esp);
 
         //Vbox con info del espectáculo
         VBox infoBox = new VBox(10);
@@ -339,11 +273,112 @@ public class CarteleraController {
         precioBase.setStyle("-fx-text-fill: #e0e0e0;");
         precioVip.setStyle("-fx-text-fill: #e0e0e0;");
 
+        Button reservarBtn = reservarBtn(esp);
+
+        infoBox.getChildren().addAll(nombre, fecha, precioBase, precioVip, reservarBtn);
+        stackPane.getChildren().addAll(imageView, infoBox);
+
+        efectosTarjetas(stackPane, imageView, infoBox);
+
+        tarjeta.getChildren().add(stackPane);
+        return tarjeta;
+    }
+
+    private static void efectosTarjetas(StackPane stackPane, ImageView imageView, VBox infoBox) {
+        // Efectos de pasar el ratón
+        stackPane.setOnMouseEntered(event -> {
+
+            FadeTransition fadeOut = new FadeTransition(Duration.millis(300), imageView);
+            fadeOut.setFromValue(1.0);
+            fadeOut.setToValue(0.0);
+
+            FadeTransition fadeIn = new FadeTransition(Duration.millis(300), infoBox);
+            fadeIn.setFromValue(0.0);
+            fadeIn.setToValue(1.0);
+
+            ParallelTransition parallelTransition = new ParallelTransition(fadeOut, fadeIn);
+            parallelTransition.play();
+        });
+
+        stackPane.setOnMouseExited(event -> {
+
+            FadeTransition fadeIn = new FadeTransition(Duration.millis(300), imageView);
+            fadeIn.setFromValue(0.0);
+            fadeIn.setToValue(1.0);
+
+            FadeTransition fadeOut = new FadeTransition(Duration.millis(300), infoBox);
+            fadeOut.setFromValue(1.0);
+            fadeOut.setToValue(0.0);
+
+            ParallelTransition parallelTransition = new ParallelTransition(fadeIn, fadeOut);
+            parallelTransition.play();
+        });
+    }
+
+    private ImageView crearImagenTarjeta(Espectaculo esp) {
+        //Creamos la imagen
+        ImageView imageView = new ImageView();
+        try {
+            StackPane imageContainer = imagenSegunEspectaculo(esp, imageView);
+            imageContainer.setAlignment(Pos.CENTER);
+        } catch (Exception e) {
+            // Imagen por defecto
+            imagenPorDefecto(imageView);
+        }
+        return imageView;
+    }
+
+    private StackPane imagenSegunEspectaculo(Espectaculo esp, ImageView imageView) {
+        String imagePath = "/resources/images/espectaculos/" + esp.getId()+ ".png";
+        Image image = new Image(getClass().getResourceAsStream(imagePath));
+
+        imageView.setImage(image);
+        imageView.setPreserveRatio(true);
+        imageView.setSmooth(true);
+
+        // Ajustar tamaño manteniendo relación de aspecto
+        if (image.getWidth() / image.getHeight() > 300.0/400.0) {
+            imageView.setFitWidth(300);
+        } else {
+            imageView.setFitHeight(400);
+        }
+
+        // Crear un rectángulo con bordes redondeados
+        Rectangle clip = new Rectangle(300, 400);
+        clip.setArcWidth(15);
+        clip.setArcHeight(15);
+        imageView.setClip(clip);
+
+        // Fondo para áreas transparentes (opcional)
+        Rectangle bg = new Rectangle(300, 400);
+        bg.setFill(Color.TRANSPARENT);
+        bg.setArcWidth(15);
+        bg.setArcHeight(15);
+
+        StackPane imageContainer = new StackPane(bg, imageView);
+        imageContainer.setEffect(new DropShadow(10, Color.rgb(0, 0, 0, 0.3)));
+        return imageContainer;
+    }
+
+    private void imagenPorDefecto(ImageView imageView) {
+        Image defaultImage = new Image(getClass().getResourceAsStream("/resources/images/espectaculos/default-show.png"));
+        imageView.setImage(defaultImage);
+        imageView.setFitWidth(300);
+        imageView.setFitHeight(400);
+        imageView.setPreserveRatio(false);
+    }
+
+    private Button reservarBtn(Espectaculo esp) {
         Button reservarBtn = new Button("Reservar entradas");
         reservarBtn.setStyle("-fx-background-color: #4e3a74; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 5 10;");
         reservarBtn.setCursor(Cursor.HAND);
         VBox.setMargin(reservarBtn, new Insets(10, 0, 0, 0));
 
+        reservarBtnEventos(esp, reservarBtn);
+        return reservarBtn;
+    }
+
+    private void reservarBtnEventos(Espectaculo esp, Button reservarBtn) {
         reservarBtn.setOnAction(event -> {
             try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("../views/reserva.fxml"));
@@ -373,41 +408,6 @@ public class CarteleraController {
                 }
             }
         });
-
-        infoBox.getChildren().addAll(nombre, fecha, precioBase, precioVip, reservarBtn);
-        stackPane.getChildren().addAll(imageView, infoBox);
-
-        // Efectos de pasar el ratón
-        stackPane.setOnMouseEntered(event -> {
-
-            FadeTransition fadeOut = new FadeTransition(Duration.millis(300), imageView);
-            fadeOut.setFromValue(1.0);
-            fadeOut.setToValue(0.0);
-
-            FadeTransition fadeIn = new FadeTransition(Duration.millis(300), infoBox);
-            fadeIn.setFromValue(0.0);
-            fadeIn.setToValue(1.0);
-
-            ParallelTransition parallelTransition = new ParallelTransition(fadeOut, fadeIn);
-            parallelTransition.play();
-        });
-
-        stackPane.setOnMouseExited(event -> {
-
-            FadeTransition fadeIn = new FadeTransition(Duration.millis(300), imageView);
-            fadeIn.setFromValue(0.0);
-            fadeIn.setToValue(1.0);
-
-            FadeTransition fadeOut = new FadeTransition(Duration.millis(300), infoBox);
-            fadeOut.setFromValue(1.0);
-            fadeOut.setToValue(0.0);
-
-            ParallelTransition parallelTransition = new ParallelTransition(fadeIn, fadeOut);
-            parallelTransition.play();
-        });
-
-        tarjeta.getChildren().add(stackPane);
-        return tarjeta;
     }
 
     //método para cerrar sesión y volver al login

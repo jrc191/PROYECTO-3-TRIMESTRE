@@ -55,6 +55,8 @@ public class CestaController {
     public CestaController() throws SQLException {
     }
 
+    // Método para inicializar el controlador con el email del usuario logueado y configuraciones iniciales
+    @FXML
     public void initialize() {
         if (emailUsuarioLogueado != null) {
             usuarioLabel.setText("Email: " + emailUsuarioLogueado);
@@ -62,14 +64,7 @@ public class CestaController {
             eleccionBox.getItems().addAll( "OPCION 1", "OPCION 2");
             eleccionBox.setValue("-");
 
-            try {
-                Connection conn = DatabaseConnection.getConnection();
-                this.usuarioDao = new UsuarioDaoImpl(conn);
-                idUsuario = usuarioDao.getIDUsuarioByEmail(emailUsuarioLogueado);
-                System.out.println("ID Usuario obtenido: " + idUsuario); // Debug
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            cargarUsuario(idUsuario, emailUsuarioLogueado);
         }
 
 
@@ -80,11 +75,28 @@ public class CestaController {
         // Configurar listeners para las flechas
         agregarListenersScroll();
 
+        // Cargar la cesta desde el almacenamiento
         actualizarCesta();
     }
 
+    // Para manejar el scroll de la cesta.
+    private void agregarListenersScroll() {
+        Transitions.configurarListenersScroll(scrollEntradas, arribaBtn, abajoBtn);
+    }
 
+    // Método para inicializar datos del usuario
+    private void cargarUsuario(String idUsuario, String emailUsuarioLogueado) {
+        try {
+            Connection conn = DatabaseConnection.getConnection();
+            this.usuarioDao = new UsuarioDaoImpl(conn);
+            idUsuario = usuarioDao.getIDUsuarioByEmail(emailUsuarioLogueado);
+            System.out.println("ID Usuario obtenido: " + idUsuario); // Debug
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
+    // Método para verificar si se puede agregar una entrada a la cesta. Se vale de otros métodos para contar entradas en la cesta y en la base de datos.
     public boolean puedeAgregarEntrada(String idEspectaculo, int fila, int col) {
         if (entradas == null) {
             entradas = new ArrayList<>();
@@ -98,6 +110,14 @@ public class CestaController {
                 .count();
 
         // Contar reservas ya existentes en la base de datos
+        int enBaseDatos = contarReservas(idEspectaculo, idButaca);
+
+        // El total no puede superar 4. Si es falso, no puede agregar. Si es verdadero, puede agregar.
+        return (enCesta + enBaseDatos) < 4;
+    }
+
+    // Método para contar reservas en la base de datos
+    private int contarReservas(String idEspectaculo, String idButaca) {
         int enBaseDatos = 0;
         try {
             Connection conn = DatabaseConnection.getConnection();
@@ -106,17 +126,11 @@ public class CestaController {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-        // El total no puede superar 4
-        return (enCesta + enBaseDatos) < 4;
+        return enBaseDatos;
     }
 
 
-    // Para manejar el scroll de la cesta.
-    private void agregarListenersScroll() {
-        Transitions.configurarListenersScroll(scrollEntradas, arribaBtn, abajoBtn);
-    }
-
+    // Método para agregar una entrada a la cesta
     public void agregarEntrada(String nombreEspectaculo, String idEspectaculo, int fila, int col, double precio, boolean esVip) {
         if (entradas == null) {
             entradas = new ArrayList<>();
@@ -127,29 +141,9 @@ public class CestaController {
                 .filter(e -> e.getIdEspectaculo().equals(idEspectaculo))
                 .count();
 
-        int enBaseDatosEspectaculo = 0;
-        try {
-            Connection conn = DatabaseConnection.getConnection();
-            ReservaDaoImpl reservaDao = new ReservaDaoImpl(conn);
-            enBaseDatosEspectaculo = reservaDao.contarReservasPorUsuarioYEspectaculo(idUsuario, idEspectaculo, "%"); // Usamos % como comodín
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        int enBaseDatosEspectaculo = contarReservas(idEspectaculo, "%");
 
-        if ((enCestaEspectaculo + enBaseDatosEspectaculo) >= 4) {
-            Alert alert = new Alert(AlertType.WARNING);
-            alert.setTitle("Límite alcanzado");
-            alert.setContentText("No puedes agregar más de 4 entradas para este espectáculo.");
-            alert.show();
-            return;
-        }
-
-        // Luego verificar disponibilidad específica de la butaca
-        if (!puedeAgregarEntrada(idEspectaculo, fila, col)) {
-            Alert alert = new Alert(AlertType.WARNING);
-            alert.setTitle("Butaca no disponible");
-            alert.setContentText("Esta butaca ya está reservada por ti (aunque hayas cancelado reservas previas).");
-            alert.show();
+        if (verificacionesReservas(idEspectaculo, fila, col, enCestaEspectaculo, enBaseDatosEspectaculo)){
             return;
         }
 
@@ -159,6 +153,27 @@ public class CestaController {
         actualizarCesta();
 
         CestaStorage.guardarCesta(emailUsuarioLogueado, entradas);
+    }
+
+    // Método para verificar si se puede agregar una entrada a la cesta. Usado en el método agregarEntrada.
+    private boolean verificacionesReservas(String idEspectaculo, int fila, int col, long enCestaEspectaculo, int enBaseDatosEspectaculo) {
+        if ((enCestaEspectaculo + enBaseDatosEspectaculo) >= 4) {
+            Alert alert = new Alert(AlertType.WARNING);
+            alert.setTitle("Límite alcanzado");
+            alert.setContentText("No puedes agregar más de 4 entradas para este espectáculo.");
+            alert.show();
+            return true;
+        }
+
+        // Luego verificar disponibilidad específica de la butaca
+        if (!puedeAgregarEntrada(idEspectaculo, fila, col)) {
+            Alert alert = new Alert(AlertType.WARNING);
+            alert.setTitle("Butaca no disponible");
+            alert.setContentText("Esta butaca ya está reservada por ti (aunque hayas cancelado reservas previas).");
+            alert.show();
+            return true;
+        }
+        return false;
     }
 
     // Método para filtrar por asiento/selección del ChoiceBox
@@ -188,6 +203,7 @@ public class CestaController {
             return;
         }
 
+        // Filtrar entradas por nombre, fila, columna, tipo y precio
         List<EntradaCesta> entradasFiltradas = new ArrayList<>();
         for (EntradaCesta entrada : entradas) {
             // Buscar en todas las propiedades de la entrada
@@ -274,15 +290,7 @@ public class CestaController {
 
         infoBox.getChildren().addAll(nombreLabel, detalleLabel, precioLabel);
 
-        Button eliminarBtn = new Button("Eliminar");
-        eliminarBtn.setStyle("-fx-background-color: #ff4444; -fx-text-fill: white; -fx-font-weight: bold;");
-
-        eliminarBtn.setOnAction(e -> {
-            entradas.remove(entrada);
-            total -= entrada.getPrecio();
-            actualizarCesta();
-            CestaStorage.guardarCesta(emailUsuarioLogueado, entradas);
-        });
+        Button eliminarBtn = eliminarReservasBtn(entrada);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -293,7 +301,21 @@ public class CestaController {
         return entradaCard;
     }
 
+    // Método para eliminar una entrada de la cesta. Con su evento asociado.
+    private Button eliminarReservasBtn(EntradaCesta entrada) {
+        Button eliminarBtn = new Button("Eliminar");
+        eliminarBtn.setStyle("-fx-background-color: #ff4444; -fx-text-fill: white; -fx-font-weight: bold;");
 
+        eliminarBtn.setOnAction(e -> {
+            entradas.remove(entrada);
+            total -= entrada.getPrecio();
+            actualizarCesta();
+            CestaStorage.guardarCesta(emailUsuarioLogueado, entradas);
+        });
+        return eliminarBtn;
+    }
+
+    // Método para mosstrar alerta y manejar el evento de confirmar la compra de las entradas en la cesta. Se vale de un metodo auxiliar para confirmar la compra.
     public void confirmarCompra(ActionEvent actionEvent) {
 
         if (entradas.isEmpty()) {
@@ -308,6 +330,11 @@ public class CestaController {
         confirmAlert.setTitle("CONFIRMAR COMPRA");
         confirmAlert.setContentText("¿Quiere confirmar la compra de todas las entradas en la cesta?");
 
+        confirmarCompraEvento(confirmAlert);
+    }
+
+    // Método auxiliar para manejar el evento de confirmar la compra. Se encarga de realizar la reserva en la base de datos y manejar errores.
+    private void confirmarCompraEvento(Alert confirmAlert) {
         confirmAlert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
                 Connection conn = null;
@@ -315,78 +342,112 @@ public class CestaController {
                 boolean errorOcurrido = false;
                 List<String> reservasFallidas = new ArrayList<>();
 
+                // Iniciar la transacción
                 try {
                     conn = DatabaseConnection.getConnection();
                     conn.setAutoCommit(false);
                     reservaDao = new ReservaDaoImpl(conn);
 
+                    // Reservar entradas
                     for (EntradaCesta entrada : entradas) {
                         try {
-                            String idReservaTemp = entrada.getIdEspectaculo() + "_" + idUsuario + "_F" + entrada.getFila() + "-C" + entrada.getCol();
-                            reservaDao.eliminarReservaTemporal(idReservaTemp);
-
-                            Reservas reserva = new Reservas();
-                            String idReserva = idReservaTemp;
-                            reserva.setId_reserva(idReserva);
-                            reserva.setId_espectaculo(entrada.getIdEspectaculo()); // Usar ID de la entrada
-                            reserva.setId_butaca("F" + entrada.getFila() + "-C" + entrada.getCol());
-                            reserva.setId_usuario(idUsuario);
-                            reserva.setPrecio(entrada.getPrecio());
-                            reserva.setEstado('O');
-
-                            reservaDao.registrarReservas(reserva);
+                            reservarEntrada(entrada, reservaDao); // Reservar la entrada
                         } catch (SQLException e) {
-                            reservasFallidas.add(entrada.getNombreEspectaculo() + " _ Butaca: F" + entrada.getFila() + "-C" + entrada.getCol());
+                            reservasFallidas.add(entrada.getNombreEspectaculo() + " _ Butaca: F" + entrada.getFila() + "-C" + entrada.getCol()); // Agregar a la lista de fallidas
                             e.printStackTrace();
                         }
                     }
 
+                    // Si no hay reservas fallidas, confirmar la transacción
                     if (reservasFallidas.isEmpty()) {
-                        conn.commit();
-                        entradas.clear();
-                        CestaStorage.guardarCesta(emailUsuarioLogueado, entradas);
-                        actualizarCesta();
-
-                        Alert successAlert = new Alert(AlertType.INFORMATION);
-                        successAlert.setTitle("Compra confirmada");
-                        successAlert.setContentText("Todas las entradas se han reservado con éxito.");
-                        successAlert.show();
+                        exitoCompra(conn);
                     } else {
-                        conn.rollback();
-                        Alert partialAlert = new Alert(AlertType.WARNING);
-                        partialAlert.setTitle("Compra parcialmente completada");
-                        partialAlert.setContentText("No se pudieron reservar las siguientes entradas:\n" +
-                                String.join("\n", reservasFallidas) +
-                                "\n\nNinguna reserva ha sido procesada. Por favor, inténtelo de nuevo.");
-                        partialAlert.show();
+                        falloCompra(conn, reservasFallidas);
                     }
+
                 } catch (SQLException e) {
                     errorOcurrido = true;
-                    try {
-                        if (conn != null) {
-                            conn.rollback();
-                        }
-                    } catch (SQLException ex) {
-                        ex.printStackTrace();
-                    }
+                    rollbackCompra(conn); // Deshacer cambios
 
-                    Alert errorAlert = new Alert(AlertType.ERROR);
-                    errorAlert.setTitle("Error en la compra");
-                    errorAlert.setContentText("Error grave al procesar la compra: " + e.getMessage());
-                    errorAlert.show();
-                    e.printStackTrace();
+                    mostrarError(e); // Mostrar error
                 } finally {
-                    try {
-                        if (conn != null) {
-                            conn.setAutoCommit(true);
-                            conn.close();
-                        }
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
+                    volverEstadoOriginal(conn); // Volver al estado original de commit y otros
                 }
             }
         });
+    }
+
+    // Método auxiliar para manejar el rollback de la compra en caso de error
+    private static void rollbackCompra(Connection conn) {
+        try {
+            if (conn != null) {
+                conn.rollback();
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    // Método auxiliar para volver a habilitar el commit y cerrar la conexión (estado original)
+    private static void volverEstadoOriginal(Connection conn) {
+        try {
+            if (conn != null) {
+                conn.setAutoCommit(true);
+                conn.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void mostrarError(SQLException e) {
+        Alert errorAlert = new Alert(AlertType.ERROR);
+        errorAlert.setTitle("Error en la compra");
+        errorAlert.setContentText("Error grave al procesar la compra: " + e.getMessage());
+        errorAlert.show();
+        e.printStackTrace();
+    }
+
+
+    // Método auxiliar para manejar el fallo de la compra. Se encarga de mostrar una alerta y deshacer cambios.
+    private static void falloCompra(Connection conn, List<String> reservasFallidas) throws SQLException {
+        conn.rollback();
+        Alert partialAlert = new Alert(AlertType.WARNING);
+        partialAlert.setTitle("Compra parcialmente completada");
+        partialAlert.setContentText("No se pudieron reservar las siguientes entradas:\n" +
+                String.join("\n", reservasFallidas) +
+                "\n\nNinguna reserva ha sido procesada. Por favor, inténtelo de nuevo.");
+        partialAlert.show();
+    }
+
+    // Método auxiliar para manejar el éxito de la compra. Se encarga de mostrar una alerta y limpiar la cesta.
+    private void exitoCompra(Connection conn) throws SQLException {
+        conn.commit();
+        entradas.clear();
+        CestaStorage.guardarCesta(emailUsuarioLogueado, entradas);
+        actualizarCesta();
+
+        Alert successAlert = new Alert(AlertType.INFORMATION);
+        successAlert.setTitle("Compra confirmada");
+        successAlert.setContentText("Todas las entradas se han reservado con éxito.");
+        successAlert.show();
+    }
+
+    // Método auxiliar para reservar una entrada en la base de datos
+    private void reservarEntrada(EntradaCesta entrada, ReservaDaoImpl reservaDao) throws SQLException {
+        String idReservaTemp = entrada.getIdEspectaculo() + "_" + idUsuario + "_F" + entrada.getFila() + "-C" + entrada.getCol();
+        reservaDao.eliminarReservaTemporal(idReservaTemp);
+
+        Reservas reserva = new Reservas();
+        String idReserva = idReservaTemp;
+        reserva.setId_reserva(idReserva);
+        reserva.setId_espectaculo(entrada.getIdEspectaculo()); // Usar ID de la entrada
+        reserva.setId_butaca("F" + entrada.getFila() + "-C" + entrada.getCol());
+        reserva.setId_usuario(idUsuario);
+        reserva.setPrecio(entrada.getPrecio());
+        reserva.setEstado('O');
+
+        reservaDao.registrarReservas(reserva);
     }
 
 
@@ -418,13 +479,7 @@ public class CestaController {
         return eleccionBox.getValue().toString();
     }
 
-    // Método para oscurecer la entrada
-    // Ahora se usa Transitions.oscurecerEntrada
-    /*
-    private void oscurecerEntrada(VBox entradaCesta) {
-        Transitions.oscurecerEntrada(entradaCesta);
-    }
-    */
+    // Método para obtener el email del usuario logueado
     public void setEmailUsuarioLogueado(String email) {
         this.emailUsuarioLogueado = email;
         if (usuarioLabel != null) {
@@ -432,14 +487,7 @@ public class CestaController {
         }
 
         // Obtener el ID del usuario al establecer el email
-        try {
-            Connection conn = DatabaseConnection.getConnection();
-            this.usuarioDao = new UsuarioDaoImpl(conn);
-            this.idUsuario = usuarioDao.getIDUsuarioByEmail(email);
-            System.out.println("ID Usuario obtenido: " + idUsuario); // Debug
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        cargarUsuario(this.idUsuario, email);
 
         // Cargar la cesta desde el almacenamiento
         this.entradas = CestaStorage.cargarCesta(email);
