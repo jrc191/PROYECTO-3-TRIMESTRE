@@ -295,6 +295,7 @@ public class CestaController {
 
 
     public void confirmarCompra(ActionEvent actionEvent) {
+
         if (entradas.isEmpty()) {
             Alert alert = new Alert(AlertType.ERROR);
             alert.setTitle("Cesta vacía");
