@@ -334,7 +334,6 @@ public class ListarReservasController {
     }
 
 
-
     private void procesarCancelacionReserva(Reservas reserva) {
         try {
             int resultado = reservasDao.cancelarReserva(reserva.getId_reserva());
