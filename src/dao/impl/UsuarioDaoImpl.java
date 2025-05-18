@@ -152,4 +152,14 @@ public class UsuarioDaoImpl implements UsuarioDaoI {
             return rowsAffected > 0;
         }
     }
+
+    @Override
+    public boolean existeEmail(String email) throws SQLException {
+        String query = "SELECT COUNT(*) FROM USUARIOS WHERE email = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, email);
+            ResultSet rs = pstmt.executeQuery();
+            return rs.next() && rs.getInt(1) > 0;
+        }
+    }
 }

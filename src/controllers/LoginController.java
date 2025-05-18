@@ -65,7 +65,7 @@ public class LoginController {
         stage.setMinWidth(700);
         stage.setMinHeight(550);
         stage.setMaxWidth(750);
-        stage.setMaxHeight(700);
+        stage.setMaxHeight(710);
     }
 
     public void fadeInScene(Node rootNode) {
@@ -187,8 +187,8 @@ public class LoginController {
         }
 
         try {
-            if (usuarioDao.existeDni(dni)) {
-                messageLabelRegistro.setText("El DNI ya está registrado");
+            if (usuarioDao.existeDni(dni) || usuarioDao.existeEmail(email)) {
+                messageLabelRegistro.setText("Alguno de los parámetros no es válido");
                 return;
             }
 
