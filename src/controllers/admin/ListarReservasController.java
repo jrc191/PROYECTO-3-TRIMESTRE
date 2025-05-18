@@ -333,21 +333,7 @@ public class ListarReservasController {
         return alert;
     }
 
-    private void procesarReactivacionReserva(Reservas reserva) {
-        try {
-            int resultado = reservasDao.reactivarReserva(reserva.getId_reserva());
-            if (resultado > 0) {
-                mostrarMensaje("Reserva reactivada", "La reserva ha sido reactivada exitosamente");
-                cargarReservas();
-            } else if (resultado == -1) {
-                mostrarError("No se puede reactivar la reserva porque la butaca ya está ocupada");
-            } else {
-                mostrarError("No se pudo reactivar la reserva");
-            }
-        } catch (SQLException e) {
-            mostrarError("Error al reactivar la reserva: " + e.getMessage());
-        }
-    }
+
 
     private void procesarCancelacionReserva(Reservas reserva) {
         try {
@@ -391,13 +377,54 @@ public class ListarReservasController {
         return true;
     }
 
+
+    private void procesarReactivacionReserva(Reservas reserva) {
+        try {
+            // Verificar si el usuario ya tiene 4 reservas activas para este espectáculo
+            int reservasActivas = reservasDao.contarReservasActivasPorUsuarioYEspectaculo(
+                    reserva.getId_usuario(),
+                    reserva.getId_espectaculo()
+            );
+
+            if (reservasActivas >= 4) {
+                mostrarError("No se puede reactivar la reserva. El usuario ya tiene 4 reservas activas para este espectáculo.");
+                return;
+            }
+
+            int resultado = reservasDao.reactivarReserva(reserva.getId_reserva());
+            if (resultado > 0) {
+                mostrarMensaje("Reserva reactivada", "La reserva ha sido reactivada exitosamente");
+                cargarReservas();
+            } else if (resultado == -1) {
+                mostrarError("No se puede reactivar la reserva porque la butaca ya está ocupada");
+            } else {
+                mostrarError("No se pudo reactivar la reserva");
+            }
+        } catch (SQLException e) {
+            mostrarError("Error al reactivar la reserva: " + e.getMessage());
+        }
+    }
+
     private void procesarReactivacionMultiple(List<Reservas> seleccionados) {
         try {
             int reactivadas = 0;
             int errores = 0;
             List<String> erroresButacas = new ArrayList<>();
+            List<String> erroresLimite = new ArrayList<>();
 
             for (Reservas reserva : seleccionados) {
+                // Verificar límite de reservas por espectáculo
+                int reservasActivas = reservasDao.contarReservasActivasPorUsuarioYEspectaculo(
+                        reserva.getId_usuario(),
+                        reserva.getId_espectaculo()
+                );
+
+                if (reservasActivas >= 4) {
+                    erroresLimite.add("Usuario " + reserva.getId_usuario() + " en espectáculo " + reserva.getId_espectaculo());
+                    errores++;
+                    continue;
+                }
+
                 int resultado = reservasDao.reactivarReserva(reserva.getId_reserva());
                 if (resultado > 0) {
                     reactivadas++;
@@ -409,7 +436,7 @@ public class ListarReservasController {
                 }
             }
 
-            mostrarResultadoReactivacion(reactivadas, errores, erroresButacas);
+            mostrarResultadoReactivacion(reactivadas, errores, erroresButacas, erroresLimite);
             if (reactivadas > 0) {
                 cargarReservas();
             }
@@ -418,7 +445,7 @@ public class ListarReservasController {
         }
     }
 
-    private void mostrarResultadoReactivacion(int exitosas, int errores, List<String> butacasOcupadas) {
+    private void mostrarResultadoReactivacion(int exitosas, int errores, List<String> butacasOcupadas, List<String> limitesExcedidos) {
         if (exitosas > 0) {
             String mensaje = "Se reactivaron " + exitosas + " reservas";
             if (errores > 0) {
@@ -426,12 +453,23 @@ public class ListarReservasController {
                 if (!butacasOcupadas.isEmpty()) {
                     mensaje += "\nButacas ocupadas: " + String.join(", ", butacasOcupadas);
                 }
+                if (!limitesExcedidos.isEmpty()) {
+                    mensaje += "\nLímite de reservas excedido para: " + String.join(", ", limitesExcedidos);
+                }
             }
             mostrarMensaje("Reservas reactivadas", mensaje);
         } else {
-            mostrarError("No se pudo reactivar ninguna reserva");
+            String mensajeError = "No se pudo reactivar ninguna reserva";
+            if (!limitesExcedidos.isEmpty()) {
+                mensajeError += "\nMotivo: Límite de reservas excedido para algunos usuarios";
+            }
+            if (!butacasOcupadas.isEmpty()) {
+                mensajeError += "\nMotivo: Butacas ya ocupadas";
+            }
+            mostrarError(mensajeError);
         }
     }
+
 
     private void procesarCancelacionMultiple(List<Reservas> seleccionados) {
         try {
