@@ -48,18 +48,8 @@ public class ListarEspectaculosController {
             espectaculoDao = new EspectaculoDaoImpl(conn);
             reservasDao = new ReservaDaoImpl(conn);
 
-            // Configurar botones de acción con tooltips (dejar el ratón encima para ver el texto)
-            Tooltip.install(eliminarBtn, new Tooltip("Eliminar espectáculos seleccionados"));
-            Tooltip.install(editarBtn, new Tooltip("Editar espectáculo seleccionado"));
-            Tooltip.install(addBtn, new Tooltip("Agregar nuevo espectáculo"));
-
-            eliminarBtn.setOnMouseClicked(e -> eliminarSeleccionados());
-            editarBtn.setOnMouseClicked(e -> editarSeleccionados());
-            addBtn.setOnMouseClicked(e -> toggleModoAgregar());
-            guardarBtn.setOnAction(e -> guardarCambios());
-            cancelarBtn.setOnAction(e -> cancelarEdicion());
-
-            cargarEspectaculos();
+            configurarBotonesAccion(); //para mostrar los tooltips de los botones (mensajes de ayuda)
+            cargarEspectaculos();       //refrescar vista de espectáculos
         } catch (SQLException e) {
             e.printStackTrace();
             mostrarError("Error al conectar con la base de datos");
@@ -67,7 +57,20 @@ public class ListarEspectaculosController {
         }
     }
 
-    //Método auxiliar para habilitar añadir espectáculos
+    //configurar los tooltips de los botones y sus eventos
+    private void configurarBotonesAccion() {
+        Tooltip.install(eliminarBtn, new Tooltip("Eliminar espectáculos seleccionados"));
+        Tooltip.install(editarBtn, new Tooltip("Editar espectáculo seleccionado"));
+        Tooltip.install(addBtn, new Tooltip("Agregar nuevo espectáculo"));
+
+        eliminarBtn.setOnMouseClicked(e -> eliminarSeleccionados());
+        editarBtn.setOnMouseClicked(e -> editarSeleccionados());
+        addBtn.setOnMouseClicked(e -> toggleModoAgregar());
+        guardarBtn.setOnAction(e -> guardarCambios());
+        cancelarBtn.setOnAction(e -> cancelarEdicion());
+    }
+
+    //método para alternar entre modo agregar y modo normal
     private void toggleModoAgregar() {
         if (modoAgregar) {
             cancelarAgregar();
@@ -76,22 +79,16 @@ public class ListarEspectaculosController {
         }
     }
 
-    // Método auxiliar para iniciar el modo de agregar espectáculo
+    //método para iniciar el modo agregar
     private void iniciarAgregar() {
-        modoAgregar = true;
-        addBtn.setImage(new Image(getClass().getResourceAsStream("/resources/images/tick.png")));
-        guardarBtn.setVisible(true);
-        cancelarBtn.setVisible(true);
-        editarBtn.setDisable(true);
-        eliminarBtn.setDisable(true);
+        configurarEstadoBotonesModoAgregar();
 
-        // Fila de inserción de datos
+        //crear la fila para agregar un nuevo espectáculo
         filaNuevoEspectaculo = new HBox();
         filaNuevoEspectaculo.setStyle("-fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0; -fx-background-color: #e3f2fd;");
         filaNuevoEspectaculo.setPadding(new Insets(8));
         filaNuevoEspectaculo.setAlignment(Pos.CENTER_LEFT);
 
-        // Campos de texto para el nuevo espectáculo
         TextField idField = new TextField();
         idField.setPromptText("ESP-XX");
         idField.setPrefWidth(100);
@@ -111,15 +108,55 @@ public class ListarEspectaculosController {
         precioVipField.setPromptText("0.00");
         precioVipField.setPrefWidth(100);
 
-        // Botones de acción para guardar o cancelar los cambios
         ImageView guardarIcon = new ImageView(new Image(getClass().getResourceAsStream("/resources/images/tick.png")));
         ImageView cancelarIcon = new ImageView(new Image(getClass().getResourceAsStream("/resources/images/cancel.png")));
 
-        // Configurar tooltips de los iconos
+        configurarIconosAccion(guardarIcon, cancelarIcon);
+
+        HBox accionesBox = new HBox(5, guardarIcon, cancelarIcon);
+        accionesBox.setAlignment(Pos.CENTER);
+        accionesBox.setPrefWidth(80);
+
+        //validar campos de texto
+        configurarValidacionID(idField);
+        configurarValidacionPrecio(precioField);
+        configurarValidacionPrecio(precioVipField);
+
+        filaNuevoEspectaculo.getChildren().addAll(
+                new HBox(),
+                idField, nombreField, fechaPicker, precioField, precioVipField, accionesBox
+        );
+
+        //agregar la fila de nuevo espectáculo al contenedor
+        contenedorEspectaculos.getChildren().add(1, filaNuevoEspectaculo);
+        scrollEspectaculos.setVvalue(0);
+    }
+
+    //método para validar el ID del espectáculo
+    private void configurarValidacionID(TextField idField) {
+        idField.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (!Pattern.matches("^ESP-\\d{0,2}$", newVal)) {
+                idField.setStyle("-fx-text-fill: red;");
+            } else {
+                idField.setStyle("-fx-text-fill: black;");
+            }
+        });
+    }
+
+    //método para validar el precio del espectáculo
+    private void configurarValidacionPrecio(TextField precioField) {
+        precioField.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (!newVal.matches("\\d*(\\.\\d*)?")) {
+                precioField.setText(oldVal);
+            }
+        });
+    }
+
+    //método para configurar los iconos de acción (guardar y cancelar)
+    private void configurarIconosAccion(ImageView guardarIcon, ImageView cancelarIcon) {
         Tooltip.install(guardarIcon, new Tooltip("Guardar espectáculo"));
         Tooltip.install(cancelarIcon, new Tooltip("Cancelar"));
 
-        // Estilo y comportamiento de los botones
         guardarIcon.setFitHeight(16);
         guardarIcon.setFitWidth(16);
         guardarIcon.setStyle("-fx-cursor: hand;");
@@ -129,99 +166,38 @@ public class ListarEspectaculosController {
         cancelarIcon.setFitWidth(16);
         cancelarIcon.setStyle("-fx-cursor: hand;");
         cancelarIcon.setOnMouseClicked(e -> cancelarAgregar());
-
-        HBox accionesBox = new HBox(5, guardarIcon, cancelarIcon);
-        accionesBox.setAlignment(Pos.CENTER);
-        accionesBox.setPrefWidth(80);
-
-        // Validación en tiempo real del ID (formato ESP-XX)
-        idField.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (!Pattern.matches("^ESP-\\d{0,2}$", newVal)) {
-                idField.setStyle("-fx-text-fill: red;");
-            } else {
-                idField.setStyle("-fx-text-fill: black;");
-            }
-        });
-
-        // Validación de precios
-        precioField.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (!newVal.matches("\\d*(\\.\\d*)?")) {
-                precioField.setText(oldVal);
-            }
-        });
-
-        precioVipField.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (!newVal.matches("\\d*(\\.\\d*)?")) {
-                precioVipField.setText(oldVal);
-            }
-        });
-
-        filaNuevoEspectaculo.getChildren().addAll(
-                new HBox(),
-                idField, nombreField, fechaPicker, precioField, precioVipField, accionesBox
-        );
-
-        // Añadir al principio de la lista
-        contenedorEspectaculos.getChildren().add(1, filaNuevoEspectaculo);
-        scrollEspectaculos.setVvalue(0);
     }
 
-    // Método auxiliar para guardar el nuevo espectáculo
+    //método para configurar el estado de los botones en modo agregar
+    private void configurarEstadoBotonesModoAgregar() {
+        modoAgregar = true;
+        addBtn.setImage(new Image(getClass().getResourceAsStream("/resources/images/tick.png")));
+        guardarBtn.setVisible(true);
+        cancelarBtn.setVisible(true);
+        editarBtn.setDisable(true);
+        eliminarBtn.setDisable(true);
+    }
+
+    //método para guardar el nuevo espectáculo
     private void guardarNuevoEspectaculo() {
         if (filaNuevoEspectaculo == null) {
             return;
         }
 
-        //CAMPOS PARA EL NUEVO ESPECTÁCULO. ID, NOMBRE, FECHA, PRECIO, PRECIO VIP
+        //obtenemos los campos de texto para validarlos y guardarlos
         TextField idField = (TextField) filaNuevoEspectaculo.getChildren().get(1);
         TextField nombreField = (TextField) filaNuevoEspectaculo.getChildren().get(2);
         DatePicker fechaPicker = (DatePicker) filaNuevoEspectaculo.getChildren().get(3);
         TextField precioField = (TextField) filaNuevoEspectaculo.getChildren().get(4);
         TextField precioVipField = (TextField) filaNuevoEspectaculo.getChildren().get(5);
 
-        // Validaciones
         try {
+            validarCamposNuevoEspectaculo(idField, nombreField, fechaPicker, precioField, precioVipField);
 
-            if (!Pattern.matches("^ESP-\\d{2}$", idField.getText())) {
-                mostrarError("El ID debe tener el formato ESP-XX (donde XX son números)");
-                return;
-            }
+            double precio = Double.parseDouble(precioField.getText());
+            double precioVip = Double.parseDouble(precioVipField.getText());
 
-            if (espectaculoDao.existeEspectaculo(idField.getText())) {
-                mostrarError("Ya existe un espectáculo con ese ID");
-                return;
-            }
-
-            if (nombreField.getText().isEmpty()) {
-                mostrarError("El nombre no puede estar vacío");
-                return;
-            }
-
-            if (fechaPicker.getValue() == null) {
-                mostrarError("Debe seleccionar una fecha");
-                return;
-            }
-
-            if (fechaPicker.getValue().isBefore(LocalDate.now())) {
-                mostrarError("La fecha debe ser futura");
-                return;
-            }
-
-            double precio, precioVip;
-            try {
-                precio = Double.parseDouble(precioField.getText());
-                precioVip = Double.parseDouble(precioVipField.getText());
-            } catch (NumberFormatException e) {
-                mostrarError("Los precios deben ser números válidos");
-                return;
-            }
-
-            if (precio <= 0 || precioVip <= 0) {
-                mostrarError("Los precios deben ser mayores que cero");
-                return;
-            }
-
-            // Crear y guardar el nuevo espectáculo
+            //creamos un nuevo objeto Espectaculo con los datos ingresados
             Espectaculo nuevo = new Espectaculo(
                     idField.getText(),
                     nombreField.getText(),
@@ -230,11 +206,11 @@ public class ListarEspectaculosController {
                     precioVip
             );
 
-            //Insertamos el espectáculo en la base de datos
+            //intentamos insertar el nuevo espectáculo en la base de datos
             if (espectaculoDao.insertarEspectaculo(nuevo)) {
                 mostrarAlerta("Éxito", "Espectáculo agregado correctamente", Alert.AlertType.INFORMATION);
-                cancelarAgregar(); //volvemos al modo normal
-                cargarEspectaculos(); //actualizamos los espectáculos
+                cancelarAgregar();      //cancelamos el modo agregar
+                cargarEspectaculos();   //refrescamos la vista de espectáculos
             } else {
                 mostrarError("No se pudo agregar el espectáculo");
             }
@@ -243,14 +219,59 @@ public class ListarEspectaculosController {
         }
     }
 
-    // Método auxiliar para cancelar el agregado de un nuevo espectáculo
-    private void cancelarAgregar() {
+    //método para validar los campos del nuevo espectáculo
+    private void validarCamposNuevoEspectaculo(TextField idField, TextField nombreField, DatePicker fechaPicker, TextField precioField, TextField precioVipField) throws SQLException {
+        if (!Pattern.matches("^ESP-\\d{2}$", idField.getText())) {
+            mostrarError("El ID debe tener el formato ESP-XX (donde XX son números)");
+            return;
+        }
 
+        if (espectaculoDao.existeEspectaculo(idField.getText())) {
+            mostrarError("Ya existe un espectáculo con ese ID");
+            return;
+        }
+
+        if (nombreField.getText().isEmpty()) {
+            mostrarError("El nombre no puede estar vacío");
+            return;
+        }
+
+        if (fechaPicker.getValue() == null) {
+            mostrarError("Debe seleccionar una fecha");
+            return;
+        }
+
+        //la fecha debe de ser futura para insertar un espectáculo
+        if (fechaPicker.getValue().isBefore(LocalDate.now())) {
+            mostrarError("La fecha debe ser futura");
+            return;
+        }
+
+        try {
+            double precio = Double.parseDouble(precioField.getText());
+            double precioVip = Double.parseDouble(precioVipField.getText());
+
+            if (precio <= 0 || precioVip <= 0) {
+                mostrarError("Los precios deben ser mayores que cero");
+                return;
+            }
+        } catch (NumberFormatException e) {
+            mostrarError("Los precios deben ser números válidos");
+            return;
+        }
+    }
+
+    //método para cancelar el modo agregar
+    private void cancelarAgregar() {
         if (filaNuevoEspectaculo != null) {
             contenedorEspectaculos.getChildren().remove(filaNuevoEspectaculo);
             filaNuevoEspectaculo = null;
         }
-        // Volver a la vista normal
+        configurarEstadoBotonesNormal();
+    }
+
+    //método para configurar el estado de los botones en modo normal, es decir, modo listar
+    private void configurarEstadoBotonesNormal() {
         modoAgregar = false;
         addBtn.setImage(new Image(getClass().getResourceAsStream("/resources/images/add-icon.png")));
         guardarBtn.setVisible(false);
@@ -259,7 +280,7 @@ public class ListarEspectaculosController {
         eliminarBtn.setDisable(false);
     }
 
-    // Método auxiliar para editar los espectáculos seleccionados (sólo se puede uno a uno)
+    //método para editar los espectáculos seleccionados. solo 1 espectáculo a la vez
     private void editarSeleccionados() {
         List<Espectaculo> seleccionados = obtenerEspectaculosSeleccionados();
 
@@ -276,29 +297,20 @@ public class ListarEspectaculosController {
         iniciarEdicion(seleccionados.get(0));
     }
 
-    // Método auxiliar para iniciar la edición de un espectáculo
+    //método para iniciar el modo edición de un espectáculo
     private void iniciarEdicion(Espectaculo espectaculo) {
-        modoEdicion = true;
+        configurarEstadoBotonesModoEdicion();
         espectaculoEditando = espectaculo;
 
-        // Ocultar/mostrar botones. Deshabilitamos el agregar, editar y eliminar mientras estamos editando
-        addBtn.setDisable(true);
-        editarBtn.setDisable(true);
-        eliminarBtn.setDisable(true);
-        guardarBtn.setVisible(true);
-        cancelarBtn.setVisible(true);
-
-        // Crear fila de edición
         filaEditandoEspectaculo = new HBox();
         filaEditandoEspectaculo.setStyle("-fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0; -fx-background-color: #fffde7;");
         filaEditandoEspectaculo.setPadding(new Insets(8));
         filaEditandoEspectaculo.setAlignment(Pos.CENTER_LEFT);
 
-        // ID como label (no editable). PARA EVITAR QUE SE CAMBIE EL ID EN LA BBDD Y HAYA PROBLEMAS
+        //crear los campos de texto para editar el espectáculo. ID NO editable
         Label idLabel = new Label(espectaculo.getId());
         idLabel.setPrefWidth(100);
 
-        // Campos editables
         TextField nombreField = new TextField(espectaculo.getNombre());
         nombreField.setPrefWidth(160);
 
@@ -311,33 +323,30 @@ public class ListarEspectaculosController {
         TextField precioVipField = new TextField(String.format("%.2f", espectaculo.getPrecioVip()));
         precioVipField.setPrefWidth(100);
 
-        // Validación de precios
-        precioField.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (!newVal.matches("\\d*(\\.\\d*)?")) {
-                precioField.setText(oldVal);
-            }
-        });
-
-        precioVipField.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (!newVal.matches("\\d*(\\.\\d*)?")) {
-                precioVipField.setText(oldVal);
-            }
-        });
+        configurarValidacionPrecio(precioField);
+        configurarValidacionPrecio(precioVipField);
 
         filaEditandoEspectaculo.getChildren().addAll(
-                new HBox(), // Espacio para checkbox (vacío)
+                new HBox(),
                 idLabel, nombreField, fechaPicker, precioField, precioVipField
         );
 
-        // Ocultar la fila original
         filasMap.get(espectaculo.getId()).setVisible(false);
-
-        // Añadir fila de edición al principio
         contenedorEspectaculos.getChildren().add(1, filaEditandoEspectaculo);
         scrollEspectaculos.setVvalue(0);
     }
 
-    // Método auxiliar para guardar los cambios realizados según si el modo es editar o agregar
+    //método para configurar el estado de los botones en modo edición
+    private void configurarEstadoBotonesModoEdicion() {
+        modoEdicion = true;
+        addBtn.setDisable(true);
+        editarBtn.setDisable(true);
+        eliminarBtn.setDisable(true);
+        guardarBtn.setVisible(true);
+        cancelarBtn.setVisible(true);
+    }
+
+    //método para guardar los cambios realizados en el espectáculo editado
     private void guardarCambios() {
         if (modoEdicion) {
             guardarEdicion();
@@ -346,57 +355,24 @@ public class ListarEspectaculosController {
         }
     }
 
-    // Método auxiliar para guardar los cambios realizados en la edición de un espectáculo
+    //método para guardar los cambios realizados en el espectáculo editado
     private void guardarEdicion() {
-        //No pueden ser nulos
         if (filaEditandoEspectaculo == null || espectaculoEditando == null) {
             return;
         }
-
-        //Campos editables
+        //obtenemos los campos de texto para validarlos y guardarlos
         TextField nombreField = (TextField) filaEditandoEspectaculo.getChildren().get(2);
         DatePicker fechaPicker = (DatePicker) filaEditandoEspectaculo.getChildren().get(3);
         TextField precioField = (TextField) filaEditandoEspectaculo.getChildren().get(4);
         TextField precioVipField = (TextField) filaEditandoEspectaculo.getChildren().get(5);
 
         try {
-            // Validaciones
-            if (nombreField.getText().isEmpty()) {
-                mostrarError("El nombre no puede estar vacío");
-                return;
-            }
+            validarCamposEdicion(nombreField, fechaPicker, precioField, precioVipField);
 
-            if (fechaPicker.getValue() == null) {
-                mostrarError("Debe seleccionar una fecha");
-                return;
-            }
+            //actualizamos el espectáculo editado con los nuevos datos
+            actualizarEspectaculoEditado(nombreField, fechaPicker, precioField, precioVipField);
 
-            if (fechaPicker.getValue().isBefore(LocalDate.now())) {
-                mostrarError("La fecha debe ser futura");
-                return;
-            }
-
-            double precio, precioVip;
-            try {
-                precio = Double.parseDouble(precioField.getText());
-                precioVip = Double.parseDouble(precioVipField.getText());
-            } catch (NumberFormatException e) {
-                mostrarError("Los precios deben ser números válidos");
-                return;
-            }
-
-            if (precio <= 0 || precioVip <= 0) {
-                mostrarError("Los precios deben ser mayores que cero");
-                return;
-            }
-
-            // Actualizar el espectáculo
-            espectaculoEditando.setNombre(nombreField.getText());
-            espectaculoEditando.setFecha(fechaPicker.getValue());
-            espectaculoEditando.setPrecioBase(precio);
-            espectaculoEditando.setPrecioVip(precioVip);
-
-            // Guardar en la base de datos
+            //intentamos actualizar el espectáculo en la base de datos
             if (espectaculoDao.actualizarEspectaculo(espectaculoEditando)) {
                 mostrarAlerta("Éxito", "Espectáculo actualizado correctamente", Alert.AlertType.INFORMATION);
                 cancelarEdicion();
@@ -409,16 +385,56 @@ public class ListarEspectaculosController {
         }
     }
 
-    // Método auxiliar para cancelar la edición de un espectáculo
+    //método para validar los campos del espectáculo editado
+    private void validarCamposEdicion(TextField nombreField, DatePicker fechaPicker, TextField precioField, TextField precioVipField) {
+        if (nombreField.getText().isEmpty()) {
+            mostrarError("El nombre no puede estar vacío");
+            return;
+        }
+
+        if (fechaPicker.getValue() == null) {
+            mostrarError("Debe seleccionar una fecha");
+            return;
+        }
+
+        if (fechaPicker.getValue().isBefore(LocalDate.now())) {
+            mostrarError("La fecha debe ser futura");
+            return;
+        }
+
+        try {
+            double precio = Double.parseDouble(precioField.getText());
+            double precioVip = Double.parseDouble(precioVipField.getText());
+
+            if (precio <= 0 || precioVip <= 0) {
+                mostrarError("Los precios deben ser mayores que cero");
+                return;
+            }
+        } catch (NumberFormatException e) {
+            mostrarError("Los precios deben ser números válidos");
+            return;
+        }
+    }
+
+    //método para actualizar el espectáculo editado con los nuevos datos
+    private void actualizarEspectaculoEditado(TextField nombreField, DatePicker fechaPicker, TextField precioField, TextField precioVipField) {
+        espectaculoEditando.setNombre(nombreField.getText());
+        espectaculoEditando.setFecha(fechaPicker.getValue());
+        espectaculoEditando.setPrecioBase(Double.parseDouble(precioField.getText()));
+        espectaculoEditando.setPrecioVip(Double.parseDouble(precioVipField.getText()));
+    }
+
+    //método para cancelar la edición del espectáculo
     private void cancelarEdicion() {
         if (modoEdicion) {
             if (filaEditandoEspectaculo != null) {
+                //eliminar la fila de edición
                 contenedorEspectaculos.getChildren().remove(filaEditandoEspectaculo);
                 filaEditandoEspectaculo = null;
             }
 
-            // Mostrar la fila original
             if (espectaculoEditando != null) {
+                //volver a mostrar la fila original del espectáculo
                 filasMap.get(espectaculoEditando.getId()).setVisible(true);
             }
 
@@ -428,21 +444,18 @@ public class ListarEspectaculosController {
         }
     }
 
-    // Método auxiliar para resetear el modo de edición
+    //método para resetear el modo edición
     private void resetearModoEdicion() {
         modoEdicion = false;
         espectaculoEditando = null;
-        addBtn.setDisable(false);
-        editarBtn.setDisable(false);
-        eliminarBtn.setDisable(false);
-        guardarBtn.setVisible(false);
-        cancelarBtn.setVisible(false);
+        configurarEstadoBotonesNormal();
     }
 
-    // Método auxiliar para obtener los espectáculos seleccionados. Usado para eliminar o editar
+    //método auxiliar para obtener los espectáculos seleccionados
     private List<Espectaculo> obtenerEspectaculosSeleccionados() {
         List<Espectaculo> seleccionados = new ArrayList<>();
 
+        //recorremos la lista de checkboxes y agregamos los espectáculos seleccionados a la lista
         for (int i = 0; i < checkBoxes.size(); i++) {
             if (checkBoxes.get(i).isSelected()) {
                 seleccionados.add(espectaculosList.get(i));
@@ -452,7 +465,7 @@ public class ListarEspectaculosController {
         return seleccionados;
     }
 
-    // Método auxiliar para mostrar mensajes de error en la interfaz
+    //método para mostrar mensajes de error en la interfaz
     private void mostrarMensajesError(String mensaje) {
         contenedorEspectaculos.getChildren().clear();
 
@@ -469,7 +482,7 @@ public class ListarEspectaculosController {
         editarBtn.setDisable(true);
     }
 
-    // Método auxiliar para cargar los espectáculos desde la base de datos
+    //método para cargar los espectáculos desde la base de datos
     public void cargarEspectaculos() {
         try {
             espectaculosList = espectaculoDao.obtenerTodos();
@@ -481,33 +494,21 @@ public class ListarEspectaculosController {
         }
     }
 
-    // Método auxiliar para mostrar los espectáculos en la interfaz
+    //método para mostrar los espectáculos en la interfaz
     private void mostrarEspectaculos() {
-        // Limpiar el contenedor antes de agregar nuevos elementos
         contenedorEspectaculos.getChildren().clear();
         filasMap.clear();
         checkBoxes.clear();
 
-        // Cabecera
         HBox cabecera = crearCabeceraTabla();
         contenedorEspectaculos.getChildren().add(cabecera);
 
         if (espectaculosList.isEmpty()) {
-            Label noEspectaculosLabel = new Label("No hay espectáculos registrados");
-            noEspectaculosLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #757575; -fx-padding: 20px;");
-
-            VBox contenedorMensaje = new VBox(noEspectaculosLabel);
-            contenedorMensaje.setAlignment(Pos.CENTER);
-            contenedorMensaje.setPrefHeight(100);
-            contenedorEspectaculos.getChildren().add(contenedorMensaje);
-
-            eliminarBtn.setDisable(true);
-            editarBtn.setDisable(true);
+            mostrarNoHayEspectaculos();
         } else {
             eliminarBtn.setDisable(false);
             editarBtn.setDisable(false);
 
-            // Filas de datos
             for (Espectaculo espectaculo : espectaculosList) {
                 HBox fila = crearFilaEspectaculo(espectaculo);
                 contenedorEspectaculos.getChildren().add(fila);
@@ -516,7 +517,21 @@ public class ListarEspectaculosController {
         }
     }
 
-    // Método auxiliar para crear la cabecera de la tabla
+    //método para mostrar un mensaje cuando no hay espectáculos registrados
+    private void mostrarNoHayEspectaculos() {
+        Label noEspectaculosLabel = new Label("No hay espectáculos registrados");
+        noEspectaculosLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #757575; -fx-padding: 20px;");
+
+        VBox contenedorMensaje = new VBox(noEspectaculosLabel);
+        contenedorMensaje.setAlignment(Pos.CENTER);
+        contenedorMensaje.setPrefHeight(100);
+        contenedorEspectaculos.getChildren().add(contenedorMensaje);
+
+        eliminarBtn.setDisable(true);
+        editarBtn.setDisable(true);
+    }
+
+    //método para crear la cabecera de la tabla de espectáculos
     private HBox crearCabeceraTabla() {
         HBox cabecera = new HBox();
         cabecera.setStyle("-fx-background-color: #f5f5f5; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0;");
@@ -535,7 +550,7 @@ public class ListarEspectaculosController {
         return cabecera;
     }
 
-    // Método auxiliar para crear un label de cabecera
+    //método para crear un label para la cabecera de la tabla
     private Label crearLabelCabecera(String texto, double ancho) {
         Label label = new Label(texto);
         HBox.setHgrow(label, Priority.SOMETIMES);
@@ -544,8 +559,9 @@ public class ListarEspectaculosController {
         return label;
     }
 
-    // Método auxiliar para crear una fila de espectáculo
+    //método para crear una fila de espectáculo
     private HBox crearFilaEspectaculo(Espectaculo espectaculo) {
+        //crear una fila con los datos del espectáculo
         HBox fila = new HBox();
         fila.setStyle("-fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0;");
         fila.setPadding(new Insets(8));
@@ -573,24 +589,10 @@ public class ListarEspectaculosController {
         Label precioVIP = new Label(String.format("%.2f €", espectaculo.getPrecioVip()));
         precioVIP.setPrefWidth(100);
 
-        // Botones de acción con iconos consistentes
         ImageView editarIcon = new ImageView(new Image(getClass().getResourceAsStream("/resources/images/tick.png")));
         ImageView eliminarIcon = new ImageView(new Image(getClass().getResourceAsStream("/resources/images/cancel.png")));
 
-        // Configurar tooltips
-        Tooltip.install(editarIcon, new Tooltip("Editar espectáculo"));
-        Tooltip.install(eliminarIcon, new Tooltip("Eliminar espectáculo"));
-
-        // Estilo y comportamiento de los botones
-        editarIcon.setFitHeight(16);
-        editarIcon.setFitWidth(16);
-        editarIcon.setStyle("-fx-cursor: hand;");
-        editarIcon.setOnMouseClicked(e -> iniciarEdicion(espectaculo));
-
-        eliminarIcon.setFitHeight(16);
-        eliminarIcon.setFitWidth(16);
-        eliminarIcon.setStyle("-fx-cursor: hand;");
-        eliminarIcon.setOnMouseClicked(e -> eliminarEspectaculo(espectaculo));
+        configurarIconosEdicion(editarIcon, eliminarIcon, espectaculo);
 
         HBox accionesBox = new HBox(5, editarIcon, eliminarIcon);
         accionesBox.setAlignment(Pos.CENTER);
@@ -600,7 +602,24 @@ public class ListarEspectaculosController {
         return fila;
     }
 
-    // Método auxiliar para eliminar un espectáculo
+    //método para configurar los iconos de edición y eliminación
+    private void configurarIconosEdicion(ImageView editarIcon, ImageView eliminarIcon, Espectaculo espectaculo) {
+        Tooltip.install(editarIcon, new Tooltip("Editar espectáculo"));
+        Tooltip.install(eliminarIcon, new Tooltip("Eliminar espectáculo"));
+
+        //estilos y eventos para los iconos
+        editarIcon.setFitHeight(16);
+        editarIcon.setFitWidth(16);
+        editarIcon.setStyle("-fx-cursor: hand;");
+        editarIcon.setOnMouseClicked(e -> iniciarEdicion(espectaculo));
+
+        eliminarIcon.setFitHeight(16);
+        eliminarIcon.setFitWidth(16);
+        eliminarIcon.setStyle("-fx-cursor: hand;");
+        eliminarIcon.setOnMouseClicked(e -> eliminarEspectaculo(espectaculo));
+    }
+
+    //método para eliminar un espectáculo (de la BBDD y la interfaz)
     private void eliminarEspectaculo(Espectaculo espectaculo) {
         Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION);
         confirmacion.setTitle("Confirmar eliminación");
@@ -609,18 +628,19 @@ public class ListarEspectaculosController {
 
         confirmacion.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
+                //intentamos eliminar el espectáculo
                 try {
-                    // Primero eliminamos las reservas asociadas
+                    //eliminar las reservas asociadas al espectáculo
                     int reservasEliminadas = reservasDao.eliminarReservasPorEspectaculo(espectaculo.getId());
-
-                    // Luego eliminamos el espectáculo
                     boolean exito = espectaculoDao.eliminarEspectaculo(espectaculo.getId());
 
                     if (exito) {
+                        //eliminar la fila del espectáculo de la interfaz
                         HBox fila = filasMap.get(espectaculo.getId());
                         if (fila != null) {
                             contenedorEspectaculos.getChildren().remove(fila);
                         }
+                        //eliminar el espectáculo de la lista
                         espectaculosList.remove(espectaculo);
                         filasMap.remove(espectaculo.getId());
                         mostrarAlerta("Éxito",
@@ -637,10 +657,11 @@ public class ListarEspectaculosController {
         });
     }
 
-    // Método auxiliar para eliminar múltiples espectáculos seleccionados
+    //método para eliminar los espectáculos seleccionados
     private void eliminarSeleccionados() {
         List<Espectaculo> seleccionados = obtenerEspectaculosSeleccionados();
 
+        //verificamos si hay espectáculos seleccionados
         if (seleccionados.isEmpty()) {
             mostrarAlerta("Información", "No hay espectáculos seleccionados para eliminar", Alert.AlertType.INFORMATION);
             return;
@@ -655,18 +676,20 @@ public class ListarEspectaculosController {
 
         confirmacion.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
+                //intentamos eliminar los espectáculos seleccionados
                 int eliminados = 0;
                 int reservasEliminadas = 0;
 
                 for (Espectaculo espectaculo : seleccionados) {
                     try {
-                        // Eliminar reservas primero
+                        //eliminar las reservas asociadas al espectáculo
                         int resElim = reservasDao.eliminarReservasPorEspectaculo(espectaculo.getId());
                         reservasEliminadas += resElim;
 
-                        // Luego eliminar espectáculo
+                        //eliminar el espectáculo
                         boolean exito = espectaculoDao.eliminarEspectaculo(espectaculo.getId());
                         if (exito) {
+                            //eliminar la fila del espectáculo de la interfaz
                             HBox fila = filasMap.get(espectaculo.getId());
                             if (fila != null) {
                                 contenedorEspectaculos.getChildren().remove(fila);
@@ -678,7 +701,7 @@ public class ListarEspectaculosController {
                         e.printStackTrace();
                     }
                 }
-
+                //eliminar los espectáculos de la lista
                 espectaculosList.removeAll(seleccionados);
 
                 if (eliminados > 0) {
@@ -693,7 +716,7 @@ public class ListarEspectaculosController {
         });
     }
 
-    // Método auxiliar para mostrar un mensaje de error
+    //método para mostrar un mensaje de error
     private void mostrarError(String mensaje) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Error");
@@ -701,7 +724,7 @@ public class ListarEspectaculosController {
         alert.show();
     }
 
-    // Método auxiliar para mostrar una alerta genérica
+    //método para mostrar una alerta genérica
     private void mostrarAlerta(String titulo, String mensaje, Alert.AlertType tipo) {
         Alert alert = new Alert(tipo);
         alert.setTitle(titulo);
