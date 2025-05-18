@@ -155,7 +155,6 @@ public class CestaController {
         CestaStorage.guardarCesta(emailUsuarioLogueado, entradas);
     }
 
-    // Método para verificar si se puede agregar una entrada a la cesta. Usado en el método agregarEntrada.
     private boolean verificacionesReservas(String idEspectaculo, int fila, int col, long enCestaEspectaculo, int enBaseDatosEspectaculo) {
         if ((enCestaEspectaculo + enBaseDatosEspectaculo) >= 4) {
             Alert alert = new Alert(AlertType.WARNING);
@@ -203,7 +202,6 @@ public class CestaController {
             return;
         }
 
-        // Filtrar entradas por nombre, fila, columna, tipo y precio
         List<EntradaCesta> entradasFiltradas = new ArrayList<>();
         for (EntradaCesta entrada : entradas) {
             // Buscar en todas las propiedades de la entrada
@@ -301,7 +299,6 @@ public class CestaController {
         return entradaCard;
     }
 
-    // Método para eliminar una entrada de la cesta. Con su evento asociado.
     private Button eliminarReservasBtn(EntradaCesta entrada) {
         Button eliminarBtn = new Button("Eliminar");
         eliminarBtn.setStyle("-fx-background-color: #ff4444; -fx-text-fill: white; -fx-font-weight: bold;");
@@ -315,13 +312,21 @@ public class CestaController {
         return eliminarBtn;
     }
 
-    // Método para mosstrar alerta y manejar el evento de confirmar la compra de las entradas en la cesta. Se vale de un metodo auxiliar para confirmar la compra.
-    public void confirmarCompra(ActionEvent actionEvent) {
 
+    public void confirmarCompra(ActionEvent actionEvent) {
         if (entradas.isEmpty()) {
             Alert alert = new Alert(AlertType.ERROR);
             alert.setTitle("Cesta vacía");
             alert.setContentText("No hay entradas en la cesta para confirmar.");
+            alert.show();
+            return;
+        }
+
+        // Add this check
+        if (idUsuario == null || idUsuario.isEmpty()) {
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setTitle("Error de usuario");
+            alert.setContentText("No se ha identificado correctamente al usuario.");
             alert.show();
             return;
         }
@@ -333,7 +338,6 @@ public class CestaController {
         confirmarCompraEvento(confirmAlert);
     }
 
-    // Método auxiliar para manejar el evento de confirmar la compra. Se encarga de realizar la reserva en la base de datos y manejar errores.
     private void confirmarCompraEvento(Alert confirmAlert) {
         confirmAlert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
@@ -342,23 +346,20 @@ public class CestaController {
                 boolean errorOcurrido = false;
                 List<String> reservasFallidas = new ArrayList<>();
 
-                // Iniciar la transacción
                 try {
                     conn = DatabaseConnection.getConnection();
                     conn.setAutoCommit(false);
                     reservaDao = new ReservaDaoImpl(conn);
 
-                    // Reservar entradas
                     for (EntradaCesta entrada : entradas) {
                         try {
-                            reservarEntrada(entrada, reservaDao); // Reservar la entrada
+                            reservarEntrada(entrada, reservaDao);
                         } catch (SQLException e) {
-                            reservasFallidas.add(entrada.getNombreEspectaculo() + " _ Butaca: F" + entrada.getFila() + "-C" + entrada.getCol()); // Agregar a la lista de fallidas
+                            reservasFallidas.add(entrada.getNombreEspectaculo() + " _ Butaca: F" + entrada.getFila() + "-C" + entrada.getCol());
                             e.printStackTrace();
                         }
                     }
 
-                    // Si no hay reservas fallidas, confirmar la transacción
                     if (reservasFallidas.isEmpty()) {
                         exitoCompra(conn);
                     } else {
@@ -367,17 +368,16 @@ public class CestaController {
 
                 } catch (SQLException e) {
                     errorOcurrido = true;
-                    rollbackCompra(conn); // Deshacer cambios
+                    rollbackCompra(conn);
 
-                    mostrarError(e); // Mostrar error
+                    mostrarError(e);
                 } finally {
-                    volverEstadoOriginal(conn); // Volver al estado original de commit y otros
+                    volverEstadoOriginal(conn);
                 }
             }
         });
     }
 
-    // Método auxiliar para manejar el rollback de la compra en caso de error
     private static void rollbackCompra(Connection conn) {
         try {
             if (conn != null) {
@@ -385,18 +385,6 @@ public class CestaController {
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
-        }
-    }
-
-    // Método auxiliar para volver a habilitar el commit y cerrar la conexión (estado original)
-    private static void volverEstadoOriginal(Connection conn) {
-        try {
-            if (conn != null) {
-                conn.setAutoCommit(true);
-                conn.close();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 
@@ -408,8 +396,17 @@ public class CestaController {
         e.printStackTrace();
     }
 
+    private static void volverEstadoOriginal(Connection conn) {
+        try {
+            if (conn != null) {
+                conn.setAutoCommit(true);
+                conn.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
-    // Método auxiliar para manejar el fallo de la compra. Se encarga de mostrar una alerta y deshacer cambios.
     private static void falloCompra(Connection conn, List<String> reservasFallidas) throws SQLException {
         conn.rollback();
         Alert partialAlert = new Alert(AlertType.WARNING);
@@ -420,7 +417,6 @@ public class CestaController {
         partialAlert.show();
     }
 
-    // Método auxiliar para manejar el éxito de la compra. Se encarga de mostrar una alerta y limpiar la cesta.
     private void exitoCompra(Connection conn) throws SQLException {
         conn.commit();
         entradas.clear();
@@ -433,15 +429,18 @@ public class CestaController {
         successAlert.show();
     }
 
-    // Método auxiliar para reservar una entrada en la base de datos
     private void reservarEntrada(EntradaCesta entrada, ReservaDaoImpl reservaDao) throws SQLException {
+        if (idUsuario == null || idUsuario.isEmpty()) {
+            throw new SQLException("ID de usuario no está disponible");
+        }
+
         String idReservaTemp = entrada.getIdEspectaculo() + "_" + idUsuario + "_F" + entrada.getFila() + "-C" + entrada.getCol();
         reservaDao.eliminarReservaTemporal(idReservaTemp);
 
         Reservas reserva = new Reservas();
         String idReserva = idReservaTemp;
         reserva.setId_reserva(idReserva);
-        reserva.setId_espectaculo(entrada.getIdEspectaculo()); // Usar ID de la entrada
+        reserva.setId_espectaculo(entrada.getIdEspectaculo());
         reserva.setId_butaca("F" + entrada.getFila() + "-C" + entrada.getCol());
         reserva.setId_usuario(idUsuario);
         reserva.setPrecio(entrada.getPrecio());
@@ -479,7 +478,7 @@ public class CestaController {
         return eleccionBox.getValue().toString();
     }
 
-    // Método para obtener el email del usuario logueado
+
     public void setEmailUsuarioLogueado(String email) {
         this.emailUsuarioLogueado = email;
         if (usuarioLabel != null) {
@@ -488,6 +487,15 @@ public class CestaController {
 
         // Obtener el ID del usuario al establecer el email
         cargarUsuario(this.idUsuario, email);
+
+        // Wait for the ID to be loaded if necessary
+        try {
+            Connection conn = DatabaseConnection.getConnection();
+            this.usuarioDao = new UsuarioDaoImpl(conn);
+            this.idUsuario = usuarioDao.getIDUsuarioByEmail(email);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
         // Cargar la cesta desde el almacenamiento
         this.entradas = CestaStorage.cargarCesta(email);
