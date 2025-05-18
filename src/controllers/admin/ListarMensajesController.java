@@ -2,17 +2,12 @@ package controllers.admin;
 
 import dao.MensajesDaoI;
 import dao.impl.MensajesDaoImpl;
-import dao.impl.ReservaDaoImpl;
-import javafx.application.Platform;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
 import models.Mensajes;
 import utils.DatabaseConnection;
 

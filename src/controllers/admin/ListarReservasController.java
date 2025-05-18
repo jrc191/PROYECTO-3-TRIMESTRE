@@ -149,9 +149,6 @@ public class ListarReservasController {
         });
     }
 
-    // ----------------------------------------------------- //
-    //                  MÉTODOS AUXILIARES                   //
-    // ----------------------------------------------------- //
 
     private void configurarEventosBotones() {
         editarBtn.setOnMouseClicked(e -> reactivarSeleccionados());

@@ -18,7 +18,11 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.ArrayList;
 
+/**
+ * Controlador para la gestión de usuarios en el panel de administración.
+ */
 public class ListarUsuariosController {
+    // Elementos de la interfaz
     @FXML private ImageView addBtn;
     @FXML private VBox usuariosVBox;
     @FXML private ScrollPane scrollUsuarios;
@@ -27,487 +31,517 @@ public class ListarUsuariosController {
     @FXML private Button guardarBtn;
     @FXML private Button cancelarBtn;
 
+    // Datos y estado
     private List<Usuario> usuariosOriginal;
     private List<CheckBox> checkBoxes = new ArrayList<>();
     private UsuarioDaoI usuarioDao;
     private ReservasDaoI reservasDao;
     private HBox nuevaFila;
-    private Usuario usuarioEditando; // Variable para almacenar el usuario que se está editando
-    private boolean modoEdicion = false; // Flag para saber si estamos en modo edición
+    private Usuario usuarioEditando;
+    private boolean modoEdicion = false;
 
+
+    // Inicialización del controlador con la interfaz, configuración de eventos y carga de datos
     @FXML
     public void initialize() {
-        addBtn.setOnMouseClicked(e -> agregarNuevoUsuario());
-        guardarBtn.setOnAction(e -> guardarNuevoUsuario());
-        cancelarBtn.setOnAction(e->cancelarNuevoUsuario());
-
-
+        configurarEventosBotones();
 
         try {
             Connection conn = DatabaseConnection.getConnection();
             usuarioDao = new UsuarioDaoImpl(conn);
-            mostrarUsuarios(usuarioDao.listUsuariosAdmin());
+            reservasDao = new ReservaDaoImpl(conn);
+            cargarUsuarios();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            manejarErrorInicializacion(e);
         }
     }
 
+    private void configurarEventosBotones() {
+        addBtn.setOnMouseClicked(e -> agregarNuevoUsuario());
+        guardarBtn.setOnAction(e -> guardarNuevoUsuario());
+        cancelarBtn.setOnAction(e -> cancelarNuevoUsuario());
+        editarBtn.setOnMouseClicked(e -> editarSeleccionados());
+        eliminarBtn.setOnMouseClicked(e -> eliminarSeleccionados());
+        deshabilitarBotonesAccion();
+    }
+
+    // Método para cargar los usuarios desde la base de datos (se actualiza la vista)
+    private void cargarUsuarios() {
+        try {
+            limpiarInterfaz();
+            usuariosOriginal = usuarioDao.listUsuariosAdmin();
+            crearCabeceraTabla();
+            crearFilasUsuarios();
+        } catch (SQLException e) {
+            manejarErrorCargaUsuarios(e);
+        }
+    }
+
+
+    private void limpiarInterfaz() {
+        usuariosVBox.getChildren().clear();
+        checkBoxes.clear();
+    }
+
+    private void crearCabeceraTabla() {
+        HBox header = new HBox();
+        header.setStyle("-fx-background-color: #f8f9fa; -fx-padding: 10px; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0;");
+
+        Label seleccionHeader = crearLabelCabecera(" V", 80);
+        Label dniHeader = crearLabelCabecera("DNI", 120);
+        Label nombreHeader = crearLabelCabecera("Nombre", 200);
+        Label emailHeader = crearLabelCabecera("Email", 250);
+        Label accionesHeader = crearLabelCabecera("Acciones", 100);
+
+        header.getChildren().addAll(seleccionHeader, dniHeader, nombreHeader, emailHeader, accionesHeader);
+        usuariosVBox.getChildren().add(header);
+    }
+
+    private Label crearLabelCabecera(String texto, double ancho) {
+        Label label = new Label(texto);
+        label.setPrefWidth(ancho);
+        label.setStyle("-fx-text-fill: #6c757d; -fx-font-weight: bold;");
+        return label;
+    }
+
+    // Método para crear las filas de usuarios en la tabla
+    private void crearFilasUsuarios() {
+        for (Usuario usuario : usuariosOriginal) {
+            HBox row = crearFilaUsuario(usuario);
+            usuariosVBox.getChildren().add(row);
+        }
+    }
+
+    // Método para crear una fila de usuario
+    private HBox crearFilaUsuario(Usuario usuario) {
+        HBox row = new HBox();
+        row.setStyle("-fx-background-color: white; -fx-padding: 10px; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0;");
+
+        CheckBox checkBox = new CheckBox();
+        checkBox.setPrefWidth(80);
+        checkBoxes.add(checkBox);
+
+        Label dni = crearLabelDato(usuario.getDni(), 120);
+        Label nombre = crearLabelDato(usuario.getNombre(), 200);
+        Label email = crearLabelDato(usuario.getEmail(), 250);
+
+        ImageView editarIcon = crearIconoAccion("/resources/images/editar.png", "Editar usuario");
+        ImageView eliminarIcon = crearIconoAccion("/resources/images/eliminar.png", "Eliminar usuario");
+        configurarIconosUsuario(editarIcon, eliminarIcon, usuario);
+
+        HBox accionesBox = new HBox(5, editarIcon, eliminarIcon);
+        accionesBox.setPrefWidth(100);
+
+        row.getChildren().addAll(checkBox, dni, nombre, email, accionesBox);
+        return row;
+    }
+
+    private Label crearLabelDato(String texto, double ancho) {
+        Label label = new Label(texto);
+        label.setPrefWidth(ancho);
+        label.setStyle("-fx-text-fill: #495057;");
+        return label;
+    }
+
+    private ImageView crearIconoAccion(String recurso, String tooltip) {
+        ImageView icon = new ImageView(new Image(getClass().getResourceAsStream(recurso)));
+        icon.setFitHeight(16);
+        icon.setFitWidth(16);
+        Tooltip.install(icon, new Tooltip(tooltip));
+        return icon;
+    }
+
+    private void configurarIconosUsuario(ImageView editarIcon, ImageView eliminarIcon, Usuario usuario) {
+        if ("admin@admin.com".equals(usuario.getEmail())) {
+            deshabilitarIcono(editarIcon);
+            deshabilitarIcono(eliminarIcon);
+        } else {
+            configurarIconoEditar(editarIcon, usuario);
+            configurarIconoEliminar(eliminarIcon, usuario);
+        }
+    }
+
+    private void configurarIconoEditar(ImageView icon, Usuario usuario) {
+        icon.setStyle("-fx-cursor: hand;");
+        icon.setOnMouseClicked(e -> editarUsuario(usuario));
+    }
+
+    private void configurarIconoEliminar(ImageView icon, Usuario usuario) {
+        icon.setStyle("-fx-cursor: hand;");
+        icon.setOnMouseClicked(e -> eliminarUsuario(usuario));
+    }
+
+    private void deshabilitarIcono(ImageView icon) {
+        icon.setDisable(true);
+        icon.setOpacity(0.5);
+    }
+
+    private void deshabilitarBotonesAccion() {
+        editarBtn.setDisable(true);
+        eliminarBtn.setDisable(true);
+        editarBtn.setOpacity(0.5);
+        eliminarBtn.setOpacity(0.5);
+    }
+
     private void agregarNuevoUsuario() {
-        // Ocultar botón de añadir y mostrar botón de guardar
+        prepararInterfazParaNuevoUsuario();
+        crearFormularioNuevoUsuario();
+    }
+
+    private void prepararInterfazParaNuevoUsuario() {
         addBtn.setVisible(false);
         guardarBtn.setVisible(true);
         cancelarBtn.setVisible(true);
-
-        // Deshabilitar otros botones de acción
         editarBtn.setDisable(true);
         eliminarBtn.setDisable(true);
+    }
 
-        // Crear campos de texto para la nueva fila
+    // Método para crear el formulario de nuevo usuario en una fila
+    private void crearFormularioNuevoUsuario() {
         TextField dniField = new TextField();
         TextField nombreField = new TextField();
         TextField emailField = new TextField();
         PasswordField passwordField = new PasswordField();
 
-        // Configurar los campos
-        dniField.setPromptText("DNI");
-        nombreField.setPromptText("Nombre");
-        emailField.setPromptText("Email");
-        passwordField.setPromptText("Contraseña");
+        configurarCamposFormulario(dniField, nombreField, emailField, passwordField);
 
-        // Establecer anchos
-        dniField.setPrefWidth(120);
-        nombreField.setPrefWidth(200);
-        emailField.setPrefWidth(250);
-        passwordField.setPrefWidth(150);
-
-        // Crear la nueva fila
         nuevaFila = new HBox();
         nuevaFila.setStyle("-fx-background-color: #e3f2fd; -fx-padding: 10px; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0;");
 
-        // Añadir los campos a la fila
         nuevaFila.getChildren().addAll(
-                new Label("Nuevo:"), // Espacio para el checkbox (no aplicable)
+                new Label("Nuevo:"),
                 dniField,
                 nombreField,
                 emailField,
                 passwordField
         );
 
-        // Insertar la nueva fila al principio de la lista
         usuariosVBox.getChildren().add(1, nuevaFila);
-
-        // Desplazar la vista para mostrar la nueva fila
         scrollUsuarios.setVvalue(0);
     }
 
+    private void configurarCamposFormulario(TextField dniField, TextField nombreField, TextField emailField, PasswordField passwordField) {
+        dniField.setPromptText("DNI");
+        nombreField.setPromptText("Nombre");
+        emailField.setPromptText("Email");
+        passwordField.setPromptText("Contraseña");
+
+        dniField.setPrefWidth(120);
+        nombreField.setPrefWidth(200);
+        emailField.setPrefWidth(250);
+        passwordField.setPrefWidth(150);
+    }
+
+    // Método para guardar el nuevo usuario o actualizar el existente. Con validación de datos
     private void guardarNuevoUsuario() {
-        // Obtener los campos de la nueva fila
-        HBox fila = nuevaFila;
-
-        String dni;
-
-        if (modoEdicion){
-            dni =((Label)fila.getChildren().get(1)).getText();
-        }
-        else{
-            dni =((TextField)fila.getChildren().get(1)).getText();
-        }
-
-        TextField nombreField = (TextField) fila.getChildren().get(2);
-        TextField emailField = (TextField) fila.getChildren().get(3);
-        PasswordField passwordField = (PasswordField) fila.getChildren().get(4);
-
-        // Validar campos
-        if ((!modoEdicion && dni.isEmpty()) || nombreField.getText().isEmpty() || emailField.getText().isEmpty()) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setContentText("DNI, Nombre y Email son obligatorios");
-            alert.show();
-            return;
-        }
-
-        // Validar formato de email
-        if (!emailField.getText().contains("@")) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setContentText("El email debe ser válido");
-            alert.show();
+        if (!validarDatosUsuario()) {
             return;
         }
 
         try {
-            Connection conn = DatabaseConnection.getConnection();
-            this.usuarioDao = new UsuarioDaoImpl(conn);
-
             if (modoEdicion) {
-                // Modo edición - Actualizar usuario existente
-                usuarioEditando.setNombre(nombreField.getText());
-                usuarioEditando.setEmail(emailField.getText());
-
-                // Solo actualizar contraseña si se proporcionó una nueva
-                if (!passwordField.getText().isEmpty()) {
-                    usuarioEditando.setPassword(passwordField.getText());
-                }
-
-                boolean exito = usuarioDao.actualizarUsuario(usuarioEditando);
-
-                if (exito) {
-                    // Actualizar la lista de usuarios
-                    List<Usuario> usuariosActualizados = usuarioDao.listUsuariosAdmin();
-                    mostrarUsuarios(usuariosActualizados);
-
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setTitle("Éxito");
-                    alert.setContentText("Usuario actualizado correctamente");
-                    alert.show();
-                } else {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle("Error");
-                    alert.setContentText("No se pudo actualizar el usuario");
-                    alert.show();
-                }
+                actualizarUsuarioExistente();
             } else {
-                // Modo añadir - Crear nuevo usuario
-                Usuario nuevoUsuario = new Usuario();
-                nuevoUsuario.setDni(dni);
-                nuevoUsuario.setNombre(nombreField.getText());
-                nuevoUsuario.setEmail(emailField.getText());
-                nuevoUsuario.setPassword(passwordField.getText());
-
-                boolean exito = usuarioDao.registrarUsuario(nuevoUsuario);
-
-                if (exito) {
-                    // Actualizar la lista de usuarios
-                    List<Usuario> usuariosActualizados = usuarioDao.listUsuariosAdmin();
-                    mostrarUsuarios(usuariosActualizados);
-
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setTitle("Éxito");
-                    alert.setContentText("Usuario añadido correctamente");
-                    alert.show();
-                } else {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle("Error");
-                    alert.setContentText("No se pudo añadir el usuario");
-                    alert.show();
-                }
+                crearNuevoUsuario();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setContentText("Error al conectar con la base de datos: " + e.getMessage());
-            alert.show();
+            manejarErrorGuardado(e);
+        }
+    }
+
+    // Método para validar los datos del usuario
+    private boolean validarDatosUsuario() {
+        HBox fila = nuevaFila;
+        String dni = modoEdicion ? ((Label)fila.getChildren().get(1)).getText() : ((TextField)fila.getChildren().get(1)).getText();
+        TextField nombreField = (TextField) fila.getChildren().get(2);
+        TextField emailField = (TextField) fila.getChildren().get(3);
+        PasswordField passwordField = (PasswordField) fila.getChildren().get(4);
+
+        if ((!modoEdicion && dni.isEmpty()) || nombreField.getText().isEmpty() || emailField.getText().isEmpty()) {
+            mostrarError("Error", "DNI, Nombre y Email son obligatorios");
+            return false;
         }
 
-        // Restaurar estado
+        if (!emailField.getText().contains("@")) {
+            mostrarError("Error", "El email debe ser válido");
+            return false;
+        }
+
+        return true;
+    }
+
+    // Método para actualizar el usuario existente o crear uno nuevo
+    private void actualizarUsuarioExistente() throws SQLException {
+        HBox fila = nuevaFila;
+        TextField nombreField = (TextField) fila.getChildren().get(2);
+        TextField emailField = (TextField) fila.getChildren().get(3);
+        PasswordField passwordField = (PasswordField) fila.getChildren().get(4);
+
+        usuarioEditando.setNombre(nombreField.getText());
+        usuarioEditando.setEmail(emailField.getText());
+
+        if (!passwordField.getText().isEmpty()) {
+            usuarioEditando.setPassword(passwordField.getText());
+        }
+
+        boolean exito = usuarioDao.actualizarUsuario(usuarioEditando);
+
+        if (exito) {
+            mostrarMensaje("Éxito", "Usuario actualizado correctamente");
+            cargarUsuarios();
+        } else {
+            mostrarError("Error", "No se pudo actualizar el usuario");
+        }
+    }
+
+    // Método para crear un nuevo usuario
+    private void crearNuevoUsuario() throws SQLException {
+        HBox fila = nuevaFila;
+        String dni = ((TextField)fila.getChildren().get(1)).getText();
+        TextField nombreField = (TextField) fila.getChildren().get(2);
+        TextField emailField = (TextField) fila.getChildren().get(3);
+        PasswordField passwordField = (PasswordField) fila.getChildren().get(4);
+
+        Usuario nuevoUsuario = new Usuario();
+        nuevoUsuario.setDni(dni);
+        nuevoUsuario.setNombre(nombreField.getText());
+        nuevoUsuario.setEmail(emailField.getText());
+        nuevoUsuario.setPassword(passwordField.getText());
+
+        boolean exito = usuarioDao.registrarUsuario(nuevoUsuario);
+
+        // Si el usuario es creado correctamente, se añade a la lista de usuarios
+        if (exito) {
+            mostrarMensaje("Éxito", "Usuario añadido correctamente");
+            cargarUsuarios();
+        } else {
+            mostrarError("Error", "No se pudo añadir el usuario");
+        }
+    }
+
+    // Método para cancelar la creación o edición de un usuario. Se resetea la interfaz
+    private void cancelarNuevoUsuario() {
+        eliminarFilaEdicionSiExiste();
         resetearModoEdicion();
     }
 
-    private void cancelarNuevoUsuario() {
-        // Eliminar la fila de edición si existe
+    // Método para eliminar la fila de edición si existe
+    private void eliminarFilaEdicionSiExiste() {
         if (nuevaFila != null && usuariosVBox.getChildren().contains(nuevaFila)) {
             usuariosVBox.getChildren().remove(nuevaFila);
         }
-
-        // Restaurar estado
-        resetearModoEdicion();
     }
 
     private void resetearModoEdicion() {
-        // Restaurar botones
         addBtn.setVisible(true);
         guardarBtn.setVisible(false);
         cancelarBtn.setVisible(false);
         editarBtn.setDisable(false);
         eliminarBtn.setDisable(false);
 
-        // Resetear variables de edición
         modoEdicion = false;
         usuarioEditando = null;
         nuevaFila = null;
     }
 
-    public void mostrarUsuarios(List<Usuario> usuarios) {
-        usuariosVBox.getChildren().clear();
-        checkBoxes.clear();
-        usuariosOriginal = usuarios;
-
-        if (modoEdicion){
-            scrollUsuarios.setPrefHeight(scrollUsuarios.getHeight()+100);
-        }
-
-        // Encabezado de la tabla
-        HBox header = new HBox();
-        header.setStyle("-fx-background-color: #f8f9fa; -fx-padding: 10px; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0;");
-
-        // Checkbox para selección múltiple
-        Label seleccionHeader = new Label(" V");
-        Label dniHeader = new Label("DNI");
-        Label nombreHeader = new Label("Nombre");
-        Label emailHeader = new Label("Email");
-        Label accionesHeader = new Label("Acciones");
-
-        // Ajustar ancho de columnas
-        seleccionHeader.setPrefWidth(80);
-        dniHeader.setPrefWidth(120);
-        nombreHeader.setPrefWidth(200);
-        emailHeader.setPrefWidth(250);
-        accionesHeader.setPrefWidth(100);
-
-        // Estilo del encabezado
-        String headerStyle = "-fx-text-fill: #6c757d; -fx-font-weight: bold;";
-        seleccionHeader.setStyle(headerStyle);
-        dniHeader.setStyle(headerStyle);
-        nombreHeader.setStyle(headerStyle);
-        emailHeader.setStyle(headerStyle);
-        accionesHeader.setStyle(headerStyle);
-
-        header.getChildren().addAll(seleccionHeader, dniHeader, nombreHeader, emailHeader, accionesHeader);
-        usuariosVBox.getChildren().add(header);
-
-        // Filas de datos
-        for (Usuario usuario : usuarios) {
-            HBox row = new HBox();
-            row.setStyle("-fx-background-color: white; -fx-padding: 10px; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0;");
-
-            // Checkbox para selección
-            CheckBox checkBox = new CheckBox();
-            checkBox.setPrefWidth(80);
-            checkBoxes.add(checkBox);
-
-            Label dni = new Label(usuario.getDni());
-            Label nombre = new Label(usuario.getNombre());
-            Label email = new Label(usuario.getEmail());
-
-            // Botones de acción
-            ImageView editarIcon = new ImageView(new Image(getClass().getResourceAsStream("/resources/images/editar.png")));
-            ImageView eliminarIcon = new ImageView(new Image(getClass().getResourceAsStream("/resources/images/eliminar.png")));
-
-            // Configurar tooltips
-            Tooltip.install(editarIcon, new Tooltip("Editar usuario"));
-            Tooltip.install(eliminarIcon, new Tooltip("Eliminar usuario"));
-
-            // Configurar botones según si es admin o no
-            if ("admin@admin.com".equals(usuario.getEmail())) {
-                // Deshabilitar acciones para admin
-                checkBox.setDisable(true);
-                checkBox.setOpacity(0.5);
-
-                editarIcon.setImage(new Image(getClass().getResourceAsStream("/resources/images/editar.png")));
-                editarIcon.setDisable(true);
-                editarIcon.setOpacity(0.5);
-
-                eliminarIcon.setImage(new Image(getClass().getResourceAsStream("/resources/images/eliminar.png")));
-                eliminarIcon.setDisable(true);
-                eliminarIcon.setOpacity(0.5);
-
-                editarIcon.setFitHeight(16);
-                editarIcon.setFitWidth(16);
-                eliminarIcon.setFitHeight(16);
-                eliminarIcon.setFitWidth(16);
-
-            } else {
-                // Habilitar acciones para usuarios normales
-                editarIcon.setFitHeight(16);
-                editarIcon.setFitWidth(16);
-                editarIcon.setStyle("-fx-cursor: hand;");
-                editarIcon.setOnMouseClicked(e -> editarUsuario(usuario));
-
-                eliminarIcon.setFitHeight(16);
-                eliminarIcon.setFitWidth(16);
-                eliminarIcon.setStyle("-fx-cursor: hand;");
-                eliminarIcon.setOnMouseClicked(e -> eliminarUsuario(usuario));
-            }
-
-            HBox accionesBox = new HBox(5, editarIcon, eliminarIcon);
-            accionesBox.setPrefWidth(100);
-
-            dni.setPrefWidth(120);
-            nombre.setPrefWidth(200);
-            email.setPrefWidth(250);
-            accionesBox.setPrefWidth(100);
-
-            String cellStyle = "-fx-text-fill: #495057;";
-            dni.setStyle(cellStyle);
-            nombre.setStyle(cellStyle);
-            email.setStyle(cellStyle);
-
-            row.getChildren().addAll(checkBox, dni, nombre, email, accionesBox);
-            usuariosVBox.getChildren().add(row);
-        }
-
-        // Configurar botones de acciones globales
-        editarBtn.setOnMouseClicked(e -> editarSeleccionados());
-        eliminarBtn.setOnMouseClicked(e -> eliminarSeleccionados());
-    }
-
-    //editar individualmente
     private void editarUsuario(Usuario usuario) {
-        if ("admin@admin.com".equals(usuario.getEmail())) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setContentText("No se puede editar el usuario administrador");
-            alert.show();
+        if (validarUsuarioAdministrador(usuario)) {
             return;
         }
 
-        modoEdicion = true;
-        usuarioEditando = usuario;
+        prepararInterfazParaEdicion();
+        crearFormularioEdicionUsuario(usuario);
+    }
 
-        // Ocultar botones no necesarios
+    private boolean validarUsuarioAdministrador(Usuario usuario) {
+        if ("admin@admin.com".equals(usuario.getEmail())) {
+            mostrarError("Error", "No se puede modificar el usuario administrador");
+            return true;
+        }
+        return false;
+    }
+
+    private void prepararInterfazParaEdicion() {
+        modoEdicion = true;
         addBtn.setVisible(false);
         guardarBtn.setVisible(true);
         cancelarBtn.setVisible(true);
         editarBtn.setDisable(true);
         eliminarBtn.setDisable(true);
+    }
 
-        // Campo DNI como texto no editable (Label o TextField deshabilitado)
+    // Método para crear el formulario de edición de usuario. DNI no editable
+    private void crearFormularioEdicionUsuario(Usuario usuario) {
+        usuarioEditando = usuario;
+
         Label dniLabel = new Label(usuario.getDni());
-        dniLabel.setPrefWidth(120);
-
         TextField nombreField = new TextField(usuario.getNombre());
         TextField emailField = new TextField(usuario.getEmail());
         PasswordField passwordField = new PasswordField();
-        passwordField.setPromptText("Nueva contraseña (dejar vacío para no cambiar)");
 
-        // Configurar los campos
-        nombreField.setPromptText("Nombre");
-        emailField.setPromptText("Email");
+        configurarCamposEdicion(dniLabel, nombreField, emailField, passwordField);
 
-        // Establecer anchos
-        nombreField.setPrefWidth(200);
-        emailField.setPrefWidth(250);
-        passwordField.setPrefWidth(150);
-
-        // Crear la fila de edición
         nuevaFila = new HBox();
         nuevaFila.setStyle("-fx-background-color: #fffde7; -fx-padding: 10px; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0;");
 
-        // Añadir los campos a la fila (DNI como Label ahora)
         nuevaFila.getChildren().addAll(
                 new Label("Editando:"),
-                dniLabel,  // Cambiado de TextField a Label
+                dniLabel,
                 nombreField,
                 emailField,
                 passwordField
         );
 
-        // Insertar la fila de edición al principio
         usuariosVBox.getChildren().add(1, nuevaFila);
-
-        // Desplazar la vista para mostrar la fila de edición
         scrollUsuarios.setVvalue(0);
     }
 
-    //eliminar individualmente
-    private void eliminarUsuario(Usuario usuario) {
-        List<Usuario> usuarios = new ArrayList<>();
-        usuarios.add(usuario);
+    private void configurarCamposEdicion(Label dniLabel, TextField nombreField, TextField emailField, PasswordField passwordField) {
+        nombreField.setPromptText("Nombre");
+        emailField.setPromptText("Email");
+        passwordField.setPromptText("Nueva contraseña (dejar vacío para no cambiar)");
 
-        if ("admin@admin.com".equals(usuario.getEmail())) {
-            System.out.println("No se puede eliminar el usuario administrador");
-            return;
-        }
-        System.out.println("Eliminar usuario: " + usuario.getDni());
-
-        eliminarUsuarioYActualizarVista(usuarios);
-
+        dniLabel.setPrefWidth(120);
+        nombreField.setPrefWidth(200);
+        emailField.setPrefWidth(250);
+        passwordField.setPrefWidth(150);
     }
 
     private void editarSeleccionados() {
-        List<Usuario> seleccionados = getUsuariosSeleccionados();
+        List<Usuario> seleccionados = obtenerUsuariosSeleccionados();
 
-        if (seleccionados.isEmpty()) {
-            System.out.println("Seleccione un usuario para editar");
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("ERROR SELECCIÓN");
-            alert.setContentText("Seleccione, al menos, un usuario.");
-            alert.show();
+        if (!validarSeleccionEdicion(seleccionados)) {
             return;
         }
-        if (seleccionados.size() > 1) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error. Límite alcanzado");
-            alert.setContentText("Seleccione, como máximo, un usuario a la vez.");
-            return;
-        }
-        if ("admin@admin.com".equals(seleccionados.get(0).getEmail())) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error. Permiso denegado.");
-            alert.setContentText("El usuario administrador no puede editarse.");
-            return;
-        }
+
         editarUsuario(seleccionados.get(0));
     }
 
-    private void eliminarSeleccionados() {
-        List<Usuario> seleccionados = getUsuariosSeleccionados();
-        // Filtrar para no incluir al admin
-        seleccionados.removeIf(u -> "admin@admin.com".equals(u.getEmail()));
-
-        if (seleccionados.isEmpty()) {
-            System.out.println("Seleccione al menos un usuario para eliminar (excepto administrador)");
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("ERROR SELECCIÓN");
-            alert.setContentText("Seleccione, al menos, un usuario.");
-            alert.show();
-
-            return;
-        }
-        System.out.println("Eliminar usuarios seleccionados: " + seleccionados.size());
-
-        eliminarUsuarioYActualizarVista(seleccionados);
-        // IMPLEMENTAR ELIMINAR SELECCIONADOS
-    }
-
-    //MÉTODO PARA ELIMINAR USUARIO INDIVIDUAL O LISTA DE USUARIOS
-    private void eliminarUsuarioYActualizarVista(List<Usuario> seleccionados) {
-        try {
-            Connection conn = DatabaseConnection.getConnection();
-            this.usuarioDao = new UsuarioDaoImpl(conn);
-            this.reservasDao = new ReservaDaoImpl(conn);
-
-            for (Usuario usuario : seleccionados) {
-                System.out.println(usuario.getDni()); //LOGS
-
-                // Eliminar reservas
-                int reservasEliminadas = reservasDao.cancelarReservasByUsuarioID(usuario.getDni());
-                System.out.println("Reservas eliminadas: " + reservasEliminadas);
-
-                // Eliminar reservas temporales
-                int reservasTempEliminadas = reservasDao.eliminarReservasTemporalesByUsuario(usuario.getDni());
-                System.out.println("Reservas temporales eliminadas: " + reservasTempEliminadas);
-
-                // Eliminar el usuario
-                int eliminados = usuarioDao.eliminarUsuarioByID(usuario.getDni());
-                if (eliminados > 0) {
-                    System.out.println("SE BORRARON LOS USUARIOS");
-                    usuariosOriginal.remove(usuario);
-                    mostrarUsuarios(usuariosOriginal);
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setTitle("Confirmado");
-                    alert.setContentText("Se borró el usuario: " + usuario.getDni() +
-                            "\nReservas eliminadas: " + (reservasEliminadas + reservasTempEliminadas));
-                    alert.show();
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setContentText("Ocurrió un error al eliminar el usuario o sus reservas.");
-            alert.show();
-        }
-    }
-
-    private List<Usuario> getUsuariosSeleccionados() {
+    private List<Usuario> obtenerUsuariosSeleccionados() {
         List<Usuario> seleccionados = new ArrayList<>();
         for (int i = 0; i < checkBoxes.size(); i++) {
-            if (checkBoxes.get(i).isSelected() && !"admin@admin.com".equals(usuariosOriginal.get(i).getEmail())) {
+            if (checkBoxes.get(i).isSelected()) {
                 seleccionados.add(usuariosOriginal.get(i));
             }
         }
         return seleccionados;
+    }
+
+    private boolean validarSeleccionEdicion(List<Usuario> seleccionados) {
+        if (seleccionados.isEmpty()) {
+            mostrarError("Error", "Seleccione al menos un usuario para editar");
+            return false;
+        }
+
+        if (seleccionados.size() > 1) {
+            mostrarError("Error", "Solo puede editar un usuario a la vez");
+            return false;
+        }
+
+        if ("admin@admin.com".equals(seleccionados.get(0).getEmail())) {
+            mostrarError("Error", "No se puede editar el usuario administrador");
+            return false;
+        }
+
+        return true;
+    }
+
+    // Método para eliminar los usuarios seleccionados. También elimina las reservas asociadas y actualiza la vista
+    private void eliminarSeleccionados() {
+        List<Usuario> seleccionados = obtenerUsuariosSeleccionados();
+        seleccionados.removeIf(u -> "admin@admin.com".equals(u.getEmail()));
+
+        if (!validarSeleccionEliminacion(seleccionados)) {
+            return;
+        }
+
+        eliminarUsuariosYActualizarVista(seleccionados);
+    }
+
+    private boolean validarSeleccionEliminacion(List<Usuario> seleccionados) {
+        if (seleccionados.isEmpty()) {
+            mostrarError("Error", "Seleccione al menos un usuario para eliminar");
+            return false;
+        }
+        return true;
+    }
+
+    // Método para eliminar los usuarios seleccionados y actualizar la vista
+    private void eliminarUsuariosYActualizarVista(List<Usuario> seleccionados) {
+        try {
+            for (Usuario usuario : seleccionados) {
+                // Primero eliminar reservas asociadas
+                int reservasEliminadas = reservasDao.cancelarReservasByUsuarioID(usuario.getDni());
+                int reservasTempEliminadas = reservasDao.eliminarReservasTemporalesByUsuario(usuario.getDni());
+
+                // Luego eliminar el usuario
+                int eliminados = usuarioDao.eliminarUsuarioByID(usuario.getDni());
+                if (eliminados > 0) {
+                    usuariosOriginal.remove(usuario);
+                    mostrarMensaje("Confirmado", "Se borró el usuario: " + usuario.getDni() +
+                            "\nReservas eliminadas: " + (reservasEliminadas + reservasTempEliminadas));
+                }
+            }
+
+            cargarUsuarios(); // Actualizar la lista de usuarios
+        } catch (SQLException e) {
+            manejarErrorEliminacion(e);
+        }
+    }
+
+    // Método para eliminar un usuario específico y sus reservas asociadas
+    private void eliminarUsuario(Usuario usuario) {
+        try {
+            // Primero eliminar reservas asociadas
+            int reservasEliminadas = reservasDao.cancelarReservasByUsuarioID(usuario.getDni());
+            int reservasTempEliminadas = reservasDao.eliminarReservasTemporalesByUsuario(usuario.getDni());
+
+            // Luego eliminar el usuario
+            int eliminados = usuarioDao.eliminarUsuarioByID(usuario.getDni());
+
+            if (eliminados > 0) {
+                usuariosOriginal.remove(usuario);
+                mostrarMensaje("Usuario eliminado",
+                        "Se eliminó el usuario: " + usuario.getDni() +
+                                "\nReservas eliminadas: " + (reservasEliminadas + reservasTempEliminadas));
+                cargarUsuarios();
+            }
+        } catch (SQLException e) {
+            manejarErrorEliminacion(e);
+        }
+    }
+
+    private void manejarErrorInicializacion(SQLException e) {
+        e.printStackTrace();
+        mostrarError("Error", "Error al conectar con la base de datos");
+    }
+
+    private void manejarErrorCargaUsuarios(SQLException e) {
+        e.printStackTrace();
+        mostrarError("Error", "Error al cargar los usuarios");
+    }
+
+    private void manejarErrorGuardado(SQLException e) {
+        e.printStackTrace();
+        mostrarError("Error", "Error al guardar los datos del usuario");
+    }
+
+    private void manejarErrorEliminacion(SQLException e) {
+        e.printStackTrace();
+        mostrarError("Error", "Error al eliminar el usuario o sus reservas");
+    }
+
+    private void mostrarError(String titulo, String mensaje) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(titulo);
+        alert.setContentText(mensaje);
+        alert.show();
+    }
+
+    private void mostrarMensaje(String titulo, String mensaje) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(titulo);
+        alert.setContentText(mensaje);
+        alert.show();
     }
 }
