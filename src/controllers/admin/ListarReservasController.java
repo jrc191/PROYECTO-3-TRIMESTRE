@@ -29,390 +29,296 @@ public class ListarReservasController {
     private List<CheckBox> checkBoxes = new ArrayList<>();
     private ReservasDaoI reservasDao;
 
+
+    //Inicializa el controlador, junto a la conexión a la base de datos y carga las reservas (además de configurar los eventos de los botones)
     @FXML
     public void initialize() {
         try {
             Connection conn = DatabaseConnection.getConnection();
             reservasDao = new ReservaDaoImpl(conn);
             cargarReservas();
-
-            // Configurar eventos de los botones
-            editarBtn.setOnMouseClicked(e -> editarSeleccionados());
-            eliminarBtn.setOnMouseClicked(e -> cancelarSeleccionados());
-
-            // Inicialmente deshabilitar ambos botones
-            editarBtn.setDisable(true);
-            eliminarBtn.setDisable(true);
-            editarBtn.setOpacity(0.5);
-            eliminarBtn.setOpacity(0.5);
-
-            // Listener para cambios en la selección
-            reservasVBox.getChildren().addListener((javafx.collections.ListChangeListener<javafx.scene.Node>) c -> {
-                while (c.next()) {
-                    if (c.wasAdded() || c.wasRemoved()) {
-                        actualizarEstadoBotones();
-                    }
-                }
-            });
-
+            configurarEventosBotones();
+            configurarListenerSeleccion();
         } catch (SQLException e) {
-            e.printStackTrace();
-            mostrarError("Error al conectar con la base de datos");
+            manejarErrorInicializacion(e);
         }
     }
 
+
+    //Método para cargar las reservas desde la base de datos (activas y canceladas) y mostrarlas en la interfaz mediante una tabla.
     public void cargarReservas() {
         try {
-
-            reservasVBox.getChildren().clear();
-            checkBoxes.clear();
-
-            List<Reservas> reservasActivas = reservasDao.listarTodasReservas();
-            List<Reservas> reservasCanceladas = reservasDao.listarHistorialReservas();
-
-            reservasOriginal = new ArrayList<>();
-            reservasOriginal.addAll(reservasActivas);
-            reservasOriginal.addAll(reservasCanceladas);
-
-            reservasVBox.getChildren().clear();
-            checkBoxes.clear();
-
-            // Encabezado de la tabla
-            HBox header = new HBox();
-            header.setStyle("-fx-background-color: #f8f9fa; -fx-padding: 10px; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0;");
-
-            // Checkbox para selección múltiple
-            Label seleccionHeader = new Label(" V");
-            Label espectaculoHeader = new Label("Espectáculo");
-            Label butacaHeader = new Label("Butaca");
-            Label usuarioHeader = new Label("Usuario");
-            Label precioHeader = new Label("Precio");
-            Label estadoHeader = new Label("Estado");
-            Label accionesHeader = new Label("Acciones");
-
-            // Estilos y tamaños
-            seleccionHeader.setPrefWidth(50);
-            espectaculoHeader.setPrefWidth(150);
-            butacaHeader.setPrefWidth(100);
-            usuarioHeader.setPrefWidth(150);
-            precioHeader.setPrefWidth(80);
-            estadoHeader.setPrefWidth(80);
-            accionesHeader.setPrefWidth(100);
-
-            String headerStyle = "-fx-text-fill: #6c757d; -fx-font-weight: bold;";
-            seleccionHeader.setStyle(headerStyle);
-            espectaculoHeader.setStyle(headerStyle);
-            butacaHeader.setStyle(headerStyle);
-            usuarioHeader.setStyle(headerStyle);
-            precioHeader.setStyle(headerStyle);
-            estadoHeader.setStyle(headerStyle);
-            accionesHeader.setStyle(headerStyle);
-
-            header.getChildren().addAll(seleccionHeader, espectaculoHeader, butacaHeader,
-                    usuarioHeader, precioHeader, estadoHeader, accionesHeader);
-            reservasVBox.getChildren().add(header);
-
-            // Filas de datos
-            for (Reservas reserva : reservasOriginal) {
-                HBox row = new HBox();
-                String rowStyle = "-fx-background-color: white; -fx-padding: 10px; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0;";
-
-                if (reserva.getEstado() == 'C') {
-                    rowStyle = "-fx-background-color: #fff5f5; -fx-padding: 10px; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0;";
-                }
-                row.setStyle(rowStyle);
-
-                CheckBox checkBox = new CheckBox();
-                checkBox.setPrefWidth(50);
-                checkBoxes.add(checkBox);
-
-                // Listener para cambios en la selección
-                checkBox.selectedProperty().addListener((obs, oldVal, newVal) -> {
-                    actualizarEstadoBotones();
-                });
-
-                Label espectaculo = new Label(reserva.getId_espectaculo());
-                Label butaca = new Label(reserva.getId_butaca());
-                Label usuario = new Label(reserva.getId_usuario());
-                Label precio = new Label(String.format("%.2f €", reserva.getPrecio()));
-
-                // Mostrar estado con texto descriptivo
-                String estadoText = "";
-                if (reserva.getEstado() == 'O') {
-                    estadoText = "ACTIVA";
-                } else if (reserva.getEstado() == 'C') {
-                    estadoText = "CANCELADA";
-                }
-                Label estado = new Label(estadoText);
-
-                // Botones de acción
-                ImageView reactivarIcon = new ImageView(new Image(getClass().getResourceAsStream("/resources/images/tick.png")));
-                ImageView cancelarIcon = new ImageView(new Image(getClass().getResourceAsStream("/resources/images/cancel.png")));
-
-                // Configurar tooltips
-                Tooltip.install(reactivarIcon, new Tooltip("Reactivar reserva"));
-                Tooltip.install(cancelarIcon, new Tooltip("Cancelar reserva"));
-
-                // Configurar estilos y acciones
-                if (reserva.getEstado() == 'C') {
-                    // Para reservas canceladas: habilitar reactivación
-                    reactivarIcon.setFitHeight(16);
-                    reactivarIcon.setFitWidth(16);
-                    reactivarIcon.setStyle("-fx-cursor: hand;");
-                    reactivarIcon.setOnMouseClicked(e -> editarReserva(reserva));
-                    reactivarIcon.setEffect(new javafx.scene.effect.ColorAdjust(0, 0.8, 0, 0));
-
-                    // Deshabilitar cancelación
-                    cancelarIcon.setFitHeight(16);
-                    cancelarIcon.setFitWidth(16);
-                    cancelarIcon.setOpacity(0.2);
-                    cancelarIcon.setEffect(new javafx.scene.effect.ColorAdjust(0, 0, -0.3, 0));
-                } else {
-                    // Para reservas activas: habilitar cancelación
-                    cancelarIcon.setFitHeight(16);
-                    cancelarIcon.setFitWidth(16);
-                    cancelarIcon.setStyle("-fx-cursor: hand;");
-                    cancelarIcon.setOnMouseClicked(e -> cancelarReserva(reserva));
-                    cancelarIcon.setEffect(new javafx.scene.effect.ColorAdjust(0, 0.8, 0, 0));
-
-                    // Deshabilitar reactivación
-                    reactivarIcon.setFitHeight(16);
-                    reactivarIcon.setFitWidth(16);
-                    reactivarIcon.setOpacity(0.2);
-                    reactivarIcon.setEffect(new javafx.scene.effect.ColorAdjust(0, 0, -0.3, 0));
-                }
-
-                // Añadir los botones a la fila
-                HBox accionesBox = new HBox(5, reactivarIcon, cancelarIcon);
-                accionesBox.setPrefWidth(100);
-
-                // Establecer anchos y estilos
-                espectaculo.setPrefWidth(150);
-                butaca.setPrefWidth(100);
-                usuario.setPrefWidth(150);
-                precio.setPrefWidth(80);
-                estado.setPrefWidth(80);
-                accionesBox.setPrefWidth(100);
-
-                String cellStyle = "-fx-text-fill: #495057;";
-                espectaculo.setStyle(cellStyle);
-                butaca.setStyle(cellStyle);
-                usuario.setStyle(cellStyle);
-                precio.setStyle(cellStyle);
-
-                if (reserva.getEstado() == 'C') {
-                    estado.setStyle("-fx-text-fill: #f44336; -fx-font-weight: bold;");
-                } else {
-                    estado.setStyle("-fx-text-fill: #4CAF50; -fx-font-weight: bold;");
-                }
-
-                row.getChildren().addAll(checkBox, espectaculo, butaca, usuario, precio, estado, accionesBox);
-                reservasVBox.getChildren().add(row);
-            }
-
+            limpiarInterfaz();
+            cargarDatosReservas();
+            crearCabeceraTabla();
+            crearFilasReservas();
         } catch (SQLException e) {
-            e.printStackTrace();
-            mostrarError("Error al cargar las reservas");
+            manejarErrorCargaReservas(e);
         }
     }
 
+    //Actualiza el estado de los botones de editar y eliminar según la selección actual y el estado de las reservas (habilita reactivar para canceladas, cancelar para activas).
     private void actualizarEstadoBotones() {
-        List<Reservas> seleccionados = getReservasSeleccionadas();
+        List<Reservas> seleccionados = obtenerReservasSeleccionadas();
 
+        // Si no hay reservas seleccionadas, deshabilitar los botones
         if (seleccionados.isEmpty()) {
-            editarBtn.setDisable(true);
-            eliminarBtn.setDisable(true);
-            editarBtn.setOpacity(0.5);
-            eliminarBtn.setOpacity(0.5);
+            deshabilitarBotonesAccion();
             return;
         }
+        // Si hay reservas seleccionadas, habilitar los botones según el estado de las reservas
+        boolean todasCanceladas = seleccionados.stream().allMatch(r -> r.getEstado() == 'C');
+        boolean todasActivas = seleccionados.stream().allMatch(r -> r.getEstado() == 'O');
 
-        boolean todasCanceladas = true;
-        boolean todasActivas = true;
-
-        for (Reservas reserva : seleccionados) {
-            if (reserva.getEstado() == 'O') {
-                todasCanceladas = false;
-            } else if (reserva.getEstado() == 'C') {
-                todasActivas = false;
-            }
-        }
-
-        // Habilitar reactivar solo si todas las seleccionadas están canceladas
-        editarBtn.setDisable(!todasCanceladas);
-        editarBtn.setOpacity(todasCanceladas ? 1.0 : 0.5);
-
-        // Habilitar cancelar solo si todas las seleccionadas están activas
-        eliminarBtn.setDisable(!todasActivas);
-        eliminarBtn.setOpacity(todasActivas ? 1.0 : 0.5);
+        configurarBotonEditar(todasCanceladas);
+        configurarBotonEliminar(todasActivas);
     }
 
-    private void editarReserva(Reservas reserva) {
+
+    // Reactiva una reserva después de la confirmación del administrador.
+    private void reactivarReserva(Reservas reserva) {
         if (reserva.getEstado() == 'O') {
             mostrarError("Esta reserva ya está activa");
             return;
         }
 
-        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmAlert.setTitle("Confirmar reactivación");
-        confirmAlert.setHeaderText("Reactivar reserva");
-        confirmAlert.setContentText("¿Está seguro que desea reactivar esta reserva cancelada?");
+        Alert confirmacion = crearAlertaConfirmacion("Confirmar reactivación",
+                "Reactivar reserva", "¿Está seguro que desea reactivar esta reserva cancelada?");
 
-        confirmAlert.showAndWait().ifPresent(response -> {
+        confirmacion.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                try {
-                    int resultado = reservasDao.reactivarReserva(reserva.getId_reserva());
-                    if (resultado > 0) {
-                        mostrarMensaje("Reserva reactivada", "La reserva ha sido reactivada exitosamente");
-                        cargarReservas();
-                    } else if (resultado == -1) {
-                        mostrarError("No se puede reactivar la reserva porque la butaca ya está ocupada");
-                    } else {
-                        mostrarError("No se pudo reactivar la reserva");
-                    }
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                    mostrarError("Error al reactivar la reserva: " + e.getMessage());
-                }
+                procesarReactivacionReserva(reserva);
             }
         });
     }
 
+    //Cancela una reserva activa después de la confirmación del administrador.
     private void cancelarReserva(Reservas reserva) {
         if (reserva.getEstado() == 'C') {
             mostrarError("Esta reserva ya está cancelada");
             return;
         }
 
-        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmAlert.setTitle("Confirmar cancelación");
-        confirmAlert.setHeaderText("Cancelar reserva");
-        confirmAlert.setContentText("¿Está seguro que desea cancelar esta reserva?");
+        Alert confirmacion = crearAlertaConfirmacion("Confirmar cancelación",
+                "Cancelar reserva", "¿Está seguro que desea cancelar esta reserva?");
 
-        confirmAlert.showAndWait().ifPresent(response -> {
+        confirmacion.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                try {
-                    int resultado = reservasDao.cancelarReserva(reserva.getId_reserva());
-                    if (resultado > 0) {
-                        mostrarMensaje("Reserva cancelada", "La reserva ha sido cancelada exitosamente");
-                        cargarReservas();
-                    } else {
-                        mostrarError("No se pudo cancelar la reserva");
-                    }
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                    mostrarError("Error al cancelar la reserva");
-                }
+                procesarCancelacionReserva(reserva);
             }
         });
     }
 
-    private void editarSeleccionados() {
-        List<Reservas> seleccionados = getReservasSeleccionadas();
-        if (seleccionados.isEmpty()) {
-            mostrarError("Seleccione al menos una reserva para reactivar");
+    //Reactiva múltiples reservas seleccionadas después de la confirmación del administrador.
+    //Muestra un mensaje de error si no se puede reactivar alguna reserva (p.ej. si la butaca ya está ocupada).
+    private void reactivarSeleccionados() {
+        List<Reservas> seleccionados = obtenerReservasSeleccionadas();
+
+        if (!validarSeleccionReactivacion(seleccionados)) {
             return;
         }
 
-        // Verificar que todas las reservas seleccionadas estén canceladas
-        for (Reservas reserva : seleccionados) {
-            if (reserva.getEstado() != 'C') {
-                mostrarError("Solo se pueden reactivar reservas canceladas");
-                return;
-            }
-        }
+        Alert confirmacion = crearAlertaConfirmacion("Confirmar reactivación múltiple",
+                "Reactivar " + seleccionados.size() + " reservas",
+                "¿Está seguro que desea reactivar las " + seleccionados.size() + " reservas seleccionadas?");
 
-        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmAlert.setTitle("Confirmar reactivación múltiple");
-        confirmAlert.setHeaderText("Reactivar " + seleccionados.size() + " reservas");
-        confirmAlert.setContentText("¿Está seguro que desea reactivar las " + seleccionados.size() + " reservas seleccionadas?");
-
-        confirmAlert.showAndWait().ifPresent(response -> {
+        confirmacion.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                try {
-                    int reactivadas = 0;
-                    int errores = 0;
-                    List<String> erroresButacas = new ArrayList<>();
-
-                    for (Reservas reserva : seleccionados) {
-                        int resultado = reservasDao.reactivarReserva(reserva.getId_reserva());
-                        if (resultado > 0) {
-                            reactivadas++;
-                        } else if (resultado == -1) {
-                            erroresButacas.add(reserva.getId_butaca());
-                            errores++;
-                        } else {
-                            errores++;
-                        }
-                    }
-
-                    if (reactivadas > 0) {
-                        cargarReservas();
-                        String mensaje = "Se reactivaron " + reactivadas + " reservas";
-                        if (errores > 0) {
-                            mensaje += "\nNo se pudieron reactivar " + errores + " reservas";
-                            if (!erroresButacas.isEmpty()) {
-                                mensaje += "\nButacas ocupadas: " + String.join(", ", erroresButacas);
-                            }
-                        }
-                        mostrarMensaje("Reservas reactivadas", mensaje);
-                    } else {
-                        mostrarError("No se pudo reactivar ninguna reserva");
-                    }
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                    mostrarError("Error al reactivar las reservas: " + e.getMessage());
-                }
+                procesarReactivacionMultiple(seleccionados);
             }
         });
     }
 
+
+    // Cancela múltiples reservas seleccionadas después de la confirmación del administrador.
     private void cancelarSeleccionados() {
-        List<Reservas> seleccionados = getReservasSeleccionadas();
-        if (seleccionados.isEmpty()) {
-            mostrarError("Seleccione al menos una reserva para cancelar");
+        List<Reservas> seleccionados = obtenerReservasSeleccionadas();
+
+        if (!validarSeleccionCancelacion(seleccionados)) {
             return;
         }
 
-        // Verificar que todas las reservas seleccionadas estén activas
-        for (Reservas reserva : seleccionados) {
-            if (reserva.getEstado() != 'O') {
-                mostrarError("Solo se pueden cancelar reservas activas");
-                return;
-            }
-        }
+        Alert confirmacion = crearAlertaConfirmacion("Confirmar cancelación múltiple",
+                "Cancelar " + seleccionados.size() + " reservas",
+                "¿Está seguro que desea cancelar las " + seleccionados.size() + " reservas seleccionadas?");
 
-        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmAlert.setTitle("Confirmar cancelación múltiple");
-        confirmAlert.setHeaderText("Cancelar " + seleccionados.size() + " reservas");
-        confirmAlert.setContentText("¿Está seguro que desea cancelar las " + seleccionados.size() + " reservas seleccionadas?");
-
-        confirmAlert.showAndWait().ifPresent(response -> {
+        confirmacion.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                try {
-                    int canceladas = 0;
-                    for (Reservas reserva : seleccionados) {
-                        int resultado = reservasDao.cancelarReserva(reserva.getId_reserva());
-                        if (resultado > 0) {
-                            canceladas++;
-                        }
-                    }
+                procesarCancelacionMultiple(seleccionados);
+            }
+        });
+    }
 
-                    if (canceladas > 0) {
-                        cargarReservas();
-                        mostrarMensaje("Reservas canceladas", "Se cancelaron " + canceladas + " reservas");
-                    } else {
-                        mostrarError("No se pudo cancelar ninguna reserva");
-                    }
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                    mostrarError("Error al cancelar las reservas");
+    // ----------------------------------------------------- //
+    //                  MÉTODOS AUXILIARES                   //
+    // ----------------------------------------------------- //
+
+    private void configurarEventosBotones() {
+        editarBtn.setOnMouseClicked(e -> reactivarSeleccionados());
+        eliminarBtn.setOnMouseClicked(e -> cancelarSeleccionados());
+        deshabilitarBotonesAccion();
+    }
+
+    private void configurarListenerSeleccion() {
+        reservasVBox.getChildren().addListener((javafx.collections.ListChangeListener<javafx.scene.Node>) c -> {
+            while (c.next()) {
+                if (c.wasAdded() || c.wasRemoved()) {
+                    actualizarEstadoBotones();
                 }
             }
         });
     }
 
-    private List<Reservas> getReservasSeleccionadas() {
+    private void manejarErrorInicializacion(SQLException e) {
+        e.printStackTrace();
+        mostrarError("Error al conectar con la base de datos");
+    }
+
+    private void limpiarInterfaz() {
+        reservasVBox.getChildren().clear();
+        checkBoxes.clear();
+    }
+
+    private void cargarDatosReservas() throws SQLException {
+        List<Reservas> reservasActivas = reservasDao.listarTodasReservas();
+        List<Reservas> reservasCanceladas = reservasDao.listarHistorialReservas();
+        reservasOriginal = new ArrayList<>();
+        reservasOriginal.addAll(reservasActivas);
+        reservasOriginal.addAll(reservasCanceladas);
+    }
+
+    private void crearCabeceraTabla() {
+        HBox header = new HBox();
+        header.setStyle("-fx-background-color: #f8f9fa; -fx-padding: 10px; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0;");
+
+        Label[] headers = {
+                crearLabelCabecera(" V", 50),
+                crearLabelCabecera("Espectáculo", 150),
+                crearLabelCabecera("Butaca", 100),
+                crearLabelCabecera("Usuario", 150),
+                crearLabelCabecera("Precio", 80),
+                crearLabelCabecera("Estado", 80),
+                crearLabelCabecera("Acciones", 100)
+        };
+
+        header.getChildren().addAll(headers);
+        reservasVBox.getChildren().add(header);
+    }
+
+    private Label crearLabelCabecera(String texto, double ancho) {
+        Label label = new Label(texto);
+        label.setPrefWidth(ancho);
+        label.setStyle("-fx-text-fill: #6c757d; -fx-font-weight: bold;");
+        return label;
+    }
+
+    private void crearFilasReservas() {
+        for (Reservas reserva : reservasOriginal) {
+            HBox row = crearFilaReserva(reserva);
+            reservasVBox.getChildren().add(row);
+        }
+    }
+
+    private HBox crearFilaReserva(Reservas reserva) {
+        HBox row = new HBox();
+        aplicarEstiloFila(row, reserva.getEstado());
+
+        CheckBox checkBox = new CheckBox();
+        checkBox.setPrefWidth(50);
+        checkBoxes.add(checkBox);
+        checkBox.selectedProperty().addListener((obs, oldVal, newVal) -> actualizarEstadoBotones());
+
+        Label espectaculo = crearLabelDato(reserva.getId_espectaculo(), 150);
+        Label butaca = crearLabelDato(reserva.getId_butaca(), 100);
+        Label usuario = crearLabelDato(reserva.getId_usuario(), 150);
+        Label precio = crearLabelDato(String.format("%.2f €", reserva.getPrecio()), 80);
+        Label estado = crearLabelEstado(reserva.getEstado());
+
+        ImageView reactivarIcon = crearIconoAccion("/resources/images/tick.png", "Reactivar reserva");
+        ImageView cancelarIcon = crearIconoAccion("/resources/images/cancel.png", "Cancelar reserva");
+        configurarIconosReserva(reactivarIcon, cancelarIcon, reserva);
+
+        HBox accionesBox = new HBox(5, reactivarIcon, cancelarIcon);
+        accionesBox.setPrefWidth(100);
+
+        row.getChildren().addAll(checkBox, espectaculo, butaca, usuario, precio, estado, accionesBox);
+        return row;
+    }
+
+    private void aplicarEstiloFila(HBox fila, char estado) {
+        String estiloBase = "-fx-padding: 10px; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0;";
+        fila.setStyle(estado == 'C' ? estiloBase + "-fx-background-color: #fff5f5;" : estiloBase + "-fx-background-color: white;");
+    }
+
+    private Label crearLabelDato(String texto, double ancho) {
+        Label label = new Label(texto);
+        label.setPrefWidth(ancho);
+        label.setStyle("-fx-text-fill: #495057;");
+        return label;
+    }
+
+    private Label crearLabelEstado(char estado) {
+        Label label = new Label(estado == 'O' ? "ACTIVA" : "CANCELADA");
+        label.setPrefWidth(80);
+        label.setStyle(estado == 'O' ?
+                "-fx-text-fill: #4CAF50; -fx-font-weight: bold;" :
+                "-fx-text-fill: #f44336; -fx-font-weight: bold;");
+        return label;
+    }
+
+    private ImageView crearIconoAccion(String recurso, String tooltip) {
+        ImageView icon = new ImageView(new Image(getClass().getResourceAsStream(recurso)));
+        icon.setFitHeight(16);
+        icon.setFitWidth(16);
+        Tooltip.install(icon, new Tooltip(tooltip));
+        return icon;
+    }
+
+    private void configurarIconosReserva(ImageView reactivarIcon, ImageView cancelarIcon, Reservas reserva) {
+        if (reserva.getEstado() == 'C') {
+            configurarIconoReactivar(reactivarIcon, reserva);
+            deshabilitarIcono(cancelarIcon);
+        } else {
+            configurarIconoCancelar(cancelarIcon, reserva);
+            deshabilitarIcono(reactivarIcon);
+        }
+    }
+
+    private void configurarIconoReactivar(ImageView icon, Reservas reserva) {
+        icon.setStyle("-fx-cursor: hand;");
+        icon.setOnMouseClicked(e -> reactivarReserva(reserva));
+        icon.setEffect(new javafx.scene.effect.ColorAdjust(0, 0.8, 0, 0));
+    }
+
+    private void configurarIconoCancelar(ImageView icon, Reservas reserva) {
+        icon.setStyle("-fx-cursor: hand;");
+        icon.setOnMouseClicked(e -> cancelarReserva(reserva));
+        icon.setEffect(new javafx.scene.effect.ColorAdjust(0, 0.8, 0, 0));
+    }
+
+    private void deshabilitarIcono(ImageView icon) {
+        icon.setOpacity(0.2);
+        icon.setEffect(new javafx.scene.effect.ColorAdjust(0, 0, -0.3, 0));
+    }
+
+    private void deshabilitarBotonesAccion() {
+        editarBtn.setDisable(true);
+        eliminarBtn.setDisable(true);
+        editarBtn.setOpacity(0.5);
+        eliminarBtn.setOpacity(0.5);
+    }
+
+    private void configurarBotonEditar(boolean habilitar) {
+        editarBtn.setDisable(!habilitar);
+        editarBtn.setOpacity(habilitar ? 1.0 : 0.5);
+    }
+
+    private void configurarBotonEliminar(boolean habilitar) {
+        eliminarBtn.setDisable(!habilitar);
+        eliminarBtn.setOpacity(habilitar ? 1.0 : 0.5);
+    }
+
+    private List<Reservas> obtenerReservasSeleccionadas() {
         List<Reservas> seleccionados = new ArrayList<>();
         for (int i = 0; i < checkBoxes.size(); i++) {
             if (checkBoxes.get(i).isSelected()) {
@@ -420,6 +326,140 @@ public class ListarReservasController {
             }
         }
         return seleccionados;
+    }
+
+    private Alert crearAlertaConfirmacion(String titulo, String header, String content) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle(titulo);
+        alert.setHeaderText(header);
+        alert.setContentText(content);
+        return alert;
+    }
+
+    private void procesarReactivacionReserva(Reservas reserva) {
+        try {
+            int resultado = reservasDao.reactivarReserva(reserva.getId_reserva());
+            if (resultado > 0) {
+                mostrarMensaje("Reserva reactivada", "La reserva ha sido reactivada exitosamente");
+                cargarReservas();
+            } else if (resultado == -1) {
+                mostrarError("No se puede reactivar la reserva porque la butaca ya está ocupada");
+            } else {
+                mostrarError("No se pudo reactivar la reserva");
+            }
+        } catch (SQLException e) {
+            mostrarError("Error al reactivar la reserva: " + e.getMessage());
+        }
+    }
+
+    private void procesarCancelacionReserva(Reservas reserva) {
+        try {
+            int resultado = reservasDao.cancelarReserva(reserva.getId_reserva());
+            if (resultado > 0) {
+                mostrarMensaje("Reserva cancelada", "La reserva ha sido cancelada exitosamente");
+                cargarReservas();
+            } else {
+                mostrarError("No se pudo cancelar la reserva");
+            }
+        } catch (SQLException e) {
+            mostrarError("Error al cancelar la reserva");
+        }
+    }
+
+    private boolean validarSeleccionReactivacion(List<Reservas> seleccionados) {
+        if (seleccionados.isEmpty()) {
+            mostrarError("Seleccione al menos una reserva para reactivar");
+            return false;
+        }
+
+        if (seleccionados.stream().anyMatch(r -> r.getEstado() != 'C')) {
+            mostrarError("Solo se pueden reactivar reservas canceladas");
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean validarSeleccionCancelacion(List<Reservas> seleccionados) {
+        if (seleccionados.isEmpty()) {
+            mostrarError("Seleccione al menos una reserva para cancelar");
+            return false;
+        }
+
+        if (seleccionados.stream().anyMatch(r -> r.getEstado() != 'O')) {
+            mostrarError("Solo se pueden cancelar reservas activas");
+            return false;
+        }
+
+        return true;
+    }
+
+    private void procesarReactivacionMultiple(List<Reservas> seleccionados) {
+        try {
+            int reactivadas = 0;
+            int errores = 0;
+            List<String> erroresButacas = new ArrayList<>();
+
+            for (Reservas reserva : seleccionados) {
+                int resultado = reservasDao.reactivarReserva(reserva.getId_reserva());
+                if (resultado > 0) {
+                    reactivadas++;
+                } else if (resultado == -1) {
+                    erroresButacas.add(reserva.getId_butaca());
+                    errores++;
+                } else {
+                    errores++;
+                }
+            }
+
+            mostrarResultadoReactivacion(reactivadas, errores, erroresButacas);
+            if (reactivadas > 0) {
+                cargarReservas();
+            }
+        } catch (SQLException e) {
+            mostrarError("Error al reactivar las reservas: " + e.getMessage());
+        }
+    }
+
+    private void mostrarResultadoReactivacion(int exitosas, int errores, List<String> butacasOcupadas) {
+        if (exitosas > 0) {
+            String mensaje = "Se reactivaron " + exitosas + " reservas";
+            if (errores > 0) {
+                mensaje += "\nNo se pudieron reactivar " + errores + " reservas";
+                if (!butacasOcupadas.isEmpty()) {
+                    mensaje += "\nButacas ocupadas: " + String.join(", ", butacasOcupadas);
+                }
+            }
+            mostrarMensaje("Reservas reactivadas", mensaje);
+        } else {
+            mostrarError("No se pudo reactivar ninguna reserva");
+        }
+    }
+
+    private void procesarCancelacionMultiple(List<Reservas> seleccionados) {
+        try {
+            int canceladas = 0;
+            for (Reservas reserva : seleccionados) {
+                int resultado = reservasDao.cancelarReserva(reserva.getId_reserva());
+                if (resultado > 0) {
+                    canceladas++;
+                }
+            }
+
+            if (canceladas > 0) {
+                mostrarMensaje("Reservas canceladas", "Se cancelaron " + canceladas + " reservas");
+                cargarReservas();
+            } else {
+                mostrarError("No se pudo cancelar ninguna reserva");
+            }
+        } catch (SQLException e) {
+            mostrarError("Error al cancelar las reservas");
+        }
+    }
+
+    private void manejarErrorCargaReservas(SQLException e) {
+        e.printStackTrace();
+        mostrarError("Error al cargar las reservas");
     }
 
     private void mostrarError(String mensaje) {
