@@ -430,6 +430,35 @@ public class ReservaDaoImpl implements ReservasDaoI {
         }
     }
 
+    public int contarReservasActivasPorUsuarioYEspectaculo(String idUsuario, String idEspectaculo) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM reservas WHERE id_usuario = ? AND id_espectaculo = ? AND estado = 'O'";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, idUsuario);
+            pstmt.setString(2, idEspectaculo);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+        return 0;
+    }
+
+    @Override
+    public boolean existeReservaTemporal(String idReserva) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM RESERVAS_TEMP WHERE id_reserva = ?";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, idReserva);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+            return false;
+        }
+    }
+
 
     @Override
     public List<Reservas> listarTodasReservas() throws SQLException {

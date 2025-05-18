@@ -299,11 +299,23 @@ public class CestaController {
         return entradaCard;
     }
 
+    // Método para eliminar una entrada de la cesta
     private Button eliminarReservasBtn(EntradaCesta entrada) {
         Button eliminarBtn = new Button("Eliminar");
         eliminarBtn.setStyle("-fx-background-color: #ff4444; -fx-text-fill: white; -fx-font-weight: bold;");
 
         eliminarBtn.setOnAction(e -> {
+            // Eliminar la reserva temporal
+            try {
+                Connection conn = DatabaseConnection.getConnection();
+                ReservaDaoImpl reservaDao = new ReservaDaoImpl(conn);
+                String idReservaTemp = entrada.getIdEspectaculo() + "_" + idUsuario + "_F" + entrada.getFila() + "-C" + entrada.getCol();
+                reservaDao.eliminarReservaTemporal(idReservaTemp);
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+
+            // Eliminar de la cesta
             entradas.remove(entrada);
             total -= entrada.getPrecio();
             actualizarCesta();
@@ -312,7 +324,7 @@ public class CestaController {
         return eliminarBtn;
     }
 
-
+    // Método para confirmar la compra de entradas
     public void confirmarCompra(ActionEvent actionEvent) {
         if (entradas.isEmpty()) {
             Alert alert = new Alert(AlertType.ERROR);
@@ -322,7 +334,7 @@ public class CestaController {
             return;
         }
 
-        // Add this check
+        // Verificar si hay usuario está logueado. NECESARIO EN CASO DE BUGS DE LOGIN
         if (idUsuario == null || idUsuario.isEmpty()) {
             Alert alert = new Alert(AlertType.ERROR);
             alert.setTitle("Error de usuario");
@@ -353,13 +365,16 @@ public class CestaController {
 
                     for (EntradaCesta entrada : entradas) {
                         try {
+                            // Reservar la entrada
                             reservarEntrada(entrada, reservaDao);
                         } catch (SQLException e) {
+                            // Si ocurre un error al reservar, se añade a la lista de reservas fallidas
                             reservasFallidas.add(entrada.getNombreEspectaculo() + " _ Butaca: F" + entrada.getFila() + "-C" + entrada.getCol());
                             e.printStackTrace();
                         }
                     }
 
+                    // Si no hay reservas fallidas, se confirma la compra
                     if (reservasFallidas.isEmpty()) {
                         exitoCompra(conn);
                     } else {
@@ -417,7 +432,15 @@ public class CestaController {
         partialAlert.show();
     }
 
+    // Método para confirmar la compra de entradas. Si se confirma, se procesan las reservas y se actualiza la cesta.
     private void exitoCompra(Connection conn) throws SQLException {
+        // Limpiar reservas temporales
+        ReservaDaoImpl reservaDao = new ReservaDaoImpl(conn);
+        for (EntradaCesta entrada : entradas) {
+            String idReservaTemp = entrada.getIdEspectaculo() + "_" + idUsuario + "_F" + entrada.getFila() + "-C" + entrada.getCol();
+            reservaDao.eliminarReservaTemporal(idReservaTemp);
+        }
+
         conn.commit();
         entradas.clear();
         CestaStorage.guardarCesta(emailUsuarioLogueado, entradas);
@@ -429,6 +452,7 @@ public class CestaController {
         successAlert.show();
     }
 
+    // Método para reservar una entrada. Verifica si el ID de usuario está disponible y luego registra la reserva en la base de datos.
     private void reservarEntrada(EntradaCesta entrada, ReservaDaoImpl reservaDao) throws SQLException {
         if (idUsuario == null || idUsuario.isEmpty()) {
             throw new SQLException("ID de usuario no está disponible");
@@ -488,7 +512,7 @@ public class CestaController {
         // Obtener el ID del usuario al establecer el email
         cargarUsuario(this.idUsuario, email);
 
-        // Wait for the ID to be loaded if necessary
+        // Cargar el ID del usuario desde la base de datos
         try {
             Connection conn = DatabaseConnection.getConnection();
             this.usuarioDao = new UsuarioDaoImpl(conn);
